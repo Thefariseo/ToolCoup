@@ -1,0 +1,9 @@
+# I dati grezzi ACLED non vanno ridistribuiti: restano fuori dal repository
+data/raw/
+data/demo/
+__pycache__/
+.DS_Store
+.vercel
+.acled_token.json
+*.part
+.claude/
