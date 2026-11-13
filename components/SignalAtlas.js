@@ -200,19 +200,19 @@ export default function SignalAtlas({ country, rows, events, index, onSelect, vi
       hitTargets=[];
       const left=w*.11,wide=w*.63,depth=w*.18,top=52,usable=h-110,section=usable/3;
       CHANNELS.forEach((ch,j)=>{
-        const baseline=top+(j+1)*section-29,amplitude=section*.48;
-        label(`0${j+1} / ${ch.name.toUpperCase()}`,18,top+j*section-15,ch.color,8);
-        label(`MAX ${maxima[j].toLocaleString('en-GB')}`,w-18,top+j*section-15,"#7e9189",7,"right");
+        const baseline=top+(j+1)*section-35,amplitude=section*.42;
+        label(`0${j+1} / ${ch.name.toUpperCase()}`,18,top+j*section-10,ch.color,8);
+        label(`MAX ${maxima[j].toLocaleString('en-GB')}`,w-18,top+j*section-10,"#7e9189",7,"right");
         if(!live.current.layers.includes(ch.key)){label("LAYER HIDDEN",w/2,baseline,ch.color,8,"center");return;}
         const point=(rowIndex,factor=1)=>{
           const row=rows[rowIndex],yr=years.indexOf(row.date.slice(0,4)),m=Number(row.date.slice(5))-1,z=yr/Math.max(1,years.length-1);
-          return [left+m/11*wide+z*depth,baseline-z*section*.32-values[j][rowIndex]*amplitude*factor];
+          return [left+m/11*wide+z*depth,baseline-z*section*.23-values[j][rowIndex]*amplitude*factor];
         };
         // A calendar mesh: x=month, depth=year, height=log monthly count.
         // Fine stippling interpolates adjacent known samples; exact observations remain square nodes.
         const calendar=new Map(rows.map((row,i)=>[row.date,i]));
         const sample=(yi,mi)=>calendar.get(years[yi]+'-'+String(mi+1).padStart(2,'0'));
-        const surface=(year,month,value)=>[left+month/11*wide+year/Math.max(1,years.length-1)*depth,baseline-year/Math.max(1,years.length-1)*section*.32-value*amplitude];
+        const surface=(year,month,value)=>[left+month/11*wide+year/Math.max(1,years.length-1)*depth,baseline-year/Math.max(1,years.length-1)*section*.23-value*amplitude];
         for(let yi=0;yi<years.length-1;yi++)for(let mi=0;mi<11;mi++){
           const ids=[sample(yi,mi),sample(yi,mi+1),sample(yi+1,mi),sample(yi+1,mi+1)];
           if(ids.some(i=>i==null))continue;
@@ -237,13 +237,13 @@ export default function SignalAtlas({ country, rows, events, index, onSelect, vi
             ctx.fillStyle=ch.color;ctx.globalAlpha=isActive?.9:.45;ctx.fillRect(p[0]-.9,p[1]-.9,1.8,1.8);ctx.globalAlpha=1;
             if(live.current.ambient&&!reduced){const scan=(elapsed*.11)%1,month=(Number(rows[i].date.slice(5))-1)/11;const bright=Math.max(0,1-Math.abs(scan-month)*18);if(bright>.1)light(...p,ch.color,bright*1.5);}
           });
-          if(yi%3===0||yi===years.length-1){const p=point(ids.at(-1),0);label(year,p[0]+8,p[1]+3,isActive?ch.color:"#617b70",7);}
+          if(w<600?(yi===0||yi===Math.floor(years.length/2)||yi===years.length-1):(yi%3===0||yi===years.length-1)){const p=point(ids.at(-1),0);label(year,p[0]+8,p[1]+3,isActive?ch.color:"#617b70",7);}
         });
         const p=point(selected),bottom=point(selected,0);line([bottom,p],"#e7e7c9",.8);light(...p,ch.color,2.5);
         for(const m of [1,4,7,10,12])label(["JAN","APR","JUL","OCT","DEC"][[1,4,7,10,12].indexOf(m)],left+(m-1)/11*wide,baseline+14,"#7e9189",7,"center");
       });
-      label("X / MONTH   Y / LOG COUNT   Z / YEAR · INTERPOLATED MESH",18,h-22,"#92a397",7);
-      label("SELECT A NODE TO INSPECT",w-18,h-22,"#c8ba91",7,"right");
+      label(w<600?"MONTH × YEAR / LOG COUNT · INTERPOLATED MESH":"X / MONTH   Y / LOG COUNT   Z / YEAR · INTERPOLATED MESH",18,h-22,"#92a397",w<600?6:7);
+      if(w>=600)label("SELECT A NODE TO INSPECT",w-18,h-22,"#c8ba91",7,"right");
     }
     function draw() {
       ctx.clearRect(0,0,w,h);
