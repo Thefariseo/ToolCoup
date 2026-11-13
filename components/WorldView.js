@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Tip, useTip } from "@/components/Tooltip";
 import WorldMap from "@/components/WorldMap";
-import RiskField from "@/components/RiskField";
 import { fmtEventDate, fmtMonth, num, parseDate, pct, TYPE_LABEL } from "@/lib/format";
 
 const WINDOW = 10; // anni considerati per il colore della mappa storica
@@ -13,7 +12,7 @@ const HIST_LABELS = ["1", "2", "3–4", "5–7", "8 or more"];
 
 export default function WorldView({ countries, meta, initialCoups }) {
   const [mode, setMode] = useState("risk");
-  const [view, setView] = useState("field");
+  const view = "map";
   const [year, setYear] = useState(1973);
   const [playing, setPlaying] = useState(false);
   const [conf, setConf] = useState("C");
@@ -127,7 +126,7 @@ export default function WorldView({ countries, meta, initialCoups }) {
 
   return (
     <main className="console">
-      <div className="console-title"><div><p className="eyebrow">STRATEGIC RISK / {meta.demo ? "DEMO" : "RESEARCH EDITION"}</p><h1>Coup risk <span>workstation</span></h1></div><div className="edition"><i /> DATA THROUGH {meta.data_end}<small>ACLED × HISTORICAL EVIDENCE</small></div></div>
+      <div className="console-title"><div><p className="eyebrow">STRATEGIC RISK / {meta.demo ? "DEMO" : "RESEARCH EDITION"}</p><h1>World <span>map</span></h1></div><div className="edition"><i /> DATA THROUGH {meta.data_end}<small>ACLED × HISTORICAL EVIDENCE</small></div></div>
       <div className="telemetry" aria-label="Dataset overview">
         {[["COVERED COUNTRIES", num(meta.n_countries)], ["ACLED RECORDS", num(meta.n_events)], ["HISTORICAL WINDOW", `${meta.history_from || 1900}—${maxYear}`], ["FORECAST HORIZON", `${meta.horizon} MONTHS`], ["BASE RATE", pct(meta.base_rate)]].map(([label, value]) => <div key={label}><span>{label}</span><b>{value}</b></div>)}
       </div>
@@ -135,13 +134,13 @@ export default function WorldView({ countries, meta, initialCoups }) {
       <div className="world-main">
         <div className="instrument-head"><span><i /> 01 / ANALYTICAL WORKSPACE</span><span>{mode === "risk" ? "FORECAST" : "ARCHIVE"} · {mode === "risk" ? `${meta.forecast_from} → ${meta.forecast_to}` : year}</span></div>
         <div className={`map-wrap ${mode === "risk" && view === "field" ? "with-field" : ""}`}>
-          {mode === "risk" && view === "field" ? <RiskField countries={ranked} selected={sel} baseRate={meta.base_rate} horizon={meta.horizon} /> : <WorldMap
+          {<WorldMap
             classOf={classOf} active={active} selectedIso={sel?.iso} dots={mode === "history" ? dots : []}
             onSelect={(iso) => setSelected(byIso.get(iso).slug)} onHover={hover} onLeave={hideTip}
             label={mode === "risk" ? "Country coup-risk map" : `Coup events in ${year}`}
           />}
           <div className="map-top">
-            {mode === "risk" && <div className="view-toggle" role="group" aria-label="Spatial view"><button aria-pressed={view==="field"} onClick={()=>setView("field")}>COUNTRY LAB</button><button aria-pressed={view==="map"} onClick={()=>setView("map")}>WORLD ATLAS</button></div>}
+            
             <div className="seg" role="group" aria-label="Analysis mode">
               <button aria-pressed={mode === "risk"} onClick={() => { setMode("risk"); setPlaying(false); }}>Forecast</button>
               <button aria-pressed={mode === "history"} onClick={() => setMode("history")}>Historical archive</button>
@@ -188,7 +187,7 @@ export default function WorldView({ countries, meta, initialCoups }) {
                 {sel.risk != null && <span>Risk {pct(sel.risk)}{sel.risk_lo != null && ` (range ${pct(sel.risk_lo)} – ${pct(sel.risk_hi)})`} · {sel.rank} / {ranked.length}</span>}
                 <span>{sel.attempts} {sel.attempts === 1 ? "attempt" : "attempts"} since 1900</span>
               </div>
-              <Link className="btn primary" href={`/paese/${sel.slug}`}>Open dossier</Link>{" "}
+              <Link className="btn primary" href={`/?c=${sel.slug}&v=field`}>Open in instrument</Link>{" "}<Link className="btn" href={`/paese/${sel.slug}`}>Dossier</Link>{" "}
               <button className="btn" onClick={() => setSelected(null)}>Clear</button>
             </div>
           </div>

@@ -23,8 +23,9 @@ export default function RootLayout({ children }) {
         <header className="site-header">
           <Link href="/" className="brand"><span className="brand-mark" aria-hidden="true">▥</span> TOOLCOUP<span className="brand-tag"> / RESEARCH TERMINAL</span></Link>
           <nav className="site-nav" aria-label="Workspace navigation">
-            <Link href="/">01 / Workspace</Link>
-            <Link href="/metodo">02 / Methodology</Link>
+            <Link href="/">01 / Instrument</Link>
+            <Link href="/world">02 / World map</Link>
+            <Link href="/metodo">03 / Methodology</Link>
           </nav>
           <CountrySearch options={options} />
         </header>
