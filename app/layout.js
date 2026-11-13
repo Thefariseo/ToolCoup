@@ -1,5 +1,7 @@
 
 import Link from "next/link";
+import "@fontsource/ibm-plex-mono/400.css";
+import "@fontsource/ibm-plex-mono/500.css";
 import "./globals.css";
 import CountrySearch from "@/components/CountrySearch";
 import { getSummary, listCountries } from "@/lib/data";

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Tip, useTip } from "@/components/Tooltip";
 import WorldMap from "@/components/WorldMap";
+import RiskField from "@/components/RiskField";
 import { fmtEventDate, fmtMonth, num, parseDate, pct, TYPE_LABEL } from "@/lib/format";
 
 const WINDOW = 10; // anni considerati per il colore della mappa storica
@@ -12,6 +13,7 @@ const HIST_LABELS = ["1", "2", "3–4", "5–7", "8 o più"];
 
 export default function WorldView({ countries, meta, initialCoups }) {
   const [mode, setMode] = useState("risk");
+  const [view, setView] = useState("field");
   const [year, setYear] = useState(1973);
   const [playing, setPlaying] = useState(false);
   const [conf, setConf] = useState("C");
@@ -130,20 +132,21 @@ export default function WorldView({ countries, meta, initialCoups }) {
       </div>
     <div className="world">
       <div className="world-main">
-        <div className="instrument-head"><span><i /> A / ATLANTE GLOBALE</span><span>{mode === "risk" ? "PREVISIONE" : "ARCHIVIO"} · {mode === "risk" ? `${meta.forecast_from} → ${meta.forecast_to}` : year}</span></div>
-        <div className="map-wrap">
-          <WorldMap
+        <div className="instrument-head"><span><i /> A / OSSERVATORIO GLOBALE</span><span>{mode === "risk" ? "PREVISIONE" : "ARCHIVIO"} · {mode === "risk" ? `${meta.forecast_from} → ${meta.forecast_to}` : year}</span></div>
+        <div className={`map-wrap ${mode === "risk" && view === "field" ? "with-field" : ""}`}>
+          {mode === "risk" && view === "field" ? <RiskField countries={ranked} selected={sel} baseRate={meta.base_rate} /> : <WorldMap
             classOf={classOf} active={active} selectedIso={sel?.iso} dots={mode === "history" ? dots : []}
             onSelect={(iso) => setSelected(byIso.get(iso).slug)} onHover={hover} onLeave={hideTip}
             label={mode === "risk" ? "Mappa del rischio di golpe per paese" : `Mappa dei golpe nel ${year}`}
-          />
+          />}
           <div className="map-top">
+            {mode === "risk" && <div className="view-toggle" role="group" aria-label="Visualizzazione"><button aria-pressed={view==="field"} onClick={()=>setView("field")}>CAMPO 3D</button><button aria-pressed={view==="map"} onClick={()=>setView("map")}>ATLANTE</button></div>}
             <div className="seg" role="group" aria-label="Cosa mostra la mappa">
               <button aria-pressed={mode === "risk"} onClick={() => { setMode("risk"); setPlaying(false); }}>01 / Previsione</button>
               <button aria-pressed={mode === "history"} onClick={() => setMode("history")}>02 / Archivio storico</button>
             </div>
           </div>
-          <div className="map-legend">
+          <div className={`map-legend ${mode === "risk" && view === "field" ? "field-legend" : ""}`}>
             {mode === "risk" ? (<>
               <b>Probabilità di un tentativo entro {fmtMonth(to)}</b>
               <div className="legend-row">
