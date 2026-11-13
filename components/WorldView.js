@@ -22,6 +22,7 @@ export default function WorldView({ countries, meta, initialCoups }) {
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState(countries.find(c => !c.historical)?.slug || null);
   const [q, setQ] = useState("");
+  const [showAll, setShowAll] = useState(false); // the monitor opens on the top of the ranking; the rest is one click or a search away
   const [tip, showTip, hideTip] = useTip();
   const loaded = useRef("C|false"); // filtri con cui sono stati caricati gli eventi iniziali
 
@@ -202,7 +203,7 @@ export default function WorldView({ countries, meta, initialCoups }) {
                    aria-label="Filter country monitor" value={q} onChange={(e) => setQ(e.target.value)} />
           </div>
           <div className="monitor-columns"><span>RK / COUNTRY</span><span>P(ATTEMPT)</span></div><ol className="rank-list">
-            {list.map((c) => (
+            {(showAll || q.trim() ? list : list.slice(0, 24)).map((c) => (
               <li key={c.slug}>
                 <button className={selected === c.slug ? "sel" : ""} onClick={() => setSelected(c.slug)}>
                   <span className="n">{c.rank}</span>
@@ -214,6 +215,9 @@ export default function WorldView({ countries, meta, initialCoups }) {
             ))}
             {list.length === 0 && <li className="empty">No matching countries.</li>}
           </ol>
+          {!q.trim() && list.length > 24 && (
+            <button className="fx-more" onClick={() => setShowAll(!showAll)}>{showAll ? "↑ SHOW TOP 24" : `↓ SHOW ALL ${list.length} COUNTRIES`}</button>
+          )}
         </>) : (<>
           <div className="panel-sec">
             <h2>{year}</h2>
