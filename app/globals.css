@@ -353,3 +353,54 @@ button[aria-pressed="true"] .fx-dot { background: var(--channel); }
 @media (prefers-reduced-motion: reduce) { .fx-swap { animation: none; } }
 
 .country-instrument.fx .country-instrument-title { padding-top: 10px; padding-bottom: 10px; }
+
+/* ---- hierarchy: one very large field, many small things around it */
+.console-title { padding: 7px 0 5px; }
+.console-title h1 { font-size: 11px; letter-spacing: .02em; }
+.telemetry { margin-bottom: 7px; background: #08080a; }
+.telemetry > div { padding: 4px 11px; }
+.telemetry b { font-size: 11px; font-weight: 400; }
+.instrument-head { padding: 5px 12px; background: #0b0b0d; border-bottom-color: var(--line-2); }
+.world { grid-template-columns: minmax(0, 1fr) 244px; }
+.country-instrument.fx .country-instrument-title { padding: 7px 14px 7px; background: var(--void); }
+.country-instrument.fx .country-instrument-title h2 { font-size: 19px; margin: 1px 0 0; letter-spacing: -.6px; }
+.country-instrument.fx .country-instrument-title p { font-size: 7px; }
+.country-instrument.fx .country-code { transform: scale(.8); transform-origin: left center; margin-right: -4px; }
+.fx-body { grid-template-columns: 128px minmax(0, 1fr) 158px; }
+.fx-stage { height: clamp(540px, calc(100vh - 208px), 960px); }
+.fx-deck { font-size: 7px; }
+.fx-deck section { padding: 9px 10px 10px; }
+.fx-stack button, .fx-seg button { font-size: 7px; padding: 5px 5px 5px 7px; }
+.fx-deck-foot b { font-size: 21px; }
+.country-instrument.fx .signal-readouts { padding: 10px 11px; }
+.country-instrument.fx .channel-readout strong { font-size: 19px; }
+.country-instrument.fx .channel-readout { padding: 7px 0; }
+.country-instrument.fx .locator svg { height: 62px; }
+
+/* country monitor: present, searchable, never competing with the field */
+.panel { max-height: calc(100vh + 240px); }
+.panel .panel-sec { padding: 10px 12px; }
+.panel h2 { font-size: 11px; font-weight: 400; letter-spacing: .04em; }
+.panel .sub { font-size: 8.5px; line-height: 1.5; }
+.card-sel { padding: 9px; }
+.card-sel h3 { font-size: 12px; font-weight: 400; }
+.card-sel .row { font-size: 8.5px; }
+.rank-list li button { grid-template-columns: 18px minmax(0, 1fr) 34px 40px; padding: 5px 12px; font-size: 9.5px; gap: 6px; }
+.rank-list small { font-size: 7px; }
+.rank-list li button.sel { box-shadow: inset 2px 0 0 var(--hot); background: #ffffff08; }
+.rank-list .riskbar { height: 2px; background: var(--line-2); }
+.rank-list .riskbar i { background: #d67c42; border-radius: 0; }
+.signal-deck > div { padding: 9px 12px; }
+.risk-spectrum button { transition: none; }
+
+/* analysis log: real events only */
+.fx-logs { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr); }
+.fx-analysis p { display: grid; grid-template-columns: 50px 58px minmax(0, 1fr); gap: 8px; justify-content: start; font-size: 7.5px; letter-spacing: .03em; }
+.fx-analysis p span:nth-child(1) { color: var(--ink-3); }
+.fx-analysis p span:nth-child(2) { color: #d67c42; letter-spacing: .08em; }
+.fx-analysis p:first-of-type span:nth-child(3) { color: var(--hot); }
+.fx-spectro-row > div, .fx-spectro-row button { height: 4px; }
+.instrument-focus .fx-stage { height: calc(100vh - 150px); }
+@media (max-width: 1180px) { .fx-body { grid-template-columns: minmax(0, 1fr) 158px; } .fx-logs { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .fx-analysis { grid-column: 1 / -1; border-bottom: 1px solid var(--line); } }
+@media (max-width: 900px) { .world { grid-template-columns: minmax(0, 1fr); } .fx-body { grid-template-columns: minmax(0, 1fr); } .fx-stage { height: 520px; } .fx-logs { grid-template-columns: minmax(0, 1fr); } .panel { max-height: none; } }
+@media (max-width: 600px) { .fx-stage { height: 440px; } }

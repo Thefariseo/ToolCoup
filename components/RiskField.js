@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import SignalField, { CHANNELS, GeoLocator } from "@/components/SignalField";
 import { pct, TYPE_LABEL } from "@/lib/format";
 import { labelEn } from "@/lib/english";
@@ -22,6 +22,12 @@ export default function RiskField({ countries, selected, baseRate, horizon = 6 }
   const [cursor, setCursor] = useState(null), [playing, setPlaying] = useState(false), [reduced, setReduced] = useState(false);
   const [ambient, setAmbient] = useState(true), [view, setView] = useState("field"), [span, setSpan] = useState(180);
   const [speed, setSpeed] = useState(600), [focus, setFocus] = useState(false), [layers, setLayers] = useState(CHANNELS.map((c) => c.key));
+  // Analysis log: real interaction and data events only, newest first.
+  const [log, setLog] = useState([]), logId = useRef(0);
+  const note = useCallback((tag, text) => {
+    const time = new Date().toLocaleTimeString("en-GB", { hour12: false });
+    setLog((old) => [{ id: ++logId.current, time, tag, text }, ...old].slice(0, 7));
+  }, []);
 
   useEffect(() => {
     const ctl = new AbortController(); setError(false); setCursor(null); setPlaying(false);
@@ -56,7 +62,19 @@ export default function RiskField({ countries, selected, baseRate, horizon = 6 }
     return () => clearInterval(id);
   }, [playing, reduced, rows.length, speed]);
 
-  const select = (i) => { setCursor(i); setPlaying(false); };
+  const select = (i) => {
+    setCursor(i); setPlaying(false);
+    const r = rows[i]; if (r) note("INSPECT", `${r.date}  U ${r.unrest}  V ${r.violence}  F ${r.fatalities}`);
+  };
+  // one LOAD entry per country, written when its observations arrive
+  useEffect(() => {
+    if (!data || !rows.length) return;
+    const r = rows.at(-1);
+    note("LOAD", `${country.iso || "—"} ${country.name} / ${rows.length} months through ${r.date}`);
+    note("LATEST", `unrest ${r.unrest}  violence ${r.violence}  fatalities ${r.fatalities}`);
+    note("FORECAST", `${(country.risk * 100).toFixed(2)}% in ${horizon} mo / base ${(baseRate * 100).toFixed(2)}%`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result?.slug, span]);
   const toggleLayer = (key) => setLayers((old) => (old.includes(key) ? (old.length > 1 ? old.filter((k) => k !== key) : old) : CHANNELS.map((c) => c.key).filter((k) => k === key || old.includes(k))));
   function exportCSV() {
     const text = ["month,unrest_events,violence_events,reported_fatalities", ...rows.map((r) => [r.date, ...CHANNELS.map((ch) => r[ch.key])].join(","))].join("\n");
@@ -95,15 +113,15 @@ export default function RiskField({ countries, selected, baseRate, horizon = 6 }
             <section>
               <h4>VIEW</h4>
               <div className="fx-stack" role="group" aria-label="Analytical view">
-                <button aria-pressed={view === "field"} onClick={() => setView("field")}><i>▤</i> SIGNAL FIELD</button>
-                <button aria-pressed={view === "radial"} onClick={() => setView("radial")}><i>◉</i> TEMPORAL ATLAS</button>
+                <button aria-pressed={view === "field"} onClick={() => { setView("field"); note("VIEW", "composite field"); }}><i>▤</i> SIGNAL FIELD</button>
+                <button aria-pressed={view === "radial"} onClick={() => { setView("radial"); note("VIEW", "temporal atlas"); }}><i>◉</i> TEMPORAL ATLAS</button>
               </div>
             </section>
             <section>
               <h4>LAYERS</h4>
               <div className="fx-stack" role="group" aria-label="Visible signal layers">
                 {CHANNELS.map((ch) => (
-                  <button key={ch.key} aria-pressed={layers.includes(ch.key)} onClick={() => toggleLayer(ch.key)} style={{ "--channel": ch.color }}>
+                  <button key={ch.key} aria-pressed={layers.includes(ch.key)} onClick={() => { toggleLayer(ch.key); note("LAYER", `${ch.short.toLowerCase()} ${layers.includes(ch.key) ? "hidden" : "shown"}`); }} style={{ "--channel": ch.color }}>
                     <i className="fx-dot" /> {ch.short}
                   </button>
                 ))}
@@ -120,7 +138,7 @@ export default function RiskField({ countries, selected, baseRate, horizon = 6 }
             <section>
               <h4>PLAYBACK</h4>
               <div className="fx-stack">
-                <button disabled={reduced} aria-pressed={playing} onClick={() => { setPlaying(!playing); if (index === rows.length - 1) setCursor(0); }}>
+                <button disabled={reduced} aria-pressed={playing} onClick={() => { setPlaying(!playing); if (index === rows.length - 1) setCursor(0); note("PLAYBACK", playing ? `paused at ${current.date}` : `started / ${(600 / speed).toFixed(1)}× `); }}>
                   <i>{playing ? "Ⅱ" : "▷"}</i> {playing ? "PAUSE" : "PLAY"}
                 </button>
               </div>
@@ -145,7 +163,7 @@ export default function RiskField({ countries, selected, baseRate, horizon = 6 }
             </section>
           </aside>
 
-          <SignalField country={country} rows={rows} events={events} index={index} onSelect={select} view={view} reduced={reduced} ambient={ambient} layers={layers} />
+          <SignalField country={country} rows={rows} events={events} index={index} onSelect={select} view={view} reduced={reduced} ambient={ambient} layers={layers} playing={playing} speed={speed} />
 
           <aside className="signal-readouts" aria-label="Selected month observations">
             <div className="locator"><div className="mini-section-label"><span>LOCATOR</span><span>ISO {country.iso}</span></div><GeoLocator iso={country.iso} /></div>
@@ -182,6 +200,10 @@ export default function RiskField({ countries, selected, baseRate, horizon = 6 }
               </div>); })}
           </div>
           <div className="fx-logs">
+            <div className="fx-log fx-analysis" aria-live="off">
+              <h4>ANALYSIS LOG</h4>
+              {log.map((l) => <p key={l.id} className="fx-swap"><span>{l.time}</span><span>{l.tag}</span><span>{l.text}</span></p>)}
+            </div>
             <div className="fx-log">
               <h4>EVENT STREAM / A–C · {inWindow.length} IN WINDOW</h4>
               {inWindow.length ? inWindow.slice(-5).reverse().map((e) => (
