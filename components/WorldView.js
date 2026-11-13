@@ -134,13 +134,13 @@ export default function WorldView({ countries, meta, initialCoups }) {
       <div className="world-main">
         <div className="instrument-head"><span><i /> A / OSSERVATORIO GLOBALE</span><span>{mode === "risk" ? "PREVISIONE" : "ARCHIVIO"} · {mode === "risk" ? `${meta.forecast_from} → ${meta.forecast_to}` : year}</span></div>
         <div className={`map-wrap ${mode === "risk" && view === "field" ? "with-field" : ""}`}>
-          {mode === "risk" && view === "field" ? <RiskField countries={ranked} selected={sel} baseRate={meta.base_rate} /> : <WorldMap
+          {mode === "risk" && view === "field" ? <RiskField countries={ranked} selected={sel} baseRate={meta.base_rate} horizon={meta.horizon} /> : <WorldMap
             classOf={classOf} active={active} selectedIso={sel?.iso} dots={mode === "history" ? dots : []}
             onSelect={(iso) => setSelected(byIso.get(iso).slug)} onHover={hover} onLeave={hideTip}
             label={mode === "risk" ? "Mappa del rischio di golpe per paese" : `Mappa dei golpe nel ${year}`}
           />}
           <div className="map-top">
-            {mode === "risk" && <div className="view-toggle" role="group" aria-label="Visualizzazione"><button aria-pressed={view==="field"} onClick={()=>setView("field")}>CAMPO 3D</button><button aria-pressed={view==="map"} onClick={()=>setView("map")}>ATLANTE</button></div>}
+            {mode === "risk" && <div className="view-toggle" role="group" aria-label="Visualizzazione"><button aria-pressed={view==="field"} onClick={()=>setView("field")}>SEGNALI PAESE</button><button aria-pressed={view==="map"} onClick={()=>setView("map")}>ATLANTE</button></div>}
             <div className="seg" role="group" aria-label="Cosa mostra la mappa">
               <button aria-pressed={mode === "risk"} onClick={() => { setMode("risk"); setPlaying(false); }}>01 / Previsione</button>
               <button aria-pressed={mode === "history"} onClick={() => setMode("history")}>02 / Archivio storico</button>
