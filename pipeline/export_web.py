@@ -75,13 +75,16 @@ def export(result: dict, coupdb_csv: Path | None, out_dir: Path) -> None:
         slug = slugify(c["name"])
         st = stats.pop(slug, {"attempts": 0, "successes": 0, "last": None})
         countries.append({"slug": slug, "name": c["name"], "iso": c["iso"], "region": c["region"],
-                          "risk": c["risk"], "rank": c["rank"], "risk_3m_ago": c["risk_3m_ago"],
-                          "drivers": c["drivers"], "historical": False, "attempts": st["attempts"],
+                          "risk": c["risk"], "risk_lo": c.get("risk_lo"), "risk_hi": c.get("risk_hi"),
+                          "rank": c["rank"], "risk_3m_ago": c["risk_3m_ago"], "structural": c.get("structural", True),
+                          "drivers": c["drivers"], "groups": c.get("groups", []), "historical": False,
+                          "attempts": st["attempts"],
                           "successes": st["successes"], "last": st["last"]})
         details[slug] = {"risk_hist": c["risk_hist"], "series": c["series"]}
     for slug, st in sorted(stats.items()):   # paesi presenti solo nella storia dei golpe
         countries.append({"slug": slug, "name": st["name"], "iso": st["iso"], "region": "", "risk": None,
-                          "rank": None, "risk_3m_ago": None, "drivers": [], "historical": True,
+                          "risk_lo": None, "risk_hi": None, "rank": None, "risk_3m_ago": None, "structural": False,
+                          "drivers": [], "groups": [], "historical": True,
                           "attempts": st["attempts"], "successes": st["successes"], "last": st["last"]})
 
     # ---------------- sintesi
@@ -93,7 +96,8 @@ def export(result: dict, coupdb_csv: Path | None, out_dir: Path) -> None:
         y[e["conf"]][0 if e["type"] == "riuscito" else 1] += 1
     years = range(min(per_year), max(per_year) + 1) if per_year else []
     timeline = [per_year.get(y, {"year": y, "A": [0, 0], "B": [0, 0], "C": [0, 0], "D": [0, 0]}) for y in years]
-    summary = {"meta": result["meta"], "metrics": result["metrics"], "timeline": timeline,
+    summary = {"meta": result["meta"], "metrics": result["metrics"], "comparisons": result.get("comparisons", []),
+               "calibration": result.get("calibration", []), "timeline": timeline,
                "event_study": result["history"]["event_study"], "factors": result["history"]["factors"],
                "by_region": result["history"]["by_region"]}
 

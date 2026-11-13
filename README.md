@@ -24,6 +24,10 @@ python3 pipeline/fetch_coup_sources.py
 ```
 
 ```bash
+python3 pipeline/fetch_structural.py
+```
+
+```bash
 python3 pipeline/fetch_acled.py
 ```
 
@@ -35,12 +39,13 @@ python3 pipeline/build_coupdb.py
 python3 pipeline/run.py
 ```
 
-In ordine: Powell & Thyne; le altre fonti sui golpe (per V-Dem e PIPE serve R); gli eventi ACLED via API
-(chiede email e password myACLED a terminale, serve un account con accesso agli eventi); l'incrocio delle
-fonti in `data/coupdb/`; modello ed esportazione in `webdata/`.
+In ordine: Powell & Thyne; le altre fonti sui golpe; le variabili strutturali da V-Dem e Banca Mondiale;
+gli eventi ACLED via API (chiede email e password myACLED a terminale, serve un account con accesso agli
+eventi); l'incrocio delle fonti in `data/coupdb/`; modello ed esportazione in `webdata/`.
+Per V-Dem e PIPE serve R installato.
 
-Opzioni di `run.py`: `--horizon 12` cambia l'orizzonte (default 6 mesi), `--coups pt` usa solo
-Powell & Thyne, `--demo` usa dati sintetici (`python3 pipeline/make_demo_data.py`).
+`run.py` impiega diversi minuti: riaddestra tre modelli per ogni anno dal 1975. Opzioni: `--boot 0` salta
+gli intervalli di incertezza, `--horizon 12` cambia l'orizzonte (default 6 mesi).
 
 ## Sito in locale
 
@@ -75,10 +80,14 @@ ridistribuzione. Il sito contiene conteggi mensili per paese, non gli eventi gre
 
 ## Modello
 
+- **Campione**: paese-mesi dal 1950 a oggi (circa 160.000), non solo il periodo coperto da ACLED.
 - **Target**: almeno un tentativo di golpe nei successivi N mesi, tra gli eventi confermati da almeno due
   fonti accademiche o presenti in Powell & Thyne.
-- **Variabili**: storia golpista del paese e della regione, più tre indicatori ACLED misurati rispetto alla
-  norma del paese (impennata di proteste e disordini, scontri recenti tra forze statali, quota di proteste
-  represse). I conteggi assoluti non sono usati: crescono con la copertura ACLED.
-- **Validazione**: finestra espandibile anno per anno, metriche tutte fuori campione.
-- **Risultato**: la storia golpista spiega quasi tutta la capacità predittiva; ACLED aggiunge poco.
+- **Variabili** (`pipeline/panel.py`): storia golpista, contagio regionale e globale, regime, leader ed
+  elezioni, economia, mobilitazione annuale, segnali mensili ACLED relativi alla norma del paese. Ogni
+  variabile entra solo quando la fonte l'aveva già pubblicata.
+- **Insieme** (`pipeline/model.py`): media di regressione logistica regolarizzata, gradient boosting e
+  foresta casuale, poi calibrazione di Platt stimata solo sul passato.
+- **Validazione**: finestra espandibile anno per anno dal 1975; AUC-ROC, AUC-PR, Brier, calibrazione per
+  fasce, confronti per sottrazione con intervalli da ricampionamento dei paesi.
+- **Incertezza**: intervallo all'80% per ogni paese, da riaddestramenti su paesi ricampionati.

@@ -78,6 +78,47 @@ def save(rel: str, data: bytes) -> None:
     print(f"  {rel}: {len(data) / 1024:.0f} KB")
 
 
+WIKI_LISTS = {"fr": "Liste de coups d'État et de tentatives de coup d'État", "es": "Anexo:Golpes de Estado",
+              "de": "Liste von Putschen und Putschversuchen"}
+
+
+def wiki_api(lang: str, params: dict) -> dict:
+    q = urllib.parse.urlencode({**params, "format": "json", "formatversion": 2})
+    return json.loads(get(f"https://{lang}.wikipedia.org/w/api.php?" + q))
+
+
+def fetch_wiki_lists() -> None:
+    """Elenchi di golpe in altre lingue + traduzione in inglese dei nomi di paese che contengono."""
+    import sys
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from wiki_lists import PARSERS
+
+    names: dict[str, dict[str, str]] = {}
+    for lang, page in WIKI_LISTS.items():
+        raw = get(f"https://{lang}.wikipedia.org/w/api.php?" + urllib.parse.urlencode(
+            {"action": "parse", "page": page, "prop": "wikitext", "format": "json", "formatversion": 2, "redirects": 1}))
+        text = json.loads(raw)["parse"]["wikitext"]
+        save(f"wikipedia/list_{lang}.json", raw)
+        wanted = sorted({r[3] for r in PARSERS[lang](text)})
+        found: dict[str, str] = {}
+        for i in range(0, len(wanted), 40):
+            chunk = wanted[i:i + 40]
+            d = wiki_api(lang, {"action": "query", "titles": "|".join(chunk), "prop": "langlinks",
+                                "lllang": "en", "lllimit": 500, "redirects": 1})["query"]
+            alias = {}
+            for step in ("normalized", "redirects"):          # titolo scritto nell'elenco -> titolo della voce
+                for m in d.get(step, []):
+                    alias[m["from"]] = m["to"]
+            english = {pg["title"]: pg["langlinks"][0]["title"] for pg in d.get("pages", []) if pg.get("langlinks")}
+            for name in chunk:
+                title = alias.get(alias.get(name, name), alias.get(name, name))
+                if title in english:
+                    found[name] = english[title]
+        names[lang] = found
+        print(f"  nomi di paese {lang}: {len(found)} tradotti su {len(wanted)}")
+    save("wikipedia/country_names.json", json.dumps(names, ensure_ascii=False, indent=0).encode())
+
+
 def main() -> None:
     for rel, url in FILES.items():
         data = get(url)
@@ -95,6 +136,7 @@ def main() -> None:
         raw = get("https://en.wikipedia.org/w/api.php?" + q)
         json.loads(raw)["parse"]["wikitext"]      # verifica che la risposta sia quella attesa
         save(rel, raw)
+    fetch_wiki_lists()
     for rel, url, expr in R_SOURCES:
         fetch_r(rel, url, expr)
 

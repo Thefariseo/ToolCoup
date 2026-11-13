@@ -69,6 +69,7 @@ COUNTRIES: dict[int, tuple[str, list[str]]] = {
     345: ("Serbia", ["yugoslavia", "yugoslav", "serbian", "serbia and montenegro",
                      "kingdom of serbs croats and slovenes"]),
     346: ("Bosnia and Herzegovina", ["bosnia", "bosnian"]),
+    347: ("Kosovo", ["kosovar"]),
     349: ("Slovenia", ["slovenian"]),
     350: ("Greece", ["greek", "hellenic"]),
     352: ("Cyprus", ["cypriot"]),
@@ -156,6 +157,7 @@ COUNTRIES: dict[int, tuple[str, list[str]]] = {
     660: ("Lebanon", ["lebanese"]),
     663: ("Jordan", ["jordanian", "transjordan"]),
     666: ("Israel", ["israeli"]),
+    667: ("Palestine", ["palestine west bank", "west bank", "palestinian"]),   # codice convenzionale, non COW
     670: ("Saudi Arabia", ["saudi"]),
     678: ("Yemen", ["yemeni", "north yemen", "yemen arab republic", "yemen north",
                     "kingdom of yemen", "mutawakkilite kingdom of yemen"]),
@@ -210,7 +212,7 @@ COUNTRIES: dict[int, tuple[str, list[str]]] = {
 }
 
 # codici usati da alcune fonti (Gleditsch & Ward, varianti) -> codice canonico
-CODE_ALIASES = {260: 255, 679: 678, 347: 345, 316: 315, 818: 816, 529: 530, 769: 770, 364: 365,
+CODE_ALIASES = {260: 255, 679: 678, 316: 315, 818: 816, 529: 530, 769: 770, 364: 365,
                 340: 345, 342: 345, 815: 816, 678: 678, 525: 626, 626: 626, 817: 817, 300: 305}
 
 
@@ -248,6 +250,11 @@ def code_from_name(name: str) -> int | None:
     if n in _EXACT:
         return _EXACT[n]
     return code_from_text(n)
+
+
+def code_exact(name: str) -> int | None:
+    """Solo corrispondenza esatta con un nome noto: "French Guiana" non diventa "France"."""
+    return _EXACT.get(norm(name))
 
 
 def code_from_text(text: str) -> int | None:

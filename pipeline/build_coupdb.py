@@ -10,7 +10,7 @@ Fonti (in ordine di priorita' per data ed esito):
   hrd        Knutsen, Djuve & Wig (V-Dem), 1789-oggi  regimi terminati da un golpe o autogolpe
   pipe       Przeworski et al., 1788-2008             numero di golpe riusciti per paese-anno
   wikidata   voci classificate come colpo di stato     fonte enciclopedica
-  wikipedia  elenchi per paese e per anno              fonte enciclopedica
+  wikipedia  elenchi inglesi (per paese e per anno), francese, spagnolo e tedesco
 
 Metodo: ogni fonte diventa un elenco di segnalazioni (paese, data, esito). Le segnalazioni dello
 stesso paese con date compatibili (entro 14 giorni, o stesso mese/anno se la data e' imprecisa)
@@ -19,6 +19,7 @@ vengono riunite in un unico evento; una fonte non puo' comparire due volte nello
 Affidabilita':
   A  almeno due fonti accademiche indipendenti lo codificano come golpe
   B  una fonte accademica, confermata da almeno una fonte enciclopedica
+     (prima del 1946 anche: almeno tre fonti enciclopediche indipendenti e concordi)
   C  una fonte accademica da sola, oppure due fonti enciclopediche concordi
   D  una sola fonte enciclopedica, solo complotti/presunti, o evento che Colpus giudica inesistente
 
@@ -51,17 +52,23 @@ WINDOW = 14            # giorni di tolleranza tra date di fonti diverse (copre a
 WINDOW_REJ = 30        # tolleranza per le righe che Colpus ha scartato (spesso date errate)
 START_YEAR = 1900
 # ordine di elaborazione: le fonti migliori fissano data ed esito; PIPE (solo anno) arriva per ultima
-ORDER = {"pt": 0, "colpus": 1, "csp": 2, "archigos": 4, "hrd": 5, "colpus_rej": 6, "wikidata": 7,
-         "wikipedia_c": 8, "wikipedia": 9, "pipe": 10}
+ORDER = {"pt": 0, "colpus": 1, "csp": 2, "archigos": 4, "hrd": 5, "colpus_rej": 6, "wikipedia_fr": 6.5,
+         "wikidata": 7, "wikipedia_c": 8, "wikipedia_de": 8.5, "wikipedia": 9, "wikipedia_es": 9.5, "pipe": 10}
 VIA_RANK = 3
-TERTIARY = {"wikidata": "wikidata", "wikipedia": "wikipedia", "wikipedia_c": "wikipedia"}
+# da quale fonte prendere la descrizione dell'evento: prima quelle in inglese
+LABEL_ORDER = ["wikidata", "wikipedia_c", "wikipedia", "wikipedia_fr", "wikipedia_es", "wikipedia_de"]
+# fonti enciclopediche -> "famiglia": i due elenchi inglesi contano una volta sola, ogni lingua una volta
+TERTIARY = {"wikidata": "wikidata", "wikipedia": "en", "wikipedia_c": "en", "wikipedia_fr": "fr",
+            "wikipedia_es": "es", "wikipedia_de": "de"}
 VIA = {"cline": "Cline Center", "svolik": "Svolik", "singh": "Singh", "luttwak": "Luttwak",
        "mcgowan": "McGowan", "bjornskov": "Bjornskov & Rode", "perez": "Perez-Linan",
        "thompson": "Thompson", "fossum": "Fossum", "whiv": "Marshall (WHIV)",
        "morrison": "Morrison", "beeri": "Be'eri"}
 SOURCE_NAMES = {"pt": "Powell & Thyne", "colpus": "Colpus", "colpus_rej": "Colpus", "csp": "Center for Systemic Peace",
-                "archigos": "Archigos", "hrd": "V-Dem regimi storici", "pipe": "PIPE (Przeworski)",
-                "wikidata": "Wikidata", "wikipedia": "Wikipedia", "wikipedia_c": "Wikipedia", **VIA}
+                "archigos": "Archigos", "hrd": "V-Dem historical regimes", "pipe": "PIPE (Przeworski)",
+                "wikidata": "Wikidata", "wikipedia": "Wikipedia", "wikipedia_c": "Wikipedia",
+                "wikipedia_fr": "Wikipedia (FR)", "wikipedia_es": "Wikipedia (ES)",
+                "wikipedia_de": "Wikipedia (DE)", **VIA}
 MONTHS = {m.lower(): i for i, m in enumerate(calendar.month_name) if m}
 
 
@@ -315,6 +322,27 @@ def load_wikipedia(by_title):
     return out
 
 
+def load_wiki_languages():
+    """Elenchi francese, spagnolo e tedesco: date ed esiti esplicitati dagli estensori delle voci."""
+    from wiki_lists import PARSERS
+    names = json.loads((SRC / "wikipedia" / "country_names.json").read_text())
+    out, lost = [], set()
+    for lang, parse in PARSERS.items():
+        text = json.loads((SRC / "wikipedia" / f"list_{lang}.json").read_text())["parse"]["wikitext"]
+        for i, (y, m, d, country, outcome, desc) in enumerate(parse(text)):
+            if y < START_YEAR:
+                continue
+            english = names.get(lang, {}).get(country)
+            cc = (code_from_name(english) if english else None) or code_from_name(country)
+            if not cc:
+                lost.add(f"{lang}:{country}")
+                continue
+            out.append(rec(f"wikipedia_{lang}", f"{lang}{i}", cc, y, m, d, outcome, desc))
+    if lost:
+        print(f"  elenchi in altre lingue: {len(lost)} nomi di paese non riconosciuti, es. {sorted(lost)[:8]}")
+    return out
+
+
 # ------------------------------------------------------------------ incrocio
 def gap(a_lo, a_hi, b_lo, b_hi) -> int:
     """Giorni che separano due intervalli (0 se si sovrappongono)."""
@@ -413,6 +441,9 @@ def consolidate(clusters):
             tier = "A"
         elif n_sch == 1 and n_ter >= 1:
             tier = "B"
+        elif n_sch == 0 and n_ter >= 3 and c["lo"].year < 1946:
+            tier = "B"          # prima del 1946 nessun dataset accademico registra i falliti: tre
+                                # fonti enciclopediche indipendenti e concordi valgono una conferma
         elif n_sch == 1 or n_ter >= 2:
             tier = "C"
         else:
@@ -427,7 +458,7 @@ def consolidate(clusters):
         used[base] = used.get(base, 0) + 1
         eid = base if used[base] == 1 else f"{base}-{used[base]}"
         outs = {m["outcome"] for m in sch} or {m["outcome"] for m in ter}
-        label = next((m["label"] for m in ms if m["src"] in TERTIARY and m["label"]), "")
+        label = next((m["label"] for src in LABEL_ORDER for m in ms if m["src"] == src and m["label"]), "")
         events.append({
             "event_id": eid, "ccode": cc, "country": name_of(cc),
             "date": best["lo"].isoformat(), "date_precision": best["prec"], "year": best["lo"].year,
@@ -469,7 +500,8 @@ def main():
     wd, by_title = load_wikidata()
     sources = {"pt": load_pt(), "colpus+via": load_colpus(), "csp": load_csp(),
                "archigos": load_archigos(), "hrd": load_hrd(), "pipe": load_pipe(), "wikidata": wd,
-               "wikipedia (paese)": load_wikipedia_by_country(), "wikipedia (anno)": load_wikipedia(by_title)}
+               "wikipedia (paese)": load_wikipedia_by_country(), "wikipedia (anno)": load_wikipedia(by_title),
+               "wikipedia fr/es/de": load_wiki_languages()}
     for k, v in sources.items():
         print(f"  {k:18s} {len(v):5d} segnalazioni")
     records = [r for v in sources.values() for r in v]

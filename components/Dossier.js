@@ -81,7 +81,7 @@ export default function Dossier({ country, others, meta }) {
                     <td className="tnum" style={{ whiteSpace: "nowrap" }}>{fmtEventDate(e)}</td>
                     <td><span className={`badge ${e.type}`}>{TYPE_LABEL[e.type]}</span></td>
                     <td><span className="badge conf" title={CONF_LABEL[e.conf]}>{e.conf}</span></td>
-                    <td>{e.sources?.replaceAll("V-Dem regimi storici", "V-Dem historical regimes")}</td>
+                    <td>{e.sources}</td>
                     <td>
                       {e.label}
                       <small>

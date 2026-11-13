@@ -29,7 +29,7 @@ Generato da `pipeline/build_coupdb.py`. Non modificare a mano: le correzioni van
 ## Affidabilità
 
 - **A** — almeno due fonti accademiche indipendenti.
-- **B** — una fonte accademica, confermata da almeno una enciclopedica.
+- **B** — una fonte accademica, confermata da almeno una enciclopedica. Prima del 1946, dove i dataset accademici non registrano i tentativi falliti, vale B anche l'accordo di almeno tre fonti enciclopediche indipendenti.
 - **C** — una fonte accademica da sola, oppure due enciclopediche concordi.
 - **D** — una sola fonte enciclopedica, solo complotti o presunti golpe, o evento che Colpus giudica inesistente.
 
@@ -47,7 +47,8 @@ Il modello di previsione usa gli eventi di livello A più tutti quelli di Powell
 | V-Dem, Historical Regimes Data — Knutsen, Djuve & Wig (2020) | 1789–oggi | regimi terminati da golpe militare, non militare o autogolpe, con data di fine |
 | PIPE — Przeworski et al. (2013) | 1788–2008 | numero di golpe riusciti per paese-anno (solo l'anno) |
 | Wikidata | tutto | voci classificate come colpo di stato (licenza CC0) |
-| Wikipedia, elenchi dei golpe per paese e per anno | tutto | due elenchi, contati come una sola fonte (licenza CC BY-SA) |
+| Wikipedia in inglese, elenchi per paese e per anno | tutto | due elenchi, contati come una sola fonte (licenza CC BY-SA) |
+| Wikipedia in francese, spagnolo e tedesco | tutto | un elenco per lingua, ciascuno contato come fonte a sé; date ed esiti esplicitati dagli estensori |
 
 ## Limiti noti
 

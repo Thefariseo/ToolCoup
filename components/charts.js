@@ -71,6 +71,8 @@ export function LineChart({ series, markers = [], height = 220, fmt = num, area 
 }
 
 /** Barre orizzontali; con diverging le barre partono dallo zero al centro. */
+const r2 = (v) => Math.round(v * 100) / 100; // stesso valore su server e browser
+
 export function HBars({ rows, value, label, fmt, cls, diverging = false, tipFor, labelWidth = 240 }) {
   const [tip, showTip, hideTip] = useTip();
   const W = 520, rowH = 26, m = { r: 56, l: labelWidth };
@@ -90,9 +92,9 @@ export function HBars({ rows, value, label, fmt, cls, diverging = false, tipFor,
               <text className="lab" x={m.l - 8} y={rowH / 2} dy="0.32em" textAnchor="end">
                 {name.length > cut ? name.slice(0, cut - 1) + "…" : name}
               </text>
-              <rect className={typeof cls === "function" ? cls(r) : cls} rx={3} x={Math.min(x(0), x(v))} y={5}
-                    width={Math.max(1, Math.abs(x(v) - x(0)))} height={rowH - 10} />
-              <text x={v >= 0 ? x(v) + 6 : x(v) - 6} y={rowH / 2} dy="0.32em" textAnchor={v >= 0 ? "start" : "end"}>{fmt(r)}</text>
+              <rect className={typeof cls === "function" ? cls(r) : cls} rx={3} x={r2(Math.min(x(0), x(v)))} y={5}
+                    width={r2(Math.max(1, Math.abs(x(v) - x(0))))} height={rowH - 10} />
+              <text x={r2(v >= 0 ? x(v) + 6 : x(v) - 6)} y={rowH / 2} dy="0.32em" textAnchor={v >= 0 ? "start" : "end"}>{fmt(r)}</text>
             </g>
           );
         })}
