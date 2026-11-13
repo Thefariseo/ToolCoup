@@ -42,7 +42,7 @@ export default function WorldMap({ classOf, active, selectedIso, dots = [], onSe
               className={`country ${classOf(s.id) || ""} ${on ? "has" : ""} ${s.id && s.id === selectedIso ? "sel" : ""}`}
               onMouseMove={(e) => onHover(e, s.id, s.name)} onMouseLeave={onLeave}
               role={on ? "button" : undefined} tabIndex={on ? 0 : undefined}
-              aria-label={on ? `Seleziona ${s.name}` : undefined}
+              aria-label={on ? `Select ${s.name}` : undefined}
               onKeyDown={on ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelect(s.id); } } : undefined}
               onClick={on ? () => onSelect(s.id) : undefined}
             />

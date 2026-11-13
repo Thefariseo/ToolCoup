@@ -31,7 +31,7 @@ export default function CountrySearch({ options }) {
   return (
     <div className="header-search">
       <input
-        className="input" type="search" placeholder="Cerca un paese" aria-label="Cerca un paese" value={q}
+        className="input" type="search" placeholder="Search country / dossier" aria-label="Search country / dossier" value={q}
         onChange={(e) => { setQ(e.target.value); setOpen(true); setActive(0); }}
         onFocus={() => setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 150)} onKeyDown={onKey}
       />

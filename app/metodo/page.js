@@ -1,122 +1,36 @@
-import { FactorBars, StudyChart } from "@/components/charts";
+import { CalibrationChart, FactorBars, StudyChart } from "@/components/charts";
 import { getSummary, getTimeline } from "@/lib/data";
 import { dec, num, pct } from "@/lib/format";
+import { labelEn } from "@/lib/english";
 
-export const metadata = { title: "Metodo" };
+export const metadata = { title: "Methodology & validation" };
+const STUDY = [["unrest", "Protests & riots"], ["violence", "Political violence"], ["fatalities", "Reported fatalities"], ["infighting", "State-force infighting"]];
+const sign = v => v == null ? "—" : (v > 0 ? "+" : v < 0 ? "−" : "") + dec(Math.abs(v), 3);
+const MODEL_NAMES = {logit:"Logistic regression",storia:"History only",acled:"ACLED only",ensemble:"Ensemble",rf:"Random forest",gb:"Gradient boosting"};
 
-const MODELS = {
-  logit: "Storia golpista + indicatori ACLED (modello pubblicato)",
-  storia: "Solo storia golpista, senza ACLED",
-  acled: "Solo indicatori ACLED, senza storia",
-};
-const STUDY = [["unrest", "Proteste e disordini"], ["violence", "Violenza armata"],
-               ["fatalities", "Vittime"], ["infighting", "Scontri tra forze statali"]];
-
-export default function Metodo() {
-  const { meta, metrics, event_study: es, factors } = getSummary();
-  const total = getTimeline("C").reduce((n, y) => n + y.success + y.failed, 0);
-  const vals = STUDY.flatMap(([k]) => es.series[k]).filter((v) => v != null);
-  const lo = Math.min(-0.2, ...vals), hi = Math.max(0.5, ...vals);
-  return (
-    <main className="wrap">
-      <div className="page-head">
-        <h1>Metodo e limiti</h1>
-        <p className="lede">
-          Da dove vengono i dati, come si costruisce la stima e quanto ci si può fidare. Aggiornato il {meta.generated},
-          con eventi ACLED fino a {meta.data_end}.
-        </p>
-      </div>
-
-      <section className="card prose">
-        <h2>Il database dei colpi di stato</h2>
-        <p style={{ marginTop: 8 }}>
-          Nessuna fonte da sola è completa, quindi gli eventi vengono da un incrocio: Powell &amp; Thyne, Colpus, Center
-          for Systemic Peace, Archigos, i dati storici sui regimi di V-Dem, PIPE, Wikidata e Wikipedia, più una decina
-          di dataset che Colpus confronta tra loro. Le segnalazioni dello stesso paese con date compatibili diventano
-          un unico evento. Dal 1900 risultano {num(total)} tentativi di livello A–C.
-        </p>
-        <ul>
-          <li><strong>A</strong>: almeno due fonti accademiche indipendenti.</li>
-          <li><strong>B</strong>: una fonte accademica, confermata da una enciclopedica.</li>
-          <li><strong>C</strong>: una fonte accademica da sola, oppure due enciclopediche concordi.</li>
-          <li><strong>D</strong>: una sola fonte enciclopedica, complotti e presunti golpe.</li>
-        </ul>
-        <p>
-          <strong>Prima del 1946</strong> le fonti accademiche registrano solo i golpe riusciti: i tentativi falliti
-          vengono da fonti enciclopediche e sono sottostimati. <strong>Dopo il 2022</strong> restano poche fonti
-          accademiche aggiornate, quindi gli eventi recenti hanno spesso un livello più basso di quello che avranno.
-        </p>
-      </section>
-
-      <section className="card">
-        <h2>Quanto è affidabile la previsione</h2>
-        <p className="note">
-          Ogni anno dal {meta.first_test_year} è stato previsto con un modello addestrato solo sugli anni precedenti:
-          {" "}{num(meta.n_oos)} paese-mesi, di cui {num(meta.n_oos_pos)} seguiti da un tentativo entro {meta.horizon} mesi.
-        </p>
-        <div className="table-scroll">
-          <table>
-            <thead><tr><th>Modello</th><th className="num">AUC-ROC</th><th className="num">AUC-PR</th>
-              <th className="num">Brier</th><th className="num">Golpe nel 10% più a rischio</th></tr></thead>
-            <tbody>
-              {Object.entries(metrics).map(([k, v]) => (
-                <tr key={k}>
-                  <td>{MODELS[k] || k}</td>
-                  {v ? (<><td className="num">{dec(v.auc, 3)}</td><td className="num">{dec(v.pr_auc, 3)}</td>
-                    <td className="num">{dec(v.brier, 4)}</td><td className="num">{pct(v.top10_recall, 0)}</td></>)
-                     : <td colSpan={4}>non calcolabile</td>}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <p className="note" style={{ marginTop: 10 }}>
-          AUC-ROC: 0,5 equivale al caso, 1 è perfetto. AUC-PR va confrontata con il tasso base ({pct(meta.base_rate)}).
-          La storia golpista spiega quasi tutta la capacità predittiva; gli indicatori ACLED aggiungono poco.
-        </p>
-      </section>
-
-      <section className="card">
-        <h2>Fattori di rischio nel modello</h2>
-        <p className="note">Verso destra il rischio cresce, verso sinistra cala. Ogni fattore è misurato in deviazioni standard.</p>
-        <div style={{ maxWidth: 620 }}><FactorBars factors={factors} /></div>
-      </section>
-
-      <section className="card">
-        <h2>Cosa succede prima e dopo un golpe</h2>
-        <p className="note">
-          Media su {es.n} tentativi nel periodo coperto da ACLED, in deviazioni standard rispetto alla norma di ciascun paese.
-        </p>
-        <div className="small-multiples">
-          {STUDY.map(([k, title]) => (
-            <div key={k}>
-              <p className="sm-title">{title}</p>
-              <StudyChart offsets={es.offsets} values={es.series[k]} lo={lo} hi={hi} title={title} />
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="card prose">
-        <h2>Come si costruisce la stima</h2>
-        <p style={{ marginTop: 8 }}>
-          Una regressione logistica stima la probabilità che in un paese avvenga almeno un tentativo di golpe nei
-          {" "}{meta.horizon} mesi successivi. Usa la storia golpista del paese e della regione e tre indicatori ACLED
-          misurati rispetto alla norma del paese stesso: impennata di proteste e disordini, scontri recenti tra forze
-          statali, quota di proteste represse. I conteggi assoluti non sono usati, perché crescono soprattutto con
-          l&apos;estendersi della copertura ACLED. Come golpe da prevedere contano solo gli eventi confermati da
-          almeno due fonti accademiche, più tutti quelli di Powell &amp; Thyne.
-        </p>
-        <p>
-          <strong>Limiti.</strong> I golpe sono eventi rari: anche nei paesi più a rischio la probabilità resta bassa
-          e l&apos;incertezza alta. Le stime indicano dove guardare, non cosa accadrà.
-        </p>
-        <p>
-          <strong>Fonti.</strong> Eventi di conflitto e protesta: ACLED (acleddata.com). Golpe: Powell &amp; Thyne;
-          Chin, Carter &amp; Wright (Colpus); Marshall &amp; Marshall (Center for Systemic Peace); Goemans, Gleditsch
-          &amp; Chiozza (Archigos); Knutsen, Djuve &amp; Wig e V-Dem; Przeworski et al. (PIPE); Wikidata; Wikipedia.
-        </p>
-      </section>
-    </main>
-  );
+export default function Methodology() {
+  const {meta,metrics,comparisons=[],calibration=[],event_study:es,factors=[]} = getSummary();
+  const extended=Array.isArray(metrics);
+  const models=extended?metrics:Object.entries(metrics||{}).map(([key,recent])=>({key,label:MODEL_NAMES[key]||key,recent}));
+  const total=getTimeline("C").reduce((n,y)=>n+y.success+y.failed,0);
+  const vals=STUDY.flatMap(([k])=>es?.series?.[k]||[]).filter(v=>v!=null);
+  const lo=Math.min(-.2,...vals),hi=Math.max(.5,...vals);
+  const cell=(m,k,d=3)=>m?dec(m[k],d):"—";
+  return <main className="wrap">
+    <div className="page-head"><p className="eyebrow">RESEARCH DOCUMENTATION / 02</p><h1>Methodology & validation</h1><p className="lede">Data provenance, model construction and empirical limits. Export generated {meta.generated}; ACLED observations through {meta.data_end}.</p></div>
+    <div className="facts"><div className="fact"><b>{num(total)}</b><span>Historical attempts / confidence A–C</span></div><div className="fact"><b>{meta.horizon} months</b><span>Forecast horizon</span></div><div className="fact"><b>{num(meta.n_oos)}</b><span>Out-of-sample country-months</span></div><div className="fact"><b>{pct(meta.base_rate)}</b><span>Reference base rate</span></div></div>
+    <section className="card prose"><h2>01 / Historical evidence</h2><p>No single source is complete. The archive cross-references Powell &amp; Thyne, Colpus, Center for Systemic Peace, Archigos, V-Dem historical regime data, PIPE, Wikidata and Wikipedia in English, French, Spanish and German, alongside datasets compared within Colpus. Records for the same country with compatible dates are consolidated into one event.</p><ul><li><strong>A / High:</strong> at least two independent academic sources.</li><li><strong>B / Good:</strong> an academic source corroborated by an encyclopedic source; before 1946, also three independent, agreeing encyclopedic sources.</li><li><strong>C / Medium:</strong> one academic source or two agreeing encyclopedic sources.</li><li><strong>D / Low:</strong> one encyclopedic source, plots and alleged coups.</li></ul><p><strong>Before 1946,</strong> academic sources mainly record successful coups. Failed attempts rely on encyclopedic records and are undercounted. Event dates retain their original precision: day, month or year.</p></section>
+    <section className="card prose"><h2>02 / Forecast construction</h2><p>The target is at least one coup attempt in the next {meta.horizon} months. Historical labels include events confirmed by at least two academic sources and Powell &amp; Thyne records. Predictors combine coup history, regional patterns and monthly ACLED observations.</p>
+      {extended?<><p>The current model combines regularized logistic regression, gradient boosting and a random forest. The final probability is calibrated using past prediction errors. The panel starts in {meta.panel_from}, with {num(meta.n_rows)} country-months, {num(meta.n_onsets)} onset months and {num(meta.n_features)} features.</p><ul><li><strong>Coup history:</strong> time since the last attempt and prior frequency.</li><li><strong>Contagion:</strong> recent attempts in the region and worldwide.</li><li><strong>Regime:</strong> regime type, military influence and executive constraints.</li><li><strong>Leadership &amp; elections:</strong> tenure, transitions and recent elections.</li><li><strong>Economy:</strong> income, growth, infant mortality and oil rents.</li><li><strong>Mobilization:</strong> annual protest and political-violence indicators.</li><li><strong>ACLED:</strong> monthly unrest, violence, repression and state-force infighting relative to each country’s baseline.</li></ul><p>Variables are introduced only after their assumed publication date: previous-year annual indicators from April for V-Dem and July for World Bank data.</p></>:<p>This export contains the logistic-regression model and two reference models: history only and ACLED only. It does not contain the updated ensemble, structural feature panel or calibration diagnostics. The interface displays the available export without substituting results from a different model.</p>}
+      <p><strong>Estimate intervals.</strong> {meta.boot>0?`The model was refitted ${meta.boot} times using resampled countries. The interval contains 80% of those estimates; it measures sensitivity to the training sample, not uncertainty about the future outcome.`:'No bootstrap estimate intervals are available in this export.'}</p>
+    </section>
+    <section className="card"><h2>03 / Out-of-sample validation</h2><p className="note">Starting in {meta.first_test_year}, each test year uses models trained on earlier years. Evaluation covers {num(meta.n_oos)} country-months; {num(meta.n_oos_pos)} are followed by an attempt within the forecast horizon.{extended?' Recent metrics cover predictions from 2000; additional columns show the full period and ACLED-covered months.':''}</p><div className="table-scroll"><table><thead><tr><th>Model</th><th className="num">ROC AUC</th><th className="num">PR AUC</th><th className="num">{extended?'Brier skill':'Brier score'}</th><th className="num">Recall / top 10%</th>{extended&&<><th className="num">AUC / full period</th><th className="num">AUC / ACLED period</th></>}</tr></thead><tbody>{models.map(m=><tr key={m.key}><td>{labelEn(m.label)}</td><td className="num">{cell(m.recent,'auc')}</td><td className="num">{cell(m.recent,'pr_auc')}</td><td className="num">{cell(m.recent,extended?'brier_skill':'brier',4)}</td><td className="num">{pct(m.recent?.top10_recall,0)}</td>{extended&&<><td className="num">{cell(m.all,'auc')}</td><td className="num">{cell(m.acled,'auc')}</td></>}</tr>)}</tbody></table></div><p className="note">ROC AUC: 0.5 is random ranking; 1 is perfect. PR AUC should be interpreted against the base rate ({pct(meta.base_rate)}). {extended?'Positive Brier skill indicates improvement over assigning the base rate to every country.':'Lower Brier score indicates lower mean squared probability error.'}</p>
+    {comparisons.length>0&&<><h3>Paired model comparisons</h3><div className="table-scroll"><table><thead><tr><th>Comparison</th><th>Δ ROC AUC</th><th>90% interval</th><th>Δ PR AUC</th><th>90% interval</th></tr></thead><tbody>{comparisons.map(c=><tr key={c.label}><td>{labelEn(c.label)}</td><td>{sign(c.d_auc)}</td><td>{sign(c.d_auc_ci[0])} / {sign(c.d_auc_ci[1])}</td><td>{sign(c.d_pr)}</td><td>{sign(c.d_pr_ci[0])} / {sign(c.d_pr_ci[1])}</td></tr>)}</tbody></table></div><p className="note">Intervals resample countries. An interval containing zero does not establish a performance difference.</p></>}
+    </section>
+    <section className="card"><h2>04 / Probability calibration</h2>{calibration.length?<><p className="note">Predictions since 2000 grouped into ten risk bands. Observed coup frequency (bars) should be close to predicted probability (points).</p><div style={{maxWidth:720}}><CalibrationChart bins={calibration}/></div></>:<p className="note">Calibration bins are not included in this export.</p>}</section>
+    <section className="card"><h2>05 / Linear-model factors</h2><p className="note">Positive values increase the odds, holding other factors fixed. These are associations, not causal effects.</p><div style={{maxWidth:720}}><FactorBars factors={factors.slice(0,20)}/></div></section>
+    {es&&<section className="card"><h2>06 / Before and after a coup</h2><p className="note">Average across {es.n} attempts within ACLED coverage, expressed as standard deviations from each country’s baseline.</p><div className="small-multiples">{STUDY.map(([k,title])=><div key={k}><p className="sm-title">{title}</p><StudyChart offsets={es.offsets} values={es.series[k]} lo={lo} hi={hi} title={title}/></div>)}</div></section>}
+    <section className="card prose"><h2>07 / Interpretation limits</h2><ul><li>Coups are rare events. Rankings support prioritization; they do not establish what will happen.</li><li>Validation is retrospective, not a record of forecasts published before the events.</li><li>ACLED coverage varies by country and period. A change in counts may partly reflect reporting coverage.</li><li>Historical sources disagree about definitions and dates. Source confidence measures agreement, not certainty.</li><li>Annual indicators arrive with delays. Recent regime changes may initially appear only through coup-history variables.</li></ul><p><strong>Research references:</strong> Londregan &amp; Poole (1990); Goldstone et al. (2010); Beger, Dorff &amp; Ward (2016); Ward &amp; Beger (2017); Gassebner, Gutmann &amp; Voigt (2016); Bell et al. / CoupCast; Hegre et al. / ViEWS; Carter &amp; Signorino (2010).</p><p><strong>Data sources:</strong> ACLED; V-Dem; World Bank; Powell &amp; Thyne; Chin, Carter &amp; Wright / Colpus; Marshall &amp; Marshall / Center for Systemic Peace; Goemans, Gleditsch &amp; Chiozza / Archigos; Knutsen, Djuve &amp; Wig; Przeworski et al. / PIPE; Wikidata; Wikipedia.</p></section>
+    <section className="card prose"><h2>08 / Interface references &amp; visual encoding</h2><p>The workspace draws on <a href="https://kepler.gl/">Kepler.gl</a> for temporal filtering and layer control, <a href="https://docs.carto.com/carto-user-manual/maps/widgets">CARTO Builder</a> for linked analytical views, and <a href="https://acleddata.com/conflict-data">ACLED Explorer</a> for separating country trends, event counts and fatalities.</p><p>The temporal atlas encodes observed monthly counts in concentric rings. The terrain arranges those same counts by calendar month and year. Signals use separate logarithmic scales. Animated particles trace existing temporal relationships; they are not additional events or simulated future outcomes. The country outline provides geographic context; it does not imply subnational event locations.</p></section>
+  </main>;
 }

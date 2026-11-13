@@ -1,7 +1,7 @@
 
 import Link from "next/link";
-import "@fontsource/ibm-plex-mono/400.css";
-import "@fontsource/ibm-plex-mono/500.css";
+import "@fontsource/jetbrains-mono/400.css";
+import "@fontsource/jetbrains-mono/500.css";
 import "./globals.css";
 import CountrySearch from "@/components/CountrySearch";
 import { getSummary, listCountries } from "@/lib/data";
@@ -9,29 +9,28 @@ import { getSummary, listCountries } from "@/lib/data";
 
 
 export const metadata = {
-  title: { default: "Osservatorio golpe", template: "%s · Osservatorio golpe" },
+  title: { default: "ToolCoup Intelligence", template: "%s · ToolCoup Intelligence" },
   description:
-    "Colpi di stato dal 1900 a oggi e stima del rischio per paese, da un database che incrocia più fonti e dai dati ACLED.",
+    "Historical coup evidence and country risk analysis. ACLED signals, cross-source historical records and interpretable forecasts.",
 };
 
 export default function RootLayout({ children }) {
   const { meta } = getSummary();
   const options = listCountries().map((c) => ({ slug: c.slug, name: c.name, region: c.region }));
   return (
-    <html lang="it">
+    <html lang="en">
       <body>
         <header className="site-header">
-          <Link href="/" className="brand"><span className="brand-mark" aria-hidden="true">⌖</span> TOOLCOUP<span className="brand-tag"> / OBSERVATORY</span></Link>
-          <nav className="site-nav" aria-label="Sezioni">
-            <Link href="/">01 / Mondo</Link>
-            <Link href="/metodo">02 / Metodo</Link>
+          <Link href="/" className="brand"><span className="brand-mark" aria-hidden="true">▥</span> TOOLCOUP<span className="brand-tag"> / RESEARCH TERMINAL</span></Link>
+          <nav className="site-nav" aria-label="Workspace navigation">
+            <Link href="/">01 / Workspace</Link>
+            <Link href="/metodo">02 / Methodology</Link>
           </nav>
           <CountrySearch options={options} />
         </header>
         {meta.demo && (
           <div className="banner" role="status">
-            <strong>Dati demo sintetici.</strong> Eventi e probabilità sono generati casualmente per provare lo
-            strumento e non descrivono alcun paese reale.
+            <strong>Synthetic demonstration data.</strong> Events and probabilities are randomly generated to demonstrate the interface and do not describe real countries.
           </div>
         )}
         {children}

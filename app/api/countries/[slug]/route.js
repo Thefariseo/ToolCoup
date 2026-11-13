@@ -4,6 +4,6 @@ import { getCountry } from "@/lib/data";
 export async function GET(_request, { params }) {
   const { slug } = await params;
   const country = getCountry(slug);
-  if (!country) return Response.json({ error: "Paese non trovato" }, { status: 404 });
+  if (!country) return Response.json({ error: "Country not found" }, { status: 404 });
   return Response.json(country);
 }

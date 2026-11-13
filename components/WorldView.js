@@ -8,8 +8,8 @@ import RiskField from "@/components/RiskField";
 import { fmtEventDate, fmtMonth, num, parseDate, pct, TYPE_LABEL } from "@/lib/format";
 
 const WINDOW = 10; // anni considerati per il colore della mappa storica
-const HIST_BREAKS = [1, 2, 3, 5, 8]; // tentativi nel decennio -> classe di colore
-const HIST_LABELS = ["1", "2", "3–4", "5–7", "8 o più"];
+const HIST_BREAKS = [1, 2, 3, 5, 8]; // attempts nel decennio -> classe di colore
+const HIST_LABELS = ["1", "2", "3–4", "5–7", "8 or more"];
 
 export default function WorldView({ countries, meta, initialCoups }) {
   const [mode, setMode] = useState("risk");
@@ -20,7 +20,7 @@ export default function WorldView({ countries, meta, initialCoups }) {
   const [plots, setPlots] = useState(false);
   const [coups, setCoups] = useState(initialCoups);
   const [loading, setLoading] = useState(false);
-  const [selected, setSelected] = useState(null);
+  const [selected, setSelected] = useState(countries.find(c => !c.historical)?.slug || null);
   const [q, setQ] = useState("");
   const [tip, showTip, hideTip] = useTip();
   const loaded = useRef("C|false"); // filtri con cui sono stati caricati gli eventi iniziali
@@ -102,15 +102,15 @@ export default function WorldView({ countries, meta, initialCoups }) {
   function hover(evt, iso, name) {
     const c = iso && byIso.get(iso);
     if (mode === "risk") {
-      showTip(evt, c ? (<><b>{c.name}</b>Rischio {pct(c.risk)} · {c.rank}° su {ranked.length}</>)
-                     : (<><b>{name}</b><span className="t2">non coperto</span></>));
+      showTip(evt, c ? (<><b>{c.name}</b>Risk {pct(c.risk)} · {c.rank} / {ranked.length}</>)
+                     : (<><b>{name}</b><span className="t2">not covered</span></>));
     } else {
       const n = (iso && windowCount.get(iso)) || 0;
       const now = yearEvents.filter((e) => e.iso === iso);
       showTip(evt, (<>
         <b>{c ? c.name : name}</b>
-        {n} {n === 1 ? "tentativo" : "tentativi"} tra {year - WINDOW + 1} e {year}
-        {now.length > 0 && <><br /><span className="t2">Nel {year}: {now.map((e) => TYPE_LABEL[e.type].toLowerCase()).join(", ")}</span></>}
+        {n} {n === 1 ? "attempt" : "attempts"} between {year - WINDOW + 1} and {year}
+        {now.length > 0 && <><br /><span className="t2">In {year}: {now.map((e) => TYPE_LABEL[e.type].toLowerCase()).join(", ")}</span></>}
       </>));
     }
   }
@@ -126,29 +126,29 @@ export default function WorldView({ countries, meta, initialCoups }) {
 
   return (
     <main className="console">
-      <div className="console-title"><div><p className="eyebrow">GEOPOLITICAL INTELLIGENCE / {meta.demo ? "DEMO" : "RESEARCH EDITION"}</p><h1>Osservatorio <span>golpe.</span></h1></div><div className="edition"><i /> DATI AL {meta.data_end}<small>ACLED × DATABASE STORICO</small></div></div>
-      <div className="telemetry" aria-label="Panoramica dei dati">
-        {[["01 / PAESI MONITORATI", num(meta.n_countries)], ["02 / EVENTI ACLED", num(meta.n_events)], ["03 / ARCHIVIO", `${meta.history_from || 1900}—${maxYear}`], ["04 / ORIZZONTE", `${meta.horizon} MESI`], ["05 / TASSO BASE", pct(meta.base_rate)]].map(([label, value]) => <div key={label}><span>{label}</span><b>{value}</b></div>)}
+      <div className="console-title"><div><p className="eyebrow">STRATEGIC RISK / {meta.demo ? "DEMO" : "RESEARCH EDITION"}</p><h1>Coup risk <span>workstation</span></h1></div><div className="edition"><i /> DATA THROUGH {meta.data_end}<small>ACLED × HISTORICAL EVIDENCE</small></div></div>
+      <div className="telemetry" aria-label="Dataset overview">
+        {[["COVERED COUNTRIES", num(meta.n_countries)], ["ACLED RECORDS", num(meta.n_events)], ["HISTORICAL WINDOW", `${meta.history_from || 1900}—${maxYear}`], ["FORECAST HORIZON", `${meta.horizon} MONTHS`], ["BASE RATE", pct(meta.base_rate)]].map(([label, value]) => <div key={label}><span>{label}</span><b>{value}</b></div>)}
       </div>
     <div className="world">
       <div className="world-main">
-        <div className="instrument-head"><span><i /> A / OSSERVATORIO GLOBALE</span><span>{mode === "risk" ? "PREVISIONE" : "ARCHIVIO"} · {mode === "risk" ? `${meta.forecast_from} → ${meta.forecast_to}` : year}</span></div>
+        <div className="instrument-head"><span><i /> 01 / ANALYTICAL WORKSPACE</span><span>{mode === "risk" ? "FORECAST" : "ARCHIVE"} · {mode === "risk" ? `${meta.forecast_from} → ${meta.forecast_to}` : year}</span></div>
         <div className={`map-wrap ${mode === "risk" && view === "field" ? "with-field" : ""}`}>
           {mode === "risk" && view === "field" ? <RiskField countries={ranked} selected={sel} baseRate={meta.base_rate} horizon={meta.horizon} /> : <WorldMap
             classOf={classOf} active={active} selectedIso={sel?.iso} dots={mode === "history" ? dots : []}
             onSelect={(iso) => setSelected(byIso.get(iso).slug)} onHover={hover} onLeave={hideTip}
-            label={mode === "risk" ? "Mappa del rischio di golpe per paese" : `Mappa dei golpe nel ${year}`}
+            label={mode === "risk" ? "Country coup-risk map" : `Coup events in ${year}`}
           />}
           <div className="map-top">
-            {mode === "risk" && <div className="view-toggle" role="group" aria-label="Visualizzazione"><button aria-pressed={view==="field"} onClick={()=>setView("field")}>SEGNALI PAESE</button><button aria-pressed={view==="map"} onClick={()=>setView("map")}>ATLANTE</button></div>}
-            <div className="seg" role="group" aria-label="Cosa mostra la mappa">
-              <button aria-pressed={mode === "risk"} onClick={() => { setMode("risk"); setPlaying(false); }}>01 / Previsione</button>
-              <button aria-pressed={mode === "history"} onClick={() => setMode("history")}>02 / Archivio storico</button>
+            {mode === "risk" && <div className="view-toggle" role="group" aria-label="Spatial view"><button aria-pressed={view==="field"} onClick={()=>setView("field")}>COUNTRY LAB</button><button aria-pressed={view==="map"} onClick={()=>setView("map")}>WORLD ATLAS</button></div>}
+            <div className="seg" role="group" aria-label="Analysis mode">
+              <button aria-pressed={mode === "risk"} onClick={() => { setMode("risk"); setPlaying(false); }}>Forecast</button>
+              <button aria-pressed={mode === "history"} onClick={() => setMode("history")}>Historical archive</button>
             </div>
           </div>
           <div className={`map-legend ${mode === "risk" && view === "field" ? "field-legend" : ""}`}>
             {mode === "risk" ? (<>
-              <b>Probabilità di un tentativo entro {fmtMonth(to)}</b>
+              <b>Probability of a coup attempt by {fmtMonth(to)}</b>
               <div className="legend-row">
                 {[0, 1, 2, 3, 4, 5].map((i) => (
                   <span key={i}><i className={`sw q${i}`} style={{ background: `var(--seq-${i + 1})` }} />
@@ -157,20 +157,20 @@ export default function WorldView({ countries, meta, initialCoups }) {
                 ))}
               </div>
             </>) : (<>
-              <b>Tentativi di golpe nei 10 anni fino al {year}</b>
+              <b>Coup attempts in the 10 years through {year}</b>
               <div className="legend-row">
                 {HIST_LABELS.map((l, i) => (
                   <span key={l}><i className="sw" style={{ background: `var(--seq-${i + 2})` }} />{l}</span>
                 ))}
               </div>
               <div className="legend-row" style={{ marginTop: 4 }}>
-                <span><i className="dot-sw" />riuscito nel {year}</span>
-                <span><i className="dot-sw hollow" />fallito nel {year}</span>
+                <span><i className="dot-sw" />successful in {year}</span>
+                <span><i className="dot-sw hollow" />failed in {year}</span>
               </div>
             </>)}
           </div>
         </div>
-        {mode === "risk" && <div className="signal-deck"><div><p className="eyebrow">B / DISTRIBUZIONE DEL RISCHIO</p><div className="risk-spectrum" aria-label="Rischio per paese in ordine decrescente">{ranked.map(c => <button key={c.slug} aria-label={`${c.name}: ${pct(c.risk)}`} title={`${c.name}: ${pct(c.risk)}`} onClick={() => setSelected(c.slug)} style={{height: `${Math.max(4, c.risk / maxRisk * 68)}px`}} className={selected === c.slug ? "selected" : ""} />)}</div><div className="signal-foot"><span>OGNI BARRA = UN PAESE</span><span>{ranked.length} OSSERVAZIONI →</span></div></div><div className="reading"><p className="eyebrow">C / LETTURA DEL MODELLO</p><p>Una probabilità, non una certezza.</p><small>Seleziona un paese per esplorare segnali, storia e fattori di rischio.</small><Link href="/metodo">Esamina metodo e limiti ↗</Link></div></div>}
+        {mode === "risk" && <div className="signal-deck"><div><p className="eyebrow">02 / CROSS-COUNTRY DISTRIBUTION</p><div className="risk-spectrum" aria-label="Country risk in descending order">{ranked.map(c => <button key={c.slug} aria-label={`${c.name}: ${pct(c.risk)}`} title={`${c.name}: ${pct(c.risk)}`} onClick={() => setSelected(c.slug)} style={{height: `${Math.max(4, c.risk / maxRisk * 68)}px`}} className={selected === c.slug ? "selected" : ""} />)}</div><div className="signal-foot"><span>ONE BAR / ONE COUNTRY</span><span>{ranked.length} COUNTRIES →</span></div></div><div className="reading"><p className="eyebrow">03 / MODEL INTERPRETATION</p><p>Inspect the evidence behind the estimate.</p><small>Select a country to connect monthly signals, historical events and model contributions.</small><Link href="/metodo">Methodology & validation ↗</Link></div></div>}
         {mode === "history" && (
           <TimeBar year={year} setYear={(y) => { setYear(y); setPlaying(false); }} min={minYear} max={maxYear}
                    perYear={perYear} playing={playing}
@@ -178,31 +178,30 @@ export default function WorldView({ countries, meta, initialCoups }) {
         )}
       </div>
 
-      <aside className="panel" aria-label="Dettagli"><div className="instrument-head"><span>D / MONITOR PAESI</span><span>↓ RISCHIO</span></div>
+      <aside className="panel" aria-label="Country monitor"><div className="instrument-head"><span>COUNTRY MONITOR</span><span>↓ PROBABILITY</span></div>
         {sel && (
           <div className="panel-sec">
             <div className="card-sel">
               <h3>{sel.name}</h3>
               <div className="row">
-                {sel.risk != null && <span>Rischio {pct(sel.risk)} · {sel.rank}° su {ranked.length}</span>}
-                <span>{sel.attempts} {sel.attempts === 1 ? "tentativo" : "tentativi"} dal 1900</span>
+                {sel.risk != null && <span>Risk {pct(sel.risk)}{sel.risk_lo != null && ` (range ${pct(sel.risk_lo)} – ${pct(sel.risk_hi)})`} · {sel.rank} / {ranked.length}</span>}
+                <span>{sel.attempts} {sel.attempts === 1 ? "attempt" : "attempts"} since 1900</span>
               </div>
-              <Link className="btn primary" href={`/paese/${sel.slug}`}>Apri la scheda</Link>{" "}
-              <button className="btn" onClick={() => setSelected(null)}>Chiudi</button>
+              <Link className="btn primary" href={`/paese/${sel.slug}`}>Open dossier</Link>{" "}
+              <button className="btn" onClick={() => setSelected(null)}>Clear</button>
             </div>
           </div>
         )}
         {mode === "risk" ? (<>
           <div className="panel-sec">
-            <h2>Rischio di golpe</h2>
+            <h2>Country monitor</h2>
             <p className="sub">
-              Probabilità stimata di almeno un tentativo tra {fmtMonth(from)} e {fmtMonth(to)}. In un paese e mese
-              qualsiasi è {pct(meta.base_rate)}.
+              Estimated probability of at least one attempt between {fmtMonth(from)} and {fmtMonth(to)}. The reference base rate since 2000 is {pct(meta.base_rate)}.
             </p>
-            <input className="input" style={{ marginTop: 10 }} type="search" placeholder="Filtra per paese o regione"
-                   aria-label="Filtra la classifica" value={q} onChange={(e) => setQ(e.target.value)} />
+            <input className="input" style={{ marginTop: 10 }} type="search" placeholder="Filter country or region…"
+                   aria-label="Filter country monitor" value={q} onChange={(e) => setQ(e.target.value)} />
           </div>
-          <ol className="rank-list">
+          <div className="monitor-columns"><span>RK / COUNTRY</span><span>P(ATTEMPT)</span></div><ol className="rank-list">
             {list.map((c) => (
               <li key={c.slug}>
                 <button className={selected === c.slug ? "sel" : ""} onClick={() => setSelected(c.slug)}>
@@ -213,32 +212,32 @@ export default function WorldView({ countries, meta, initialCoups }) {
                 </button>
               </li>
             ))}
-            {list.length === 0 && <li className="empty">Nessun paese trovato.</li>}
+            {list.length === 0 && <li className="empty">No matching countries.</li>}
           </ol>
         </>) : (<>
           <div className="panel-sec">
             <h2>{year}</h2>
             <div className="kpi-row">
-              <div><b>{succ}</b><span>riusciti</span></div>
-              <div><b>{fail}</b><span>falliti</span></div>
-              {plots && <div><b>{yearEvents.length - succ - fail}</b><span>complotti</span></div>}
+              <div><b>{succ}</b><span>successful</span></div>
+              <div><b>{fail}</b><span>failed</span></div>
+              {plots && <div><b>{yearEvents.length - succ - fail}</b><span>plots</span></div>}
             </div>
             <div className="filters">
-              <label className="check">Affidabilità{" "}
+              <label className="check">Confidence{" "}
                 <select className="select" value={conf} onChange={(e) => setConf(e.target.value)}>
-                  <option value="A">solo alta (A)</option>
-                  <option value="B">alta e buona (A–B)</option>
-                  <option value="C">fino a media (A–C)</option>
-                  <option value="D">tutte (A–D)</option>
+                  <option value="A">high only (A)</option>
+                  <option value="B">high and good (A–B)</option>
+                  <option value="C">through medium (A–C)</option>
+                  <option value="D">all levels (A–D)</option>
                 </select>
               </label>
               <label className="check">
-                <input type="checkbox" checked={plots} onChange={(e) => setPlots(e.target.checked)} /> complotti
+                <input type="checkbox" checked={plots} onChange={(e) => setPlots(e.target.checked)} /> plots
               </label>
             </div>
             {year < 1946 && (
               <p className="sub" style={{ marginTop: 8 }}>
-                Prima del 1946 i golpe falliti sono registrati solo in parte.
+                Failed coups before 1946 are incompletely recorded.
               </p>
             )}
           </div>
@@ -249,17 +248,17 @@ export default function WorldView({ countries, meta, initialCoups }) {
                   <span>{e.name}<small>{fmtEventDate(e)}</small></span>
                   <span className="badges">
                     <span className={`badge ${e.type}`}>{TYPE_LABEL[e.type]}</span>
-                    <span className="badge conf" title="Affidabilità">{e.conf}</span>
+                    <span className="badge conf" title="Confidence">{e.conf}</span>
                   </span>
                 </Link>
               </li>
             ))}
-            {yearEvents.length === 0 && <li className="empty">Nessun evento registrato nel {year} con questi filtri.</li>}
+            {yearEvents.length === 0 && <li className="empty">No events recorded in {year} with these filters.</li>}
           </ul>
         </>)}
       </aside>
       <Tip tip={tip} />
-    </div><footer className="console-footer"><span><i /> {meta.demo ? "DATI SINTETICI" : "DATI DI RICERCA"} · AGGIORNATO {meta.generated}</span><span>TOOLCOUP / ANALISI STORICA & FORECASTING</span></footer></main>
+    </div><footer className="console-footer"><span><i /> {meta.demo ? "SYNTHETIC DATA" : "RESEARCH DATA"} · GENERATED {meta.generated}</span><span>TOOLCOUP / HISTORICAL EVIDENCE / FORECASTING</span></footer></main>
   );
 }
 
@@ -276,8 +275,8 @@ function TimeBar({ year, setYear, min, max, perYear, playing, toggle }) {
   return (
     <div className="timebar">
       <div className="timebar-row">
-        <button className="btn" onClick={toggle} aria-label={playing ? "Ferma" : "Avvia lo scorrimento"}>
-          {playing ? "❚❚ Pausa" : "▶ Avvia"}
+        <button className="btn" onClick={toggle} aria-label={playing ? "Stop" : "Start playback"}>
+          {playing ? "❚❚ Pause" : "▶ Play"}
         </button>
         <div className="year-big" aria-live="polite">{year}</div>
         <div className="slider-wrap">
@@ -289,7 +288,7 @@ function TimeBar({ year, setYear, min, max, perYear, playing, toggle }) {
               </g>
             ))}
           </svg>
-          <input type="range" min={min} max={max} step={1} value={year} aria-label="Anno"
+          <input type="range" min={min} max={max} step={1} value={year} aria-label="Year"
                  onChange={(e) => setYear(Number(e.target.value))} />
           <div className="slider-ticks">
             {[1900, 1925, 1950, 1975, 2000, max].map((t) => <span key={t}>{t}</span>)}
@@ -297,9 +296,9 @@ function TimeBar({ year, setYear, min, max, perYear, playing, toggle }) {
         </div>
       </div>
       <div className="legend" style={{ margin: "6px 0 0" }}>
-        <span><i className="sw" style={{ background: "var(--series-1)" }} />riusciti per anno</span>
-        <span><i className="sw" style={{ background: "var(--series-2)" }} />falliti per anno</span>
-        <span>{num(counts.reduce((a, c) => a + c.s + c.f, 0))} tentativi in totale</span>
+        <span><i className="sw" style={{ background: "var(--series-1)" }} />successful per year</span>
+        <span><i className="sw" style={{ background: "var(--series-2)" }} />failed per year</span>
+        <span>{num(counts.reduce((a, c) => a + c.s + c.f, 0))} attempts in total</span>
       </div>
     </div>
   );

@@ -29,7 +29,7 @@ export default function CoupTimeline({ events, endYear }) {
 
   return (
     <div className="chart">
-      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Linea del tempo dei colpi di stato">
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Historical coup timeline">
         {ticks.map((t) => {
           const px = x(new Date(Date.UTC(t, 0, 1)));
           return (
@@ -43,7 +43,7 @@ export default function CoupTimeline({ events, endYear }) {
           <g key={l}>
             <line className="gridline" x1={m.l} x2={W - m.r} y1={m.t + i * laneH + laneH / 2} y2={m.t + i * laneH + laneH / 2} />
             <text className="lab" x={m.l - 10} y={m.t + i * laneH + laneH / 2} dy="0.32em" textAnchor="end">
-              {l === "riuscito" ? "Riusciti" : l === "fallito" ? "Falliti" : "Complotti"}
+              {l === "riuscito" ? "Successful" : l === "fallito" ? "Failed" : "Plots"}
             </text>
           </g>
         ))}
@@ -52,7 +52,7 @@ export default function CoupTimeline({ events, endYear }) {
                   onMouseMove={(evt) => showTip(evt, (<>
                     <b>{fmtEventDate(e)} · {TYPE_LABEL[e.type]}</b>
                     {e.label && <div>{e.label.length > 110 ? e.label.slice(0, 108) + "…" : e.label}</div>}
-                    <span className="t2">Affidabilità {e.conf} · {CONF_LABEL[e.conf].split(":")[1].trim()}</span>
+                    <span className="t2">Confidence {e.conf} · {CONF_LABEL[e.conf].split(":")[1].trim()}</span>
                   </>))}
                   onMouseLeave={hideTip} />
         ))}

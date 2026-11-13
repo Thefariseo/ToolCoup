@@ -3,15 +3,16 @@
 import { useMemo, useState } from "react";
 import { HBars, LineChart } from "@/components/charts";
 import CoupTimeline from "@/components/CoupTimeline";
+import { labelEn } from "@/lib/english";
 import { addMonths, CONF_LABEL, dec, fmtEventDate, num, parseDate, pct, TYPE_LABEL } from "@/lib/format";
 
-const SERIES = [["unrest", "Proteste e disordini"], ["violence", "Eventi di violenza armata"],
-                ["fatalities", "Vittime"], ["infighting", "Scontri tra forze statali"]];
+const SERIES = [["unrest", "Protests & riots"], ["violence", "Political violence events"],
+                ["fatalities", "Reported fatalities"], ["infighting", "State-force infighting"]];
 const ORDER = ["A", "B", "C", "D"];
 const COLPUS = {
-  "coup plot": "complotto", autogolpe: "autogolpe", "prior defection": "defezione precedente", mutiny: "ammutinamento",
-  legal: "avvicendamento legale", "not exist": "evento non riscontrato", "not regime leader": "non contro il capo del regime",
-  assassination: "assassinio", protest: "protesta", foreign: "intervento straniero", combined: "doppione",
+  "coup plot": "plot", autogolpe: "self-coup", "prior defection": "prior defection", mutiny: "mutiny",
+  legal: "legal transfer", "not exist": "unconfirmed event", "not regime leader": "not against regime leader",
+  assassination: "assassination", protest: "protest", foreign: "foreign intervention", combined: "duplicate",
 };
 
 const monthly = (start, values) => {
@@ -55,38 +56,37 @@ export default function Dossier({ country, others, meta }) {
     <>
       <section className="card">
         <div className="card-head">
-          <h2>Colpi di stato dal 1900</h2>
-          <label className="check">Affidabilità minima{" "}
+          <h2>Coup archive / since 1900</h2>
+          <label className="check">Minimum confidence{" "}
             <select className="select" value={minConf} onChange={(e) => setMinConf(e.target.value)}>
-              <option value="A">alta (A)</option>
-              <option value="B">buona (A–B)</option>
-              <option value="C">media (A–C)</option>
-              <option value="D">tutte (A–D)</option>
+              <option value="A">high (A)</option>
+              <option value="B">good (A–B)</option>
+              <option value="C">medium (A–C)</option>
+              <option value="D">all (A–D)</option>
             </select>
           </label>
         </div>
         <p className="note">
-          Ogni punto è un evento; più è grande, più sono solide le fonti. Prima del 1946 i tentativi falliti sono
-          registrati solo in parte.
+          Each point represents an event. Larger points indicate stronger source agreement. Failed attempts before 1946 are incompletely recorded.
         </p>
         {shown.length ? <CoupTimeline events={shown} endYear={endYear} />
-                      : <p className="note">Nessun evento a questo livello di affidabilità.</p>}
+                      : <p className="note">No events at this confidence level.</p>}
         {shown.length > 0 && (
           <div className="table-scroll">
             <table>
-              <thead><tr><th>Data</th><th>Esito</th><th>Affid.</th><th>Fonti</th><th>Note</th></tr></thead>
+              <thead><tr><th>Date</th><th>Outcome</th><th>Conf.</th><th>Sources</th><th>Notes</th></tr></thead>
               <tbody>
                 {[...shown].reverse().map((e) => (
                   <tr key={e.id}>
                     <td className="tnum" style={{ whiteSpace: "nowrap" }}>{fmtEventDate(e)}</td>
                     <td><span className={`badge ${e.type}`}>{TYPE_LABEL[e.type]}</span></td>
                     <td><span className="badge conf" title={CONF_LABEL[e.conf]}>{e.conf}</span></td>
-                    <td>{e.sources}</td>
+                    <td>{e.sources?.replaceAll("V-Dem regimi storici", "V-Dem historical regimes")}</td>
                     <td>
                       {e.label}
                       <small>
-                        {[e.self && "autogolpe", e.colpus && `per Colpus: ${COLPUS[e.colpus] || e.colpus}`,
-                          e.dup && "possibile doppione di un altro evento"].filter(Boolean).join(" · ")}
+                        {[e.self && "self-coup", e.colpus && `Colpus classification: ${COLPUS[e.colpus] || e.colpus}`,
+                          e.dup && "possible duplicate of another event"].filter(Boolean).join(" · ")}
                       </small>
                     </td>
                   </tr>
@@ -101,10 +101,10 @@ export default function Dossier({ country, others, meta }) {
         <>
           <section className="card">
             <div className="card-head">
-              <h2>Rischio stimato nel tempo</h2>
-              <label className="check">Confronta con{" "}
+              <h2>Risk estimates over time</h2>
+              <label className="check">Compare with{" "}
                 <select className="select" defaultValue="" onChange={(e) => compare(e.target.value)} disabled={busy}>
-                  <option value="">nessun paese</option>
+                  <option value="">None</option>
                   {others.map((o) => <option key={o.slug} value={o.slug}>{o.name}</option>)}
                 </select>
               </label>
@@ -114,34 +114,45 @@ export default function Dossier({ country, others, meta }) {
                 <div className="legend">
                   <span><i className="ln s1" />{country.name}</span>
                   {other && <span><i className="ln s2" />{other.name}</span>}
-                  <span><i className="ln" />golpe riuscito</span>
-                  <span><i className="ln dash" />golpe fallito</span>
+                  <span><i className="ln" />successful coup</span>
+                  <span><i className="ln dash" />failed coup</span>
                 </div>
                 <LineChart series={riskSeries} markers={markers} height={240} fmt={(v) => pct(v, v < 0.1 ? 1 : 0)} />
+                {country.structural === false && (
+                  <p className="note" style={{ marginTop: 8 }}>
+                    Regime, leadership and economic indicators are unavailable for this territory. The estimate relies on coup history and ACLED signals, with weaker coverage.
+                  </p>
+                )}
                 {other && (
                   <p className="note" style={{ marginTop: 8 }}>
-                    Oggi: {country.name} {pct(country.risk)}, {other.name} {pct(other.risk)}. Tentativi dal 1900:{" "}
-                    {country.attempts} contro {other.attempts}.
+                    Latest: {country.name} {pct(country.risk)}, {other.name} {pct(other.risk)}. Attempts since 1900:{" "}
+                    {country.attempts} versus {other.attempts}.
                   </p>
                 )}
               </div>
               <div>
-                <h3>Cosa spinge la stima di oggi</h3>
-                <div className="legend">
-                  <span><i className="sw" style={{ background: "var(--up)" }} />aumenta il rischio</span>
-                  <span><i className="sw" style={{ background: "var(--down)" }} />lo riduce</span>
-                </div>
-                <HBars rows={country.drivers} value={(r) => r.contrib} label={(r) => r.label} diverging
+                {country.groups?.length > 0 && <><h3>Contributions to the latest estimate</h3>
+                <p className="note" style={{ margin: "0 0 4px" }}>Contribution of each factor group relative to an average country.</p>
+                <HBars rows={country.groups || []} value={(r) => r.contrib} label={(r) => labelEn(r.label)} diverging labelWidth={250}
                        cls={(r) => (r.contrib >= 0 ? "bar-up" : "bar-down")}
                        fmt={(r) => (r.contrib >= 0 ? "+" : "−") + dec(Math.abs(r.contrib))}
-                       tipFor={(r) => (<><b>{r.label}</b>{r.contrib >= 0 ? "Aumenta" : "Riduce"} il rischio rispetto a un paese medio</>)} />
+                       tipFor={(r) => (<><b>{labelEn(r.label)}</b>{r.contrib >= 0 ? "Increases" : "Reduces"} risk relative to an average country</>)} />
+                </>}<h3 style={{ marginTop: 14 }}>Leading individual factors</h3>
+                <div className="legend">
+                  <span><i className="sw" style={{ background: "var(--up)" }} />increases risk</span>
+                  <span><i className="sw" style={{ background: "var(--down)" }} />reduces risk</span>
+                </div>
+                <HBars rows={country.drivers || []} value={(r) => r.contrib} label={(r) => labelEn(r.label)} diverging labelWidth={250}
+                       cls={(r) => (r.contrib >= 0 ? "bar-up" : "bar-down")}
+                       fmt={(r) => (r.contrib >= 0 ? "+" : "−") + dec(Math.abs(r.contrib))}
+                       tipFor={(r) => (<><b>{labelEn(r.label)}</b>{r.contrib >= 0 ? "Increases" : "Reduces"} risk relative to an average country</>)} />
               </div>
             </div>
           </section>
 
           <section className="card">
-            <h2>Attività mensile registrata da ACLED</h2>
-            <p className="note">Le linee verticali segnano i golpe; i conteggi dipendono anche da quanto ACLED copre il paese nel tempo.</p>
+            <h2>Monthly observations / ACLED</h2>
+            <p className="note">Vertical lines mark coups. Counts also depend on the extent of ACLED coverage over time.</p>
             <div className="small-multiples">
               {SERIES.map(([k, title]) => (
                 <div key={k}>
