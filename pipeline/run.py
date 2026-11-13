@@ -1,4 +1,4 @@
-"""Pipeline completa: ACLED + golpe -> analisi storica -> modello -> site/data/forecast.json
+"""Pipeline completa: ACLED + golpe -> analisi storica -> modello -> webdata/*.json (dati del sito)
 
 Uso:
     python pipeline/run.py            # dati veri in data/raw/ (se mancano si ferma)
@@ -16,15 +16,15 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import average_precision_score, brier_score_loss, roc_auc_score
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from export_web import export as export_web  # noqa: E402
 from data import (HIST_FEATURES, LABELS, add_acled_features, add_coup_features, load_acled,  # noqa: E402
-                  load_coups, monthly_panel, ord_label)
+                  load_coupdb, load_coups, monthly_panel, ord_label)
 
 ROOT = Path(__file__).resolve().parents[1]
 BURN_IN = 11          # mesi iniziali di ogni paese esclusi (finestre a 12 mesi incomplete)
@@ -33,11 +33,6 @@ MIN_TRAIN_YEARS = 6   # anni minimi di storia prima del primo anno di test
 
 def logit():
     return make_pipeline(StandardScaler(), LogisticRegression(C=0.3, max_iter=2000))
-
-
-def gbm():
-    return HistGradientBoostingClassifier(max_depth=3, learning_rate=0.05, max_iter=150,
-                                          l2_regularization=1.0, random_state=0)
 
 
 def score(y, p, t):
@@ -95,6 +90,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--demo", action="store_true", help="usa i dati sintetici in data/demo/")
     ap.add_argument("--horizon", type=int, default=6, help="orizzonte di previsione in mesi")
+    ap.add_argument("--coups", choices=["db", "pt"], default="db",
+                    help="db = database unificato (data/coupdb), pt = solo Powell & Thyne")
     args = ap.parse_args()
     H = args.horizon
 
@@ -114,7 +111,15 @@ def main():
     ev = load_acled(acled_dir)
     panel, meta = monthly_panel(ev)
     countries = sorted(panel["country"].unique())
-    coups, unmatched = load_coups(coup_file, countries)
+    coupdb = ROOT / "data" / "coupdb" / "coups.csv"
+    use_db = args.coups == "db" and coupdb.exists() and not args.demo
+    if use_db:
+        coups, unmatched = load_coupdb(coupdb, countries, "A")
+        coups_hist, _ = load_coupdb(coupdb, countries, "ABC")      # per i grafici storici, dal 1900
+    else:
+        coups, unmatched = load_coups(coup_file, countries)
+        coups_hist = coups
+    print("Golpe:", "database unificato" if use_db else "Powell & Thyne", f"({len(coups)} eventi)")
     panel = add_coup_features(panel, coups, H)
     panel, acled_feats = add_acled_features(panel)
     panel.attrs["horizon"] = H
@@ -131,7 +136,7 @@ def main():
         sys.exit("Troppo pochi golpe nel periodo coperto da ACLED per stimare un modello.")
 
     # ---------------- validazione fuori campione
-    sets = {"logit": (logit, feats), "gbm": (gbm, feats), "storia": (logit, HIST_FEATURES)}
+    sets = {"logit": (logit, feats), "storia": (logit, HIST_FEATURES), "acled": (logit, acled_feats)}
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         preds, first_test = walk_forward(panel, sets)
@@ -187,12 +192,12 @@ def main():
     out_countries.sort(key=lambda c: c["rank"])
 
     # ---------------- analisi storica
-    per_year = (coups.assign(year=coups["year"].astype(int))
+    per_year = (coups_hist.assign(year=coups_hist["year"].astype(int))
                 .groupby(["year", "success"]).size().unstack(fill_value=0)
                 .reindex(columns=[True, False], fill_value=0))
-    yrs = range(int(coups["year"].min()), t_end // 12 + 1)
+    yrs = range(int(coups_hist["year"].min()), t_end // 12 + 1)
     per_year = per_year.reindex(yrs, fill_value=0)
-    top = (coups.assign(name=coups["country"].fillna(coups["pt_name"]))
+    top = (coups_hist.assign(name=coups_hist["country"].fillna(coups_hist["pt_name"]))
            .groupby("name").agg(attempts=("success", "size"), success=("success", "sum"))
            .sort_values(["attempts", "success"], ascending=False).head(15))
     by_region = (coups_in.merge(panel.groupby("country")["region"].first(), on="country")
@@ -211,7 +216,8 @@ def main():
             "n_success_acled": int(coups_in["success"].sum()),
             "base_rate": r(train["y"].mean(), 5), "first_test_year": first_test,
             "n_oos": int(ok.sum()), "n_oos_pos": int(panel.loc[ok, "y"].sum()),
-            "unmatched": unmatched,
+            "unmatched": unmatched, "coup_source": "db" if use_db else "pt",
+            "history_from": int(coups_hist["year"].min()), "n_coups_history": int(len(coups_hist)),
         },
         "metrics": metrics,
         "countries": out_countries,
@@ -226,10 +232,7 @@ def main():
             "factors": factors,
         },
     }
-    out = ROOT / "site" / "data" / "forecast.json"
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(result, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-    print(f"Scritto {out.relative_to(ROOT)} ({out.stat().st_size / 1e6:.2f} MB)")
+    export_web(result, coupdb if use_db else None, ROOT / "webdata")
     print("Top 10 rischio:", ", ".join(f"{c['name']} {c['risk']:.1%}" for c in out_countries[:10]))
 
 

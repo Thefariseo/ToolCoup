@@ -7,3 +7,11 @@ __pycache__/
 .acled_token.json
 *.part
 .claude/
+
+# next.js / node
+/node_modules
+/.next/
+/out/
+.env*
+*.tsbuildinfo
+npm-debug.log*

@@ -75,19 +75,28 @@ def get_token() -> str:
     return tok["access_token"]
 
 
-def _get(params: dict, token: str, tries: int = 5) -> dict:
+def _get(params: dict, auth: dict, tries: int = 6) -> dict:
+    """GET con ritentativi. `auth` = {"token": ...}: su 401 il token viene rinnovato e si riprova."""
     url = READ_URL + "?" + urllib.parse.urlencode(params, safe="|")
     for attempt in range(tries):
         try:
-            req = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}", "User-Agent": UA})
+            req = urllib.request.Request(url, headers={"Authorization": f"Bearer {auth['token']}",
+                                                       "User-Agent": UA})
             with urllib.request.urlopen(req, timeout=180) as r:
                 return json.load(r)
         except urllib.error.HTTPError as e:
-            if e.code in (401, 403):
-                sys.exit(f"ACLED ha rifiutato la richiesta (HTTP {e.code}): token scaduto o account "
-                         "senza accesso a questi dati.")
+            body = e.read(300).decode("utf-8", "replace").strip()
+            if e.code == 401 and attempt < tries - 1:
+                print(f"\n  token rifiutato (401), lo rinnovo e riprovo... {body[:120]}")
+                time.sleep(3)
+                auth["token"] = get_token()
+                continue
+            if e.code == 403:
+                sys.exit(f"\nACLED ha rifiutato la richiesta (HTTP 403: {body[:200]}). Se succede alla "
+                         "prima chiamata, l'account non ha accesso agli eventi via API (livello Open); "
+                         "se succede solo sugli anni recenti, e' il limite del tuo livello di accesso.")
             if e.code not in (429, 500, 502, 503, 504) or attempt == tries - 1:
-                raise
+                sys.exit(f"\nErrore ACLED HTTP {e.code}: {body[:300]}")
         except (urllib.error.URLError, TimeoutError):
             if attempt == tries - 1:
                 raise
@@ -95,7 +104,7 @@ def _get(params: dict, token: str, tries: int = 5) -> dict:
     raise RuntimeError("irraggiungibile")
 
 
-def fetch_year(year: int, token: str) -> int:
+def fetch_year(year: int, auth: dict) -> int:
     """Scarica un anno con paginazione a cursore; scrive il CSV solo a download completo."""
     base = {"_format": "json", "year": year, "fields": "|".join(FIELDS), "limit": LIMIT}
     tmp, out = OUT_DIR / f"acled_{year}.csv.part", OUT_DIR / f"acled_{year}.csv"
@@ -105,7 +114,7 @@ def fetch_year(year: int, token: str) -> int:
         w.writeheader()
         while True:
             params = dict(base, cursor=cursor) if cursor is not None else dict(base, page=page)
-            resp = _get(params, token)
+            resp = _get(params, auth)
             rows = resp.get("data") or []
             w.writerows(rows)
             n += len(rows)
@@ -132,7 +141,7 @@ def main() -> None:
     ap.add_argument("--refresh", action="store_true", help="riscarica anche gli anni gia' presenti")
     args = ap.parse_args()
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    token = get_token()
+    auth = {"token": get_token()}
     this_year = date.today().year
     total = 0
     for year in range(args.start, this_year + 1):
@@ -140,7 +149,7 @@ def main() -> None:
         if out.exists() and not args.refresh and year < this_year - 1:
             print(f"  {year}: gia' scaricato, salto")
             continue
-        total += fetch_year(year, token)
+        total += fetch_year(year, auth)
     print(f"Fatto: {total:,} eventi scaricati in {OUT_DIR.relative_to(ROOT)}/")
 
 

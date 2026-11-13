@@ -1,60 +1,84 @@
-# Osservatorio rischio golpe
+# Osservatorio golpe
 
-Analisi storica dei colpi di stato e stima del rischio per paese a partire dagli eventi ACLED.
-Pipeline in Python, sito statico in `site/` pronto per Vercel.
+Colpi di stato dal 1900 a oggi e stima del rischio per paese.
+Pipeline dati in Python (`pipeline/`), sito in Next.js con API (`app/`, `components/`, `lib/`).
 
-## 1. Scarica i dati
+## Struttura
+
+| Cartella | Contenuto |
+|---|---|
+| `pipeline/` | scaricamento delle fonti, database dei golpe, modello, esportazione per il sito |
+| `data/raw/` | dati grezzi scaricati (non nel repository) |
+| `data/coupdb/` | database unificato dei golpe, con il suo README |
+| `webdata/` | file JSON letti dal sito, prodotti dalla pipeline |
+| `app/`, `components/`, `lib/` | sito e API |
+
+## Aggiornare i dati
 
 ```bash
 python3 pipeline/fetch_coups.py
 ```
 
-Prende l'ultima versione del dataset Powell & Thyne dal sito di Jonathan Powell (non esiste un'API:
-è un CSV pubblico con nome datato, che lo script individua da solo).
+```bash
+python3 pipeline/fetch_coup_sources.py
+```
 
 ```bash
 python3 pipeline/fetch_acled.py
 ```
 
-Scarica gli eventi ACLED via API, un CSV per anno in `data/raw/acled/`. Chiede email e password
-myACLED a terminale (oppure le legge da `ACLED_EMAIL` e `ACLED_PASSWORD`); la password non viene
-salvata. Il token di rinnovo resta in `.acled_token.json`, escluso da git. Il primo scaricamento
-completo (dal 1997) richiede diverse centinaia di chiamate; quelli successivi riscaricano solo gli
-ultimi due anni. Opzioni: `--from 2018`, `--refresh`.
-
-In alternativa puoi mettere a mano in `data/raw/acled/` i CSV dell'Export Tool di ACLED.
-
-## 2. Esegui la pipeline
+```bash
+python3 pipeline/build_coupdb.py
+```
 
 ```bash
 python3 pipeline/run.py
 ```
 
-Scrive `site/data/forecast.json`. Opzioni: `--horizon 12` cambia l'orizzonte (default 6 mesi);
-`--demo` usa dati sintetici (generabili con `python3 pipeline/make_demo_data.py`).
+In ordine: Powell & Thyne; le altre fonti sui golpe (per V-Dem e PIPE serve R); gli eventi ACLED via API
+(chiede email e password myACLED a terminale, serve un account con accesso agli eventi); l'incrocio delle
+fonti in `data/coupdb/`; modello ed esportazione in `webdata/`.
 
-Se la pipeline segnala golpe in "paesi non trovati in ACLED", aggiungi il nome al dizionario
-`ALIASES` in `pipeline/data.py`.
+Opzioni di `run.py`: `--horizon 12` cambia l'orizzonte (default 6 mesi), `--coups pt` usa solo
+Powell & Thyne, `--demo` usa dati sintetici (`python3 pipeline/make_demo_data.py`).
 
-## 3. Guarda il sito in locale
+## Sito in locale
 
 ```bash
-python3 -m http.server 8765 --directory site
+npm install
 ```
 
-## 4. Deploy su Vercel
+```bash
+npm run dev
+```
 
-`vercel.json` pubblica la cartella `site/` senza build. Dalla radice del progetto: `vercel` (anteprima)
-e poi `vercel --prod`. Per aggiornare le previsioni: nuovo export ACLED, riesegui la pipeline, nuovo deploy.
+## API
 
-Prima di pubblicare controlla le condizioni d'uso di ACLED: richiedono l'attribuzione e limitano
-la ridistribuzione dei dati. Il sito contiene solo conteggi mensili per paese, non gli eventi grezzi.
+| Indirizzo | Risposta |
+|---|---|
+| `/api/meta` | metadati, metriche del modello, serie aggregate |
+| `/api/countries?q=` | elenco paesi con rischio e sintesi dei golpe |
+| `/api/countries/[slug]` | scheda completa di un paese |
+| `/api/coups?conf=C&from=&to=&country=&type=&dup=` | eventi del database dei golpe |
+| `/api/timeline?conf=C` | tentativi per anno |
 
-## Come funziona
+Le API leggono i file in `webdata/` attraverso `lib/data.js`, unico punto da cambiare se i dati
+passano a un database.
 
-- **Panel**: eventi ACLED aggregati per paese-mese (proteste e disordini, violenza armata, vittime,
-  scontri tra forze statali, repressione delle proteste, arresti, violenza statale sui civili).
-- **Target**: almeno un tentativo di golpe (riuscito o fallito, Powell & Thyne) nei successivi N mesi.
-- **Modello**: regressione logistica su livelli a 12 mesi, accelerazioni a 3 mesi e storia golpista
-  del paese e della regione. Gradient boosting e modello "solo storia" come confronto.
-- **Validazione**: finestra espandibile anno per anno; le metriche sono tutte fuori campione.
+## Deploy su Vercel
+
+Importa il repository su Vercel: riconosce Next.js da solo, senza configurazione. A ogni aggiornamento
+dei dati vanno rieseguita la pipeline e caricati `webdata/` e `data/coupdb/`.
+
+Prima di pubblicare controlla le condizioni d'uso di ACLED: richiedono l'attribuzione e limitano la
+ridistribuzione. Il sito contiene conteggi mensili per paese, non gli eventi grezzi.
+
+## Modello
+
+- **Target**: almeno un tentativo di golpe nei successivi N mesi, tra gli eventi confermati da almeno due
+  fonti accademiche o presenti in Powell & Thyne.
+- **Variabili**: storia golpista del paese e della regione, più tre indicatori ACLED misurati rispetto alla
+  norma del paese (impennata di proteste e disordini, scontri recenti tra forze statali, quota di proteste
+  represse). I conteggi assoluti non sono usati: crescono con la copertura ACLED.
+- **Validazione**: finestra espandibile anno per anno, metriche tutte fuori campione.
+- **Risultato**: la storia golpista spiega quasi tutta la capacità predittiva; ACLED aggiunge poco.

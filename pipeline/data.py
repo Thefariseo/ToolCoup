@@ -173,6 +173,30 @@ def load_coups(path: Path, acled_countries: list[str]) -> tuple[pd.DataFrame, li
     return df[["pt_name", "country", "year", "month", "t", "success"]].reset_index(drop=True), unmatched
 
 
+def load_coupdb(path: Path, acled_countries: list[str], tiers: str = "AB") -> tuple[pd.DataFrame, list[str]]:
+    """Legge il database unificato (build_coupdb.py) e allinea i nomi dei paesi ad ACLED.
+
+    Tiene i tentativi di golpe (riusciti o falliti) con l'affidabilita' richiesta, escludendo
+    complotti, eventi che Colpus giudica inesistenti e possibili doppioni.
+    """
+    df = pd.read_csv(path, keep_default_na=False)
+    in_pt = df["sources"].str.contains("Powell & Thyne")      # riferimento del settore: sempre incluso
+    df = df[df["type"].isin(["riuscito", "fallito"]) & (df["confidence"].isin(list(tiers)) | in_pt)
+            & ~df["colpus_class"].isin(["not exist", "combined"]) & (df["possible_duplicate_of"] == "")]
+    lookup = {norm(c): c for c in acled_countries}
+    def match(name):
+        n = norm(name)
+        return lookup.get(n) or ALIASES.get(n) or name
+    d = pd.to_datetime(df["date"])
+    out = pd.DataFrame({"pt_name": df["country"].to_numpy(), "country": df["country"].map(match).to_numpy(),
+                        "year": d.dt.year.to_numpy(), "month": d.dt.month.to_numpy(),
+                        "t": ordinal(d.dt.year, d.dt.month), "success": df["type"].eq("riuscito").to_numpy(),
+                        "confidence": df["confidence"].to_numpy()})
+    in_acled = out["country"].isin(set(acled_countries))
+    unmatched = sorted(out.loc[~in_acled & (out["year"] >= 1997), "pt_name"].unique())
+    return out.reset_index(drop=True), unmatched
+
+
 def add_coup_features(panel: pd.DataFrame, coups: pd.DataFrame, horizon: int) -> pd.DataFrame:
     """Target (tentativo di golpe nei prossimi `horizon` mesi) + variabili di storia golpista."""
     panel = panel.sort_values(["country", "t"]).reset_index(drop=True)
@@ -206,43 +230,47 @@ def add_coup_features(panel: pd.DataFrame, coups: pd.DataFrame, horizon: int) ->
 
 
 def add_acled_features(panel: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
+    """Indicatori ACLED misurati rispetto alla norma del paese.
+
+    I conteggi assoluti non sono confrontabili: ACLED passa da ~3.000 eventi l'anno (1997, sola
+    Africa) a ~400.000 (copertura mondiale), quindi "piu' eventi" significa spesso "piu' copertura".
+    Nella validazione fuori campione i livelli assoluti peggioravano il modello; questi tre
+    indicatori relativi sono gli unici che non lo peggiorano.
+    """
     g = panel.groupby("country", sort=False)
     panel["unrest"] = panel["protests"] + panel["riots"]
     panel["violence"] = panel["battles"] + panel["explosions"] + panel["vac"]
-    feats = []
-    for s in ["unrest", "violence", "fatalities", "infighting", "repression", "arrests",
-              "state_vs_civ", "strategic"]:
-        r3 = g[s].transform(lambda x: x.rolling(3, min_periods=1).sum())
-        r12 = g[s].transform(lambda x: x.rolling(12, min_periods=1).sum())
-        panel[f"{s}_12m"] = np.log1p(r12)
-        feats.append(f"{s}_12m")
-        if s in ("unrest", "violence", "fatalities", "infighting", "repression"):
-            # accelerazione: ultimi 3 mesi rispetto alla media dei 12
-            panel[f"{s}_trend"] = np.log1p(r3 / 3.0) - np.log1p(r12 / 12.0)
-            feats.append(f"{s}_trend")
+
+    # 1) impennata di proteste e disordini: ultimi 3 mesi contro i 24 mesi precedenti dello stesso paese
+    panel["_l"] = np.log1p(panel["unrest"])
+    gl = panel.groupby("country", sort=False)["_l"]
+    recent = gl.transform(lambda x: x.rolling(3, min_periods=1).mean())
+    base_m = gl.transform(lambda x: x.shift(3).rolling(24, min_periods=6).mean())
+    base_s = gl.transform(lambda x: x.shift(3).rolling(24, min_periods=6).std())
+    panel["unrest_surge"] = ((recent - base_m) / (base_s + 0.5)).fillna(0).clip(-4, 4)
+
+    # 2) scontri tra forze statali negli ultimi 6 mesi (si'/no): segnale di fratture nell'apparato
+    panel["infighting_recent"] = (g["infighting"].transform(lambda x: x.rolling(6, min_periods=1).sum()) > 0).astype(float)
+
+    # 3) quota di proteste represse sul totale di proteste e disordini (12 mesi)
+    rep12 = g["repression"].transform(lambda x: x.rolling(12, min_periods=1).sum())
+    unr12 = g["unrest"].transform(lambda x: x.rolling(12, min_periods=1).sum())
+    panel["repression_share"] = rep12 / (unr12 + 5)
+
     panel["hist_recency"] = -np.log1p(panel["yrs_since"])
     panel["hist_coups_10y"] = np.log1p(panel["coups_10y"])
     panel["hist_region_12m"] = np.log1p(panel["region_12m"])
     panel["age"] = g.cumcount()
-    return panel, feats
+    panel = panel.drop(columns="_l")
+    return panel, ["unrest_surge", "infighting_recent", "repression_share"]
 
 
 HIST_FEATURES = ["hist_recency", "hist_coups_10y", "hist_region_12m"]
 
 LABELS = {
-    "unrest_12m": "Proteste e disordini (12 mesi)",
-    "unrest_trend": "Accelerazione di proteste e disordini",
-    "violence_12m": "Violenza armata (12 mesi)",
-    "violence_trend": "Accelerazione della violenza armata",
-    "fatalities_12m": "Vittime (12 mesi)",
-    "fatalities_trend": "Accelerazione delle vittime",
-    "infighting_12m": "Scontri tra forze statali (12 mesi)",
-    "infighting_trend": "Accelerazione scontri tra forze statali",
-    "repression_12m": "Repressione delle proteste (12 mesi)",
-    "repression_trend": "Accelerazione della repressione",
-    "arrests_12m": "Arresti politici (12 mesi)",
-    "state_vs_civ_12m": "Violenza statale sui civili (12 mesi)",
-    "strategic_12m": "Sviluppi strategici (12 mesi)",
+    "unrest_surge": "Impennata di proteste e disordini",
+    "infighting_recent": "Scontri recenti tra forze statali",
+    "repression_share": "Quota di proteste represse",
     "hist_recency": "Golpe recente nel paese",
     "hist_coups_10y": "Numero di golpe negli ultimi 10 anni",
     "hist_region_12m": "Golpe nella regione (12 mesi)",
