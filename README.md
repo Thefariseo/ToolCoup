@@ -74,6 +74,28 @@ compili e fa il push; Vercel pubblica dal push. Servono due *secrets* del reposi
 `ACLED_PASSWORD`. I dati grezzi ACLED vengono riscaricati a ogni esecuzione e non finiscono né nella
 cache né nel repository.
 
+## Dossier PDF per paese
+
+Il pulsante *Dossier · PDF* nella console chiama `/api/dossier/[paese]`: i numeri e i fatti vengono dal nostro
+database (`lib/dossier.js`), i titoli di stampa da una lista fissa di testate (Reuters, AP, BBC, Al Jazeera,
+Crisis Group, ReliefWeb ecc., ultimi 60 giorni, solo titoli), e l'API OpenAI scrive il testo vincolato a quei
+due ingressi. Il PDF è impaginato in `lib/dossier-pdf.js`.
+
+Variabili d'ambiente (mai nel repository: `.env*` è ignorato da git):
+
+| Variabile | Uso |
+|---|---|
+| `OPENAI_API_KEY` | obbligatoria, solo lato server. Senza, l'API risponde 503 |
+| `OPENAI_MODEL` | facoltativa, default `gpt-5.4-mini` |
+| `DOSSIER_DISABLED=1` | spegne la funzione senza togliere la chiave |
+| `ACLED_EMAIL`, `ACLED_PASSWORD` | solo per `pipeline/fetch_acled.py` in locale |
+
+In locale metti le variabili in `.env.local`; in produzione vanno aggiunte nelle *Environment Variables* del
+progetto Vercel. Ogni dossier costa una chiamata a pagamento: solo i paesi noti sono accettati, la risposta è
+messa in cache dalla CDN per tutta l'edizione (la chiave di cache è `?issue=`), le richieste da altri siti sono
+rifiutate e c'è un limite per IP e giornaliero per istanza (un freno, non una garanzia: imposta anche un tetto di
+spesa mensile nel pannello OpenAI).
+
 ## Segnali di innesco (sperimentale)
 
 ```bash

@@ -13,6 +13,7 @@ const REGION_SHORT = { "Western Africa": "W AFRICA", "Middle Africa": "M AFRICA"
   Caribbean: "CARIB", "North America": "N AMERICA", Oceania: "OCEANIA" };
 const nodeY = (i) => 0.66 - (1.32 * i) / (GROUP_ORDER.length - 1);
 const rnd = (seed) => { let s = seed >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); };
+const GROUP_SCALE = 1.8; // log-odds at which a stream reaches full width
 
 let landPromise;
 const loadLand = () => (landPromise ||= Promise.all([
@@ -25,10 +26,10 @@ const cellKey = (lon, lat, step, dr = 0, dc = 0) => {
   return row * 4096 + ((Math.floor(((lon + 180) / 360) * n) + dc + n) % n);
 };
 
-export default function Stage({ view, list, selected, detail, atlas, plane, live, onSelect, focus, onFocus }) {
-  const canvasRef = useRef(null), engineRef = useRef(null), labelRefs = useRef(new Map());
+export default function Stage({ view, list, selected, detail, atlas, plane, live, onSelect, focus, onFocus, apiRef }) {
+  const canvasRef = useRef(null), engineRef = useRef(null), labelRefs = useRef(new Map()), overlayRef = useRef(null);
   const [land, setLand] = useState(null), [failed, setFailed] = useState(false), [tip, setTip] = useState(null);
-  const [atlasHover, setAtlasHover] = useState(null);
+  const [atlasHover, setAtlasHover] = useState(null), [zoomShown, setZoomShown] = useState(1), [noSim, setNoSim] = useState(false);
   const maxRisk = list[0]?.risk || 0.05;
 
   useEffect(() => {
@@ -36,9 +37,18 @@ export default function Stage({ view, list, selected, detail, atlas, plane, live
     try { engine = createEngine(canvasRef.current); } catch (e) { console.error(e.message); }
     if (!engine) { setFailed(true); return; }
     engineRef.current = engine;
+    setNoSim(!engine.state.sim);
+    if (apiRef) apiRef.current = { zoom: (f) => engine.zoomAt(0.5, 0.5, f), reset: () => engine.resetCam() };
     loadLand().then(setLand).catch(() => setFailed(true));
-    return () => { engine.destroy(); engineRef.current = null; };
-  }, []);
+    const el = canvasRef.current;
+    const wheel = (e) => {                     // native listener: React's onWheel is passive and cannot stop page scroll
+      e.preventDefault();
+      const r = el.getBoundingClientRect();
+      engine.zoomAt((e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height, Math.exp(-e.deltaY * (e.ctrlKey ? 0.012 : 0.0016)));
+    };
+    el.addEventListener("wheel", wheel, { passive: false });
+    return () => { el.removeEventListener("wheel", wheel); engine.destroy(); engineRef.current = null; if (apiRef) apiRef.current = null; };
+  }, [apiRef]);
 
   // ---- FIELD: land dots carry their country's forecast; plumes and pulses scale with it
   const geo = useMemo(() => {
@@ -76,21 +86,15 @@ export default function Stage({ view, list, selected, detail, atlas, plane, live
     engine.select(idx ?? -1, g?.c[0], g?.c[1]);
   }, [geo, land, selected]);
 
-  // ---- TRACE: one stream per variable group, sized by its share of the linear score
+  // ---- TRACE: one lane per variable group; lane width and particle share follow |log-odds contribution|
   const groups = useMemo(() => {
     const by = new Map((detail?.groups || []).map((g) => [g.key, g.contrib]));
     return GROUP_ORDER.map((key, i) => ({ key, y: nodeY(i), contrib: by.get(key) ?? 0 }));
   }, [detail]);
   useEffect(() => {
     const engine = engineRef.current; if (!engine || !selected) return;
-    const r = rnd(11), out = [], SCALE = 1.8;      // absolute scale (log-odds): streams are comparable across countries
-    if (detail) for (const g of groups) {
-      const a = Math.abs(g.contrib); if (a < 0.005) continue;
-      const k = Math.min(1, a / SCALE), n = Math.round(300 + 9000 * k), w = 0.006 + 0.09 * k;
-      for (let i = 0; i < n; i++) out.push(g.y, r(), (r() + r() + r()) / 1.5 - 1, 0.035 + r() * 0.05, w, g.contrib > 0 ? 1 : -1, 0, r());
-    }
-    for (let i = 0; i < 5200; i++) out.push(Math.pow(r(), 0.7), r(), 0, 0.25 + r() * 0.5, 0, 0, 1, r());
-    engine.setTrace(new Float32Array(out), Math.max(0, riskNorm(selected.risk, maxRisk)));
+    engine.setTrace(groups.map((g) => ({ y: g.y, k: detail ? Math.min(1, Math.abs(g.contrib) / GROUP_SCALE) : 0, sign: g.contrib >= 0 ? 1 : -1 })),
+      Math.max(0, riskNorm(selected.risk, maxRisk)));
   }, [groups, detail, selected, maxRisk]);
   useEffect(() => { engineRef.current?.focus(focus ? groups.find((g) => g.key === focus)?.y : null); }, [focus, groups]);
 
@@ -116,11 +120,28 @@ export default function Stage({ view, list, selected, detail, atlas, plane, live
     engineRef.current?.rows(ridge?.index.get(selected?.slug) ?? -1, atlasHover?.row ?? -1, atlasHover ? atlasHover.q / (atlas.quarters - 1) : -1);
   }, [ridge, selected, atlasHover, atlas]);
 
+  const selRow = ridge?.index.get(selected?.slug);
+  // the selected country's trajectory: peak, present value, recorded coups placed on its own ridge
+  const traj = useMemo(() => {
+    if (!atlas || !ridge || selRow == null) return null;
+    const row = atlas.rows[selRow], Q = atlas.quarters, rp = ridge.pos[selRow];
+    const at = (q) => ({ cx: ATLAS_GEOM.x(q / (Q - 1), rp), cy: ATLAS_GEOM.yb(rp) + (row.v[q] < 0 ? 0 : atlasHeight(row.v[q] / 10000)) * ATLAS_GEOM.amp });
+    let peak = -1, pq = 0, last = -1, lq = 0; const vals = [];
+    row.v.forEach((v, q) => { if (v >= 0) { vals.push(v); if (v > peak) { peak = v; pq = q; } last = v; lq = q; } });
+    vals.sort((a, b) => a - b);
+    const coups = detail?.slug === selected.slug
+      ? (detail.coups || []).filter((e) => e.type !== "complotto" && e.conf !== "D" && !e.dup && e.prec !== "year")
+        .map((e) => ({ ...e, q: (+e.date.slice(0, 4) - atlas.start) * 4 + Math.floor((+e.date.slice(5, 7) - 1) / 3) }))
+        .filter((e) => e.q >= 0 && e.q < Q).map((e) => ({ ...e, ...at(e.q) })) : [];
+    return { start: { cx: ATLAS_GEOM.x(0, rp), cy: ATLAS_GEOM.yb(rp) }, end: { cx: ATLAS_GEOM.x(1, rp), cy: ATLAS_GEOM.yb(rp) },
+      peak: { v: peak, q: pq, ...at(pq) }, now: { v: last, q: lq, ...at(lq) }, median: vals[Math.floor(vals.length / 2)] ?? 0, coups };
+  }, [atlas, ridge, selRow, detail, selected]);
+
   useEffect(() => { engineRef.current?.setView(view); setTip(null); setAtlasHover(null); }, [view]);
   useEffect(() => { engineRef.current?.setPlane(plane); }, [plane]);
   useEffect(() => { engineRef.current?.setLive(live); }, [live]);
 
-  // ---- labels that follow the globe
+  // ---- overlay placement, once per frame: globe labels follow the sphere, the rest follow the camera
   const beacons = useMemo(() => {
     if (!geo) return [];
     const top = list.slice(0, 10), all = selected && !top.some((c) => c.slug === selected.slug) ? [...top, selected] : top;
@@ -128,28 +149,41 @@ export default function Stage({ view, list, selected, detail, atlas, plane, live
   }, [geo, land, list, selected]);
   useEffect(() => {
     const engine = engineRef.current; if (!engine) return;
+    let last = 1;
     engine.state.onFrame = () => {
-      if (engine.state.view !== "field") return;
-      const placed = [];
-      for (const b of beacons) {
-        const el = labelRefs.current.get(b.c.slug); if (!el) continue;
-        const p = engine.project(b.g.c[0], b.g.c[1]), W = el.parentElement.clientWidth, H = el.parentElement.clientHeight;
-        const x = p.x * W, w = el.offsetWidth; let y = p.y * H;
-        if (p.front) {                                  // stack labels that would collide; the marker stays on the country
-          for (let k = 0; k < 8 && placed.some((q) => x < q.x + q.w + 6 && q.x < x + w + 6 && Math.abs(q.y - y) < 13); k++) y += 13;
-          placed.push({ x, y, w });
+      const zl = engine.zoomLevel();
+      if (Math.abs(zl - last) > 0.04) { last = zl; setZoomShown(zl); }
+      const root = overlayRef.current; if (!root) return;
+      const W = root.clientWidth, H = root.clientHeight;
+      if (engine.state.view === "field") {
+        const placed = [];
+        for (const b of beacons) {
+          const el = labelRefs.current.get(b.c.slug); if (!el) continue;
+          const p = engine.project(b.g.c[0], b.g.c[1]);
+          const x = p.x * W, w = el.offsetWidth; let y = p.y * H;
+          if (p.front) {                                  // stack labels that would collide; the marker stays on the country
+            for (let k = 0; k < 8 && placed.some((q) => x < q.x + q.w + 6 && q.x < x + w + 6 && Math.abs(q.y - y) < 13); k++) y += 13;
+            placed.push({ x, y, w });
+          }
+          el.style.transform = `translate(${x.toFixed(1)}px, ${(p.y * H).toFixed(1)}px)`;
+          el.style.setProperty("--dy", `${(y - p.y * H).toFixed(1)}px`);
+          el.style.opacity = p.front && p.x > -0.05 && p.x < 1.05 && p.y > -0.05 && p.y < 1.05 ? 1 : 0;
+          el.style.pointerEvents = p.front ? "auto" : "none";
         }
-        el.style.transform = `translate(${x.toFixed(1)}px, ${(p.y * H).toFixed(1)}px)`;
-        el.style.setProperty("--dy", `${(y - p.y * H).toFixed(1)}px`);
-        el.style.opacity = p.front ? 1 : 0;
-        el.style.pointerEvents = p.front ? "auto" : "none";
+        return;
+      }
+      for (const el of root.querySelectorAll("[data-cx]")) {
+        const a = engine.toStage(+el.dataset.cx, +el.dataset.cy);
+        el.style.left = `${(a.x * W).toFixed(1)}px`; el.style.top = `${(a.y * H).toFixed(1)}px`;
+        if (el.dataset.cx2) el.style.width = `${Math.max(0, (engine.toStage(+el.dataset.cx2, 0).x - a.x) * W).toFixed(1)}px`;
+        el.style.opacity = a.x > -0.02 && a.x < 1.02 && a.y > -0.02 && a.y < 1.02 ? "" : 0;
       }
     };
     return () => { if (engine.state) engine.state.onFrame = null; };
-  }, [beacons]);
+  }, [beacons, view]);
 
-  // ---- pointer: rotate / inspect / select
-  const ptr = useRef({ down: false, moved: 0, x: 0, y: 0 });
+  // ---- pointer: rotate / pan / pinch / inspect / select
+  const pts = useRef(new Map()), ptr = useRef({ down: false, moved: 0, x: 0, y: 0 }), pinch = useRef(0);
   const pick = (fx, fy) => {
     const engine = engineRef.current; if (!engine || !geo) return null;
     const ll = engine.unproject(fx, fy); if (!ll) return null;
@@ -160,23 +194,31 @@ export default function Stage({ view, list, selected, detail, atlas, plane, live
     return null;
   };
   const pickRow = (fx, fy) => {
-    if (!ridge) return null;
-    const x = fx * 2 - 1, y = 1 - fy * 2; let best = -1, gap = 1e9;
-    ridge.pos.forEach((p, i) => { const d = y - ATLAS_GEOM.yb(p); if (d >= -0.012 && d < gap) { gap = d; best = i; } });
-    if (best < 0 || gap > 0.2) return null;
+    const engine = engineRef.current; if (!ridge || !engine) return null;
+    const [x, y] = engine.fromStage(fx, fy), tol = 0.012 / engine.zoomLevel(); let best = -1, gap = 1e9;
+    ridge.pos.forEach((p, i) => { const d = y - ATLAS_GEOM.yb(p); if (d >= -tol && d < gap) { gap = d; best = i; } });
+    if (best < 0 || gap > 0.2 / engine.zoomLevel()) return null;
     const t = (x - ATLAS_GEOM.x(0, ridge.pos[best])) / (ATLAS_GEOM.x(1, ridge.pos[best]) - ATLAS_GEOM.x(0, ridge.pos[best]));
     if (t < 0 || t > 1) return null;
     return { row: best, q: Math.round(t * (atlas.quarters - 1)) };
   };
   const onMove = (e) => {
+    const engine = engineRef.current; if (!engine) return;
     const r = e.currentTarget.getBoundingClientRect(), fx = (e.clientX - r.left) / r.width, fy = (e.clientY - r.top) / r.height, p = ptr.current;
-    if (p.down && view === "field" && !plane) {
-      engineRef.current?.drag((e.clientX - p.x) / r.height, (e.clientY - p.y) / r.height);
-      p.moved += Math.abs(e.clientX - p.x) + Math.abs(e.clientY - p.y); p.x = e.clientX; p.y = e.clientY; setTip(null); return;
+    if (pts.current.has(e.pointerId)) pts.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pts.current.size === 2) {                                    // pinch
+      const [a, b] = [...pts.current.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
+      if (pinch.current) engine.zoomAt(((a.x + b.x) / 2 - r.left) / r.width, ((a.y + b.y) / 2 - r.top) / r.height, d / pinch.current);
+      pinch.current = d; p.moved = 99; setTip(null); return;
+    }
+    if (p.down) {
+      const dx = e.clientX - p.x, dy = e.clientY - p.y;
+      if (view === "field" && !plane) engine.drag(dx / r.height, dy / r.height); else engine.pan(dx / r.width, dy / r.height);
+      p.moved += Math.abs(dx) + Math.abs(dy); p.x = e.clientX; p.y = e.clientY; setTip(null); return;
     }
     if (view === "field") {
       const hit = pick(fx, fy);
-      engineRef.current?.hover(hit ? hit.idx : -1);
+      engine.hover(hit ? hit.idx : -1);
       setTip(hit ? { x: e.clientX - r.left, y: e.clientY - r.top, c: hit.c } : null);
     } else if (view === "atlas") {
       const hit = pickRow(fx, fy);
@@ -184,9 +226,16 @@ export default function Stage({ view, list, selected, detail, atlas, plane, live
       setTip(hit ? { x: e.clientX - r.left, y: e.clientY - r.top, row: atlas.rows[hit.row], q: hit.q } : null);
     }
   };
-  const onDown = (e) => { ptr.current = { down: true, moved: 0, x: e.clientX, y: e.clientY }; e.currentTarget.setPointerCapture(e.pointerId); engineRef.current?.dragging(true); };
+  const onDown = (e) => {
+    pts.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    ptr.current = { down: true, moved: pts.current.size > 1 ? 99 : 0, x: e.clientX, y: e.clientY };
+    pinch.current = 0;
+    e.currentTarget.setPointerCapture(e.pointerId); engineRef.current?.dragging(true);
+  };
   const onUp = (e) => {
-    const p = ptr.current; p.down = false; engineRef.current?.dragging(false);
+    pts.current.delete(e.pointerId); pinch.current = 0;
+    const p = ptr.current; if (pts.current.size) return;
+    p.down = false; engineRef.current?.dragging(false);
     if (p.moved > 5) return;
     const r = e.currentTarget.getBoundingClientRect(), fx = (e.clientX - r.left) / r.width, fy = (e.clientY - r.top) / r.height;
     if (view === "field") { const hit = pick(fx, fy); if (hit) onSelect(hit.c.slug); }
@@ -194,51 +243,70 @@ export default function Stage({ view, list, selected, detail, atlas, plane, live
   };
   const onLeave = () => { setTip(null); setAtlasHover(null); engineRef.current?.hover(-1); };
 
-  const pos = (x, y) => ({ left: `${(x * 0.5 + 0.5) * 100}%`, top: `${(0.5 - y * 0.5) * 100}%` });
   const quarterLabel = (q) => `${atlas.start + Math.floor(q / 4)} Q${(q % 4) + 1}`;
-  const selRow = ridge?.index.get(selected?.slug);
+  const zoomBtn = (f) => engineRef.current?.zoomAt(0.5, 0.5, f);
 
   return (
     <div className={`cx-stage v-${view}`}>
-      <canvas ref={canvasRef} className={view === "field" && !plane ? "grab" : ""} onPointerMove={onMove} onPointerDown={onDown} onPointerUp={onUp} onPointerLeave={onLeave} aria-hidden="true" />
+      <canvas ref={canvasRef} className={view === "field" && !plane ? "grab" : "pan"} onPointerMove={onMove} onPointerDown={onDown} onPointerUp={onUp}
+        onPointerCancel={onUp} onPointerLeave={onLeave} aria-hidden="true" />
       {failed && <p className="cx-fail">WebGL2 is unavailable in this browser. The watchlist, readout and timeline remain fully usable.</p>}
+      {noSim && view === "trace" && <p className="cx-fail">Float render targets are unavailable: the particle flow cannot run in this browser.</p>}
 
-      {view === "field" && (
-        <div className="cx-overlay">
-          {beacons.map(({ c }) => (
-            <button key={c.slug} ref={(el) => { if (el) labelRefs.current.set(c.slug, el); else labelRefs.current.delete(c.slug); }}
-              className={`cx-beacon${c.slug === selected?.slug ? " on" : ""}`} onClick={() => onSelect(c.slug)}>
-              <i /><span>{String(c.pos).padStart(2, "0")} {c.name.toUpperCase()}</span><b>{pct(c.risk)}</b>
-            </button>
-          ))}
-        </div>
-      )}
+      <div className="cx-zoom" role="group" aria-label="Zoom">
+        <button onClick={() => zoomBtn(1.5)} aria-label="Zoom in">+</button>
+        <button onClick={() => zoomBtn(1 / 1.5)} aria-label="Zoom out">−</button>
+        <button onClick={() => engineRef.current?.resetCam()} className="fit" aria-label="Reset zoom" title="Reset zoom [0]">{zoomShown.toFixed(1)}×</button>
+      </div>
 
-      {view === "atlas" && ridge && (
-        <div className="cx-overlay">
-          {ridge.regions.map((g) => (
-            <span key={g.name} className="cx-region" style={pos(ATLAS_GEOM.x(1, ridge.pos[g.i]) + 0.02, ATLAS_GEOM.yb(ridge.pos[g.i]))}>{REGION_SHORT[g.name] || g.name.toUpperCase()}</span>
-          ))}
-          {Array.from({ length: 6 }, (_, k) => 1980 + k * 10).map((y) => {
-            const t = ((y - atlas.start) * 4) / (atlas.quarters - 1); if (t > 1) return null;
-            return <span key={y} className="cx-tick" style={pos(ATLAS_GEOM.x(t, 1), ATLAS_GEOM.yb(1) - 0.03)}>{y}</span>;
-          })}
-          {selRow != null && <span className="cx-rowtag" style={pos(ATLAS_GEOM.x(0, ridge.pos[selRow]) - 0.01, ATLAS_GEOM.yb(ridge.pos[selRow]))}>{selected.name.toUpperCase()} ▸</span>}
-        </div>
-      )}
-      {view === "atlas" && !atlas && <p className="cx-wait">LOADING 51 YEARS OF FORECASTS<i>_</i></p>}
+      <div ref={overlayRef} className={`cx-overlay${zoomShown > 2.2 ? " zin" : ""}`}>
+        {view === "field" && beacons.map(({ c }) => (
+          <button key={c.slug} ref={(el) => { if (el) labelRefs.current.set(c.slug, el); else labelRefs.current.delete(c.slug); }}
+            className={`cx-beacon${c.slug === selected?.slug ? " on" : ""}`} onClick={() => onSelect(c.slug)}>
+            <i /><span>{String(c.pos).padStart(2, "0")} {c.name.toUpperCase()}</span><b>{pct(c.risk)}</b>
+          </button>
+        ))}
 
-      {view === "trace" && (
-        <div className="cx-overlay">
-          {groups.map((g) => (
-            <button key={g.key} className={`cx-node${g.contrib > 0 ? " up" : g.contrib < 0 ? " down" : ""}${focus === g.key ? " on" : ""}`}
-              style={pos(TRACE_GEOM.nodeX - 0.02, g.y)} onClick={() => onFocus(focus === g.key ? null : g.key)} disabled={!detail}>
-              <span>{GROUP_NAME[g.key]}</span><b>{detail ? `${g.contrib > 0 ? "+" : ""}${g.contrib.toFixed(2)}` : "…"}</b>
-            </button>
-          ))}
-          <div className="cx-core" style={pos(TRACE_GEOM.core[0], TRACE_GEOM.core[1])}>
+        {view === "atlas" && ridge && ridge.regions.map((g) => (
+          <span key={g.name} className="cx-region" data-cx={ATLAS_GEOM.x(1, ridge.pos[g.i]) + 0.02} data-cy={ATLAS_GEOM.yb(ridge.pos[g.i])}>{REGION_SHORT[g.name] || g.name.toUpperCase()}</span>
+        ))}
+        {view === "atlas" && atlas && Array.from({ length: 6 }, (_, k) => 1980 + k * 10).map((y) => {
+          const t = ((y - atlas.start) * 4) / (atlas.quarters - 1); if (t > 1) return null;
+          return <span key={y} className="cx-tick" data-cx={ATLAS_GEOM.x(t, 1)} data-cy={ATLAS_GEOM.yb(1) - 0.03}>{y}</span>;
+        })}
+        {view === "atlas" && traj && (
+          <>
+            <span className="cx-guide" data-cx={traj.start.cx} data-cx2={traj.end.cx} data-cy={traj.start.cy} />
+            <span className="cx-rowtag" data-cx={traj.start.cx - 0.01} data-cy={traj.start.cy}>{selected.name.toUpperCase()} ▸</span>
+            {traj.coups.map((e) => (
+              <span key={e.id} className={`cx-mark ${e.type === "riuscito" ? "ok" : "ko"}`} data-cx={e.cx} data-cy={e.cy}><i />{<small>{e.date.slice(0, 4)}</small>}</span>
+            ))}
+            <span className="cx-peak" data-cx={traj.peak.cx} data-cy={traj.peak.cy}>PEAK {pct(traj.peak.v / 10000)} · {quarterLabel(traj.peak.q)}</span>
+            <span className="cx-now" data-cx={traj.now.cx} data-cy={traj.now.cy}><i />NOW {pct(traj.now.v / 10000)}</span>
+          </>
+        )}
+        {view === "atlas" && !atlas && <p className="cx-wait">LOADING 51 YEARS OF FORECASTS<i>_</i></p>}
+
+        {view === "trace" && groups.map((g) => (
+          <button key={g.key} className={`cx-node${g.contrib > 0 ? " up" : g.contrib < 0 ? " down" : ""}${focus === g.key ? " on" : ""}`}
+            data-cx={TRACE_GEOM.nodeX - 0.02} data-cy={g.y} onClick={() => onFocus(focus === g.key ? null : g.key)} disabled={!detail}>
+            <span>{GROUP_NAME[g.key]}</span><b>{detail ? `${g.contrib > 0 ? "+" : ""}${g.contrib.toFixed(2)}` : "…"}</b>
+          </button>
+        ))}
+        {view === "trace" && (
+          <div className="cx-core" data-cx={TRACE_GEOM.core[0]} data-cy={TRACE_GEOM.core[1]}>
             <b>{pct(selected?.risk)}</b><span>P(ATTEMPT) · 6 MO</span>
           </div>
+        )}
+      </div>
+
+      {view === "atlas" && traj && (
+        <div className="cx-traj">
+          <b>{selected.name.toUpperCase()} · TRAJECTORY SINCE {atlas.start}</b>
+          <span>PEAK <em>{pct(traj.peak.v / 10000)}</em> {quarterLabel(traj.peak.q)}</span>
+          <span>NOW <em>{pct(traj.now.v / 10000)}</em> {quarterLabel(traj.now.q)}</span>
+          <span>MEDIAN <em>{pct(traj.median / 10000)}</em></span>
+          <span><i className="d" /> {traj.coups.length} recorded attempts (A–C)</span>
         </div>
       )}
 
@@ -251,4 +319,3 @@ export default function Stage({ view, list, selected, detail, atlas, plane, live
     </div>
   );
 }
-

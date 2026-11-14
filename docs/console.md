@@ -45,3 +45,19 @@ Visual references: [WebGL Shader Lab](https://github.com/PSCactux/webgl-shader-l
 wireframe terrain), the three.js attractor-particles example (continuous transport),
 [Bayer dithering demo](https://github.com/zavalit/bayer-dithering-webgl-demo) (ordered dither, ripples).
 The code is original.
+
+## Zoom, camera and trace simulation
+
+All three views share a camera (`clip' = (clip − pan) × zoom`, 1× to 8×): wheel or pinch zooms about the
+cursor, drag pans (on the globe it rotates), `+ − 0` and the buttons at the top right of the stage zoom and
+reset. Text labels follow the camera but keep their size.
+
+The **Model Trace** is a GPU particle simulation: 65,536 particles (16,384 on narrow screens) in float
+textures, advanced by curl noise along one lane per variable group, spiralling into a vortex whose size,
+spin and colour follow the final probability. Lane width and particle share follow each group's absolute
+log-odds contribution on a fixed scale, so countries are comparable. Particle count per group is data;
+the turbulence is decoration.
+
+Code adapted under the MIT licence from [PSCactux/webgl-shader-lab](https://github.com/PSCactux/webgl-shader-lab)
+(Copyright (c) 2026 PSCactux): simplex/curl noise and the ping-pong GPGPU layout from `CurlSwarm.tsx`, the
+vortex and ring halo from `Portal.tsx`. Simplex noise by Ashima Arts and Stefan Gustavson (MIT).

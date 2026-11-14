@@ -1,0 +1,321 @@
+{
+ "generated": "2026-11-14",
+ "first_test_year": 2008,
+ "horizon": 6,
+ "windows": {
+  "trigger coverage": {
+   "n": 27596,
+   "pos": 329,
+   "models": {
+    "base": {
+     "n": 27596,
+     "pos": 329,
+     "auc": 0.855,
+     "pr_auc": 0.067,
+     "base_rate": 0.0119,
+     "brier": 0.01141,
+     "brier_skill": 0.031,
+     "log_loss": 0.0533,
+     "top10_recall": 0.429
+    },
+    "trig": {
+     "n": 27596,
+     "pos": 329,
+     "auc": 0.847,
+     "pr_auc": 0.07,
+     "base_rate": 0.0119,
+     "brier": 0.01152,
+     "brier_skill": 0.022,
+     "log_loss": 0.0541,
+     "top10_recall": 0.365
+    },
+    "elec": {
+     "n": 27596,
+     "pos": 329,
+     "auc": 0.852,
+     "pr_auc": 0.066,
+     "base_rate": 0.0119,
+     "brier": 0.01142,
+     "brier_skill": 0.031,
+     "log_loss": 0.0535,
+     "top10_recall": 0.432
+    },
+    "both": {
+     "n": 27596,
+     "pos": 329,
+     "auc": 0.844,
+     "pr_auc": 0.069,
+     "base_rate": 0.0119,
+     "brier": 0.01152,
+     "brier_skill": 0.022,
+     "log_loss": 0.0544,
+     "top10_recall": 0.365
+    }
+   },
+   "comparisons": [
+    {
+     "d_auc": -0.008,
+     "d_auc_ci": [
+      -0.019,
+      0.002
+     ],
+     "d_pr": 0.0,
+     "d_pr_ci": [
+      -0.008,
+      0.01
+     ],
+     "auc_ci": [
+      0.808,
+      0.879
+     ],
+     "p_better": 0.11,
+     "model": "trig"
+    },
+    {
+     "d_auc": -0.003,
+     "d_auc_ci": [
+      -0.009,
+      0.001
+     ],
+     "d_pr": -0.001,
+     "d_pr_ci": [
+      -0.006,
+      0.002
+     ],
+     "auc_ci": [
+      0.806,
+      0.887
+     ],
+     "p_better": 0.13,
+     "model": "elec"
+    },
+    {
+     "d_auc": -0.011,
+     "d_auc_ci": [
+      -0.022,
+      -0.001
+     ],
+     "d_pr": -0.001,
+     "d_pr_ci": [
+      -0.01,
+      0.008
+     ],
+     "auc_ci": [
+      0.804,
+      0.877
+     ],
+     "p_better": 0.04,
+     "model": "both"
+    }
+   ]
+  },
+  "election coverage": {
+   "n": 34469,
+   "pos": 307,
+   "models": {
+    "base": {
+     "n": 34469,
+     "pos": 307,
+     "auc": 0.835,
+     "pr_auc": 0.049,
+     "base_rate": 0.0089,
+     "brier": 0.00866,
+     "brier_skill": 0.019,
+     "log_loss": 0.0437,
+     "top10_recall": 0.388
+    },
+    "trig": {
+     "n": 34469,
+     "pos": 307,
+     "auc": 0.83,
+     "pr_auc": 0.04,
+     "base_rate": 0.0089,
+     "brier": 0.00882,
+     "brier_skill": 0.001,
+     "log_loss": 0.0444,
+     "top10_recall": 0.414
+    },
+    "elec": {
+     "n": 34469,
+     "pos": 307,
+     "auc": 0.833,
+     "pr_auc": 0.047,
+     "base_rate": 0.0089,
+     "brier": 0.00866,
+     "brier_skill": 0.019,
+     "log_loss": 0.0437,
+     "top10_recall": 0.407
+    },
+    "both": {
+     "n": 34469,
+     "pos": 307,
+     "auc": 0.826,
+     "pr_auc": 0.039,
+     "base_rate": 0.0089,
+     "brier": 0.00881,
+     "brier_skill": 0.002,
+     "log_loss": 0.0445,
+     "top10_recall": 0.404
+    }
+   },
+   "comparisons": [
+    {
+     "d_auc": -0.005,
+     "d_auc_ci": [
+      -0.015,
+      0.005
+     ],
+     "d_pr": -0.01,
+     "d_pr_ci": [
+      -0.028,
+      0.001
+     ],
+     "auc_ci": [
+      0.787,
+      0.865
+     ],
+     "p_better": 0.24,
+     "model": "trig"
+    },
+    {
+     "d_auc": -0.002,
+     "d_auc_ci": [
+      -0.008,
+      0.003
+     ],
+     "d_pr": -0.001,
+     "d_pr_ci": [
+      -0.007,
+      0.003
+     ],
+     "auc_ci": [
+      0.784,
+      0.868
+     ],
+     "p_better": 0.24,
+     "model": "elec"
+    },
+    {
+     "d_auc": -0.008,
+     "d_auc_ci": [
+      -0.02,
+      0.002
+     ],
+     "d_pr": -0.011,
+     "d_pr_ci": [
+      -0.031,
+      0.001
+     ],
+     "auc_ci": [
+      0.779,
+      0.864
+     ],
+     "p_better": 0.13,
+     "model": "both"
+    }
+   ]
+  }
+ },
+ "signals": [
+  {
+   "feature": "g_plot_6m",
+   "label": "Complotti e golpe sventati (6 mesi)",
+   "n": 27596,
+   "n_on": 1638,
+   "rate_on": 0.0311,
+   "rate_off": 0.0107,
+   "auc": 0.548,
+   "lift_vs_base_model": 0.96
+  },
+  {
+   "feature": "g_rumor_6m",
+   "label": "Voci e minacce di golpe (6 mesi)",
+   "n": 27596,
+   "n_on": 552,
+   "rate_on": 0.0127,
+   "rate_off": 0.0119,
+   "auc": 0.501,
+   "lift_vs_base_model": 0.69
+  },
+  {
+   "feature": "g_purge_6m",
+   "label": "Epurazioni ai vertici militari (6 mesi)",
+   "n": 27596,
+   "n_on": 470,
+   "rate_on": 0.0277,
+   "rate_off": 0.0116,
+   "auc": 0.511,
+   "lift_vs_base_model": 1.12
+  },
+  {
+   "feature": "g_officers_6m",
+   "label": "Arresti di militari (6 mesi)",
+   "n": 27596,
+   "n_on": 2507,
+   "rate_on": 0.0183,
+   "rate_off": 0.0113,
+   "auc": 0.523,
+   "lift_vs_base_model": 0.79
+  },
+  {
+   "feature": "g_mutiny_6m",
+   "label": "Ammutinamenti (6 mesi)",
+   "n": 27596,
+   "n_on": 1590,
+   "rate_on": 0.0308,
+   "rate_off": 0.0108,
+   "auc": 0.547,
+   "lift_vs_base_model": 1.06
+  },
+  {
+   "feature": "g_emergency_6m",
+   "label": "Stato d'emergenza o parlamento sciolto (6 mesi)",
+   "n": 27596,
+   "n_on": 1651,
+   "rate_on": 0.0267,
+   "rate_off": 0.011,
+   "auc": 0.537,
+   "lift_vs_base_model": 1.39
+  },
+  {
+   "feature": "g_succession_6m",
+   "label": "Crisi al vertice dello stato (6 mesi)",
+   "n": 27596,
+   "n_on": 742,
+   "rate_on": 0.0162,
+   "rate_off": 0.0118,
+   "auc": 0.505,
+   "lift_vs_base_model": 0.69
+  },
+  {
+   "feature": "g_any_6m",
+   "label": "Segnali di innesco, totale (6 mesi)",
+   "n": 27596,
+   "n_on": 6130,
+   "rate_on": 0.0241,
+   "rate_off": 0.0084,
+   "auc": 0.617,
+   "lift_vs_base_model": 1.13
+  },
+  {
+   "feature": "l_election_next6",
+   "label": "l_election_next6",
+   "n": 34469,
+   "n_on": 3335,
+   "rate_on": 0.0099,
+   "rate_off": 0.0088,
+   "auc": 0.505,
+   "lift_vs_base_model": 1.04
+  },
+  {
+   "feature": "l_election_last6",
+   "label": "l_election_last6",
+   "n": 34469,
+   "n_on": 3296,
+   "rate_on": 0.0076,
+   "rate_off": 0.009,
+   "auc": 0.493,
+   "lift_vs_base_model": 0.77
+  }
+ ]
+}

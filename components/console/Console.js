@@ -8,9 +8,9 @@ import { labelEn } from "@/lib/english";
 import { fmtEventDate, pct, TYPE_LABEL } from "@/lib/format";
 
 const VIEWS = [
-  { key: "field", n: "1", name: "SIGNAL FIELD", line: "Where. Every country's 6-month probability of a coup attempt. Colour, plume height and pulse rate all encode the same number." },
-  { key: "atlas", n: "2", name: "TEMPORAL ATLAS", line: "When. One ridge per country, 1975 → today: the model's out-of-sample forecast, quarter by quarter. Height = probability." },
-  { key: "trace", n: "3", name: "MODEL TRACE", line: "Why. Seven variable groups feed the score. Stream width = size of the push, amber raises, cyan lowers (log-odds, linear component)." },
+  { key: "field", n: "1", name: "SIGNAL FIELD", line: "Where. Every country's 6-month probability of a coup attempt. Colour, plume height and pulse rate all encode the same number. Scroll to zoom, drag to rotate." },
+  { key: "atlas", n: "2", name: "TEMPORAL ATLAS", line: "When. One ridge per country, 1975 → today: the model's out-of-sample forecast, quarter by quarter. Height = probability. The selected country is lit; the rest recede." },
+  { key: "trace", n: "3", name: "MODEL TRACE", line: "Why. Seven variable groups feed the score. Stream width = size of the push; amber raises, cyan lowers (log-odds, linear component). Click a group to isolate it." },
 ];
 const cache = new Map();
 
@@ -19,7 +19,8 @@ export default function Console({ list, meta, auc, featureGroup, registry }) {
   const [slug, setSlug] = useState(list[0]?.slug), [view, setView] = useState("field");
   const [plane, setPlane] = useState(false), [live, setLive] = useState(true), [q, setQ] = useState(""), [focus, setFocus] = useState(null);
   const [detail, setDetail] = useState(null), [atlas, setAtlas] = useState(null), [ready, setReady] = useState(false);
-  const filterRef = useRef(null), listRef = useRef(null);
+  const [dossier, setDossier] = useState({ state: "idle" });
+  const filterRef = useRef(null), listRef = useRef(null), stageApi = useRef(null);
   const selected = bySlug.get(slug) || list[0];
 
   useEffect(() => {
@@ -54,6 +55,9 @@ export default function Console({ list, meta, auc, featureGroup, registry }) {
       else if (e.key === "ArrowUp" || e.key === "k") { e.preventDefault(); step(-1); }
       else if (e.key === "/") { e.preventDefault(); filterRef.current?.focus(); }
       else if (e.key === "g") setPlane((v) => !v);
+      else if (e.key === "+" || e.key === "=") stageApi.current?.zoom(1.4);
+      else if (e.key === "-" || e.key === "_") stageApi.current?.zoom(1 / 1.4);
+      else if (e.key === "0") stageApi.current?.reset();
       else if (e.key === "m") setLive((v) => !v);
       else if (VIEWS.some((v) => v.n === e.key)) setView(VIEWS.find((v) => v.n === e.key).key);
     };
@@ -65,6 +69,21 @@ export default function Console({ list, meta, auc, featureGroup, registry }) {
     else if (li.offsetTop + li.offsetHeight > ol.scrollTop + ol.clientHeight) ol.scrollTop = li.offsetTop + li.offsetHeight - ol.clientHeight;
   }, [slug]);
 
+  const issue = registry?.latest || meta.forecast_from;
+  async function downloadDossier() {
+    const target = selected.slug;
+    setDossier({ state: "busy", slug: target });
+    try {
+      const res = await fetch(`/api/dossier/${target}?issue=${issue}`);
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `HTTP ${res.status}`);
+      const url = URL.createObjectURL(await res.blob()), a = document.createElement("a");
+      a.href = url; a.download = `toolcoup-dossier-${target}-${issue}.pdf`; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+      setDossier({ state: "idle" });
+    } catch (e) {
+      setDossier({ state: "error", slug: target, msg: e.message });
+    }
+  }
   const v = VIEWS.find((x) => x.key === view);
   const delta = selected.risk_3m_ago == null ? null : selected.risk - selected.risk_3m_ago;
   const drivers = (detail?.drivers || []).filter((d) => !focus || featureGroup[d.label] === focus);
@@ -102,7 +121,7 @@ export default function Console({ list, meta, auc, featureGroup, registry }) {
           <button className={live ? "on" : ""} onClick={() => setLive(!live)} aria-pressed={live}><kbd>M</kbd>MOTION {live ? "ON" : "OFF"}</button>
         </nav>
         <div className="cx-stage-wrap">
-          <Stage view={view} list={list} selected={selected} detail={detail} atlas={atlas} plane={plane} live={live} onSelect={setSlug} focus={focus} onFocus={setFocus} />
+          <Stage view={view} list={list} selected={selected} detail={detail} atlas={atlas} plane={plane} live={live} onSelect={setSlug} focus={focus} onFocus={setFocus} apiRef={stageApi} />
           <p className="cx-caption">{v.line}</p>
           {view !== "trace" && (
             <div className="cx-legend" aria-hidden="true"><span>0</span><i /><span>{pct(view === "field" ? list[0].risk : 0.3, 0)}{view === "field" ? "" : "+"}</span></div>
@@ -146,6 +165,13 @@ export default function Console({ list, meta, auc, featureGroup, registry }) {
           </ul>
           <p className="cx-note">Six largest terms of the logistic component. Associations in the training data, not causes.</p>
         </section>
+        <div className="cx-dossier">
+          <button onClick={downloadDossier} disabled={dossier.state === "busy"}>
+            {dossier.state === "busy" ? <>COMPILING DOSSIER<i>…</i> <small>≈ 30 s</small></> : <>DOSSIER · PDF <span>↓</span></>}
+          </button>
+          {dossier.state === "error" && dossier.slug === selected.slug && <p role="alert">{dossier.msg}</p>}
+          <p>Model figures and records from our database, plus headlines from allow-listed outlets, written up with OpenAI.</p>
+        </div>
         <nav className="cx-links">
           <Link href={`/paese/${selected.slug}`}>COUNTRY DOSSIER →</Link>
           <Link href="/registry">FORECAST REGISTRY →</Link>
@@ -159,7 +185,7 @@ export default function Console({ list, meta, auc, featureGroup, registry }) {
         <span>WINDOW {meta.forecast_from} → {meta.forecast_to}</span>
         <span>OUT-OF-SAMPLE AUC {auc?.toFixed(3)} · 1975→</span>
         <span>{meta.n_countries} COUNTRIES · {meta.n_features} VARIABLES</span>
-        <span className="r">MONTHLY SNAPSHOT — NOT A LIVE FEED · ↑↓ COUNTRY · 1 2 3 VIEW</span>
+        <span className="r">MONTHLY SNAPSHOT — NOT A LIVE FEED · ↑↓ COUNTRY · 1 2 3 VIEW · + − 0 ZOOM</span>
       </footer>
     </main>
   );

@@ -52,6 +52,17 @@ def _save_token(tok: dict) -> None:
     os.chmod(TOKEN_FILE, 0o600)
 
 
+def _load_env_local() -> None:
+    """Legge ACLED_EMAIL e ACLED_PASSWORD da .env.local (escluso da git) se non sono gia' nell'ambiente."""
+    path = ROOT / ".env.local"
+    if not path.exists():
+        return
+    for line in path.read_text().splitlines():
+        key, _, value = line.partition("=")
+        if key.strip() in ("ACLED_EMAIL", "ACLED_PASSWORD") and key.strip() not in os.environ:
+            os.environ[key.strip()] = value.strip()
+
+
 def get_token() -> str:
     """Token di accesso: prima prova il rinnovo, poi email + password."""
     if TOKEN_FILE.exists():
@@ -63,6 +74,7 @@ def get_token() -> str:
             return tok["access_token"]
         except (urllib.error.HTTPError, KeyError, ValueError):
             pass  # token di rinnovo scaduto o non valido: si torna alle credenziali
+    _load_env_local()
     email = os.environ.get("ACLED_EMAIL") or input("Email myACLED: ").strip()
     password = os.environ.get("ACLED_PASSWORD") or getpass.getpass("Password myACLED (non viene mostrata): ")
     try:
