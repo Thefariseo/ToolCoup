@@ -1,8 +1,11 @@
 
 import Link from "next/link";
 import "@fontsource/jetbrains-mono/400.css";
+import "@fontsource/ibm-plex-mono/400.css";
+import "@fontsource/ibm-plex-mono/500.css";
 import "@fontsource/jetbrains-mono/500.css";
 import "./globals.css";
+import "./console.css";
 import CountrySearch from "@/components/CountrySearch";
 import { getSummary, listCountries } from "@/lib/data";
 
@@ -21,11 +24,12 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         <header className="site-header">
-          <Link href="/" className="brand"><span className="brand-mark" aria-hidden="true">▥</span> TOOLCOUP<span className="brand-tag"> / RESEARCH TERMINAL</span></Link>
+          <Link href="/" className="brand"><span className="brand-mark" aria-hidden="true" /> TOOLCOUP<span className="brand-tag"> / COUP RISK CONSOLE</span></Link>
           <nav className="site-nav" aria-label="Workspace navigation">
-            <Link href="/">01 / Instrument</Link>
-            <Link href="/world">02 / World map</Link>
-            <Link href="/metodo">03 / Methodology</Link>
+            <Link href="/">CONSOLE</Link>
+            <Link href="/registry">REGISTRY</Link>
+            <Link href="/world">ARCHIVE</Link>
+            <Link href="/metodo">METHOD</Link>
           </nav>
           <CountrySearch options={options} />
         </header>

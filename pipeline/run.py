@@ -11,6 +11,7 @@ data/raw/structural/ (fetch_structural.py).
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 import warnings
 from datetime import date
@@ -213,6 +214,10 @@ def main():
                     "factors": M.coefficient_table(models), "by_region": []},
     }
     export_web(result, COUPDB, ROOT / "webdata")
+    import registry                       # archivia l'edizione (se nuova) e aggiorna i punteggi del registro
+    registry.archive()
+    (ROOT / "webdata" / "registry.json").write_text(json.dumps(registry.build(), ensure_ascii=False, separators=(",", ":")),
+                                                    encoding="utf-8")
     print("Top 10 rischio:", ", ".join(f"{c['name']} {c['risk']:.1%}" for c in countries[:10]))
 
 
