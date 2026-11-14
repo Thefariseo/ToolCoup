@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { ATLAS_GEOM, TRACE_GEOM, atlasHeight, createEngine, riskNorm } from "@/components/console/engine";
 import { pct } from "@/lib/format";
 
@@ -11,9 +11,9 @@ const REGION_SHORT = { "Western Africa": "W AFRICA", "Middle Africa": "M AFRICA"
   "Northern Africa": "N AFRICA", "Middle East": "MIDEAST", "Caucasus and Central Asia": "C ASIA", "South Asia": "S ASIA",
   "Southeast Asia": "SE ASIA", "East Asia": "E ASIA", Europe: "EUROPE", "South America": "S AMERICA", "Central America": "C AMERICA",
   Caribbean: "CARIB", "North America": "N AMERICA", Oceania: "OCEANIA" };
-const nodeY = (i) => 0.66 - (1.32 * i) / (GROUP_ORDER.length - 1);
+const SHORT = { storia: "HISTORY", contagio: "CONTAGION", regime: "REGIME", leader: "LEADERS", economia: "ECONOMY", piazza: "UNREST", acled: "ACLED", rest: "ENSEMBLE" };
+const logit = (p) => Math.log(p / (1 - p)), expit = (z) => 1 / (1 + Math.exp(-z));
 const rnd = (seed) => { let s = seed >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); };
-const GROUP_SCALE = 1.8; // log-odds at which a stream reaches full width
 
 let landPromise;
 const loadLand = () => (landPromise ||= Promise.all([
@@ -26,10 +26,10 @@ const cellKey = (lon, lat, step, dr = 0, dc = 0) => {
   return row * 4096 + ((Math.floor(((lon + 180) / 360) * n) + dc + n) % n);
 };
 
-export default function Stage({ view, list, selected, detail, atlas, plane, live, onSelect, focus, onFocus, apiRef }) {
+export default function Stage({ view, list, selected, detail, atlas, plane, live, onSelect, focus, onFocus, apiRef, baseRate }) {
   const canvasRef = useRef(null), engineRef = useRef(null), labelRefs = useRef(new Map()), overlayRef = useRef(null);
   const [land, setLand] = useState(null), [failed, setFailed] = useState(false), [tip, setTip] = useState(null);
-  const [atlasHover, setAtlasHover] = useState(null), [zoomShown, setZoomShown] = useState(1), [noSim, setNoSim] = useState(false);
+  const [atlasHover, setAtlasHover] = useState(null), [zoomShown, setZoomShown] = useState(1);
   const maxRisk = list[0]?.risk || 0.05;
 
   useEffect(() => {
@@ -37,7 +37,6 @@ export default function Stage({ view, list, selected, detail, atlas, plane, live
     try { engine = createEngine(canvasRef.current); } catch (e) { console.error(e.message); }
     if (!engine) { setFailed(true); return; }
     engineRef.current = engine;
-    setNoSim(!engine.state.sim);
     if (apiRef) apiRef.current = { zoom: (f) => engine.zoomAt(0.5, 0.5, f), reset: () => engine.resetCam() };
     loadLand().then(setLand).catch(() => setFailed(true));
     const el = canvasRef.current;
@@ -86,17 +85,26 @@ export default function Stage({ view, list, selected, detail, atlas, plane, live
     engine.select(idx ?? -1, g?.c[0], g?.c[1]);
   }, [geo, land, selected]);
 
-  // ---- TRACE: one lane per variable group; lane width and particle share follow |log-odds contribution|
-  const groups = useMemo(() => {
-    const by = new Map((detail?.groups || []).map((g) => [g.key, g.contrib]));
-    return GROUP_ORDER.map((key, i) => ({ key, y: nodeY(i), contrib: by.get(key) ?? 0 }));
-  }, [detail]);
+  // ---- TRACE: from the recent base rate to this country's forecast, one step per variable group.
+  // Steps are log-odds contributions of the interpretable component; the last step is everything else
+  // (long-run trend, tree models, calibration), so the river always ends exactly on the published forecast.
+  const cascade = useMemo(() => {
+    if (!selected || detail?.slug !== selected.slug || !baseRate) return null;
+    const by = new Map((detail.groups || []).map((g) => [g.key, g.contrib]));
+    const steps = GROUP_ORDER.map((key) => ({ key, d: by.get(key) ?? 0 }));
+    const l0 = logit(baseRate), lf = logit(Math.min(0.999, Math.max(1e-5, selected.risk)));
+    steps.push({ key: "rest", d: lf - (l0 + steps.reduce((t, x) => t + x.d, 0)) });
+    const levels = [l0]; steps.forEach((x) => levels.push(levels.at(-1) + x.d));
+    const lo = Math.min(...levels), hi = Math.max(...levels), span = Math.max(hi - lo, 2.2) * 1.15, mid = (hi + lo) / 2;
+    const { yTop, yBot } = TRACE_GEOM, y = (l) => ((l - mid) / span) * (yTop - yBot);
+    const ticks = [0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.4].filter((p) => Math.abs(y(logit(p))) < 0.58).map((p) => ({ p, y: y(logit(p)) }));
+    return { steps, ys: levels.map(y), ps: levels.map(expit), ticks, sg: steps.map((x) => (Math.abs(x.d) < 0.02 ? 0 : Math.sign(x.d))) };
+  }, [selected, detail, baseRate]);
   useEffect(() => {
-    const engine = engineRef.current; if (!engine || !selected) return;
-    engine.setTrace(groups.map((g) => ({ y: g.y, k: detail ? Math.min(1, Math.abs(g.contrib) / GROUP_SCALE) : 0, sign: g.contrib >= 0 ? 1 : -1 })),
-      Math.max(0, riskNorm(selected.risk, maxRisk)));
-  }, [groups, detail, selected, maxRisk]);
-  useEffect(() => { engineRef.current?.focus(focus ? groups.find((g) => g.key === focus)?.y : null); }, [focus, groups]);
+    const engine = engineRef.current; if (!engine || !cascade) return;
+    engine.setCascade({ ys: cascade.ys, ps: cascade.ps, sg: cascade.sg, x0: TRACE_GEOM.x0, x1: TRACE_GEOM.x1 }, Math.max(0, riskNorm(selected.risk, maxRisk)));
+  }, [cascade, selected, maxRisk]);
+  useEffect(() => { engineRef.current?.focus(focus ? GROUP_ORDER.indexOf(focus) : null); }, [focus]);
 
   // ---- ATLAS: every country's forecast history as a ridge; regions are separated by a gap
   const ridge = useMemo(() => {
@@ -251,7 +259,6 @@ export default function Stage({ view, list, selected, detail, atlas, plane, live
       <canvas ref={canvasRef} className={view === "field" && !plane ? "grab" : "pan"} onPointerMove={onMove} onPointerDown={onDown} onPointerUp={onUp}
         onPointerCancel={onUp} onPointerLeave={onLeave} aria-hidden="true" />
       {failed && <p className="cx-fail">WebGL2 is unavailable in this browser. The watchlist, readout and timeline remain fully usable.</p>}
-      {noSim && view === "trace" && <p className="cx-fail">Float render targets are unavailable: the particle flow cannot run in this browser.</p>}
 
       <div className="cx-zoom" role="group" aria-label="Zoom">
         <button onClick={() => zoomBtn(1.5)} aria-label="Zoom in">+</button>
@@ -287,17 +294,30 @@ export default function Stage({ view, list, selected, detail, atlas, plane, live
         )}
         {view === "atlas" && !atlas && <p className="cx-wait">LOADING 51 YEARS OF FORECASTS<i>_</i></p>}
 
-        {view === "trace" && groups.map((g) => (
-          <button key={g.key} className={`cx-node${g.contrib > 0 ? " up" : g.contrib < 0 ? " down" : ""}${focus === g.key ? " on" : ""}`}
-            data-cx={TRACE_GEOM.nodeX - 0.02} data-cy={g.y} onClick={() => onFocus(focus === g.key ? null : g.key)} disabled={!detail}>
-            <span>{GROUP_NAME[g.key]}</span><b>{detail ? `${g.contrib > 0 ? "+" : ""}${g.contrib.toFixed(2)}` : "…"}</b>
-          </button>
-        ))}
-        {view === "trace" && (
-          <div className="cx-core" data-cx={TRACE_GEOM.core[0]} data-cy={TRACE_GEOM.core[1]}>
-            <b>{pct(selected?.risk)}</b><span>P(ATTEMPT) · 6 MO</span>
-          </div>
+        {view === "trace" && cascade && (
+          <>
+            {cascade.ticks.map((t) => (
+              <Fragment key={t.p}>
+                <span className="cx-guide" data-cx={TRACE_GEOM.x0} data-cx2={TRACE_GEOM.x1} data-cy={t.y} />
+                <span className="cx-ytick" data-cx={TRACE_GEOM.x0 - 0.012} data-cy={t.y}>{pct(t.p, t.p < 0.01 ? 1 : 0)}</span>
+              </Fragment>
+            ))}
+            <span className="cx-endcap" data-cx={TRACE_GEOM.x0} data-cy={cascade.ys[0]}>BASE RATE {pct(baseRate, 2)}</span>
+            {cascade.steps.map((x, i) => {
+              const cw = (TRACE_GEOM.x1 - TRACE_GEOM.x0) / 8, g = x.key !== "rest";
+              return (
+                <button key={x.key} className={`cx-step${x.d > 0.02 ? " up" : x.d < -0.02 ? " down" : ""}${focus === x.key ? " on" : ""}`}
+                  data-cx={TRACE_GEOM.x0 + (i + 0.5) * cw} data-cy={TRACE_GEOM.labelY} disabled={!g}
+                  onClick={() => onFocus(focus === x.key ? null : x.key)} aria-pressed={focus === x.key}
+                  title={g ? `${GROUP_NAME[x.key]}: odds ×${Math.exp(x.d).toFixed(2)} (log-odds ${x.d > 0 ? "+" : ""}${x.d.toFixed(2)}). Click to list its drivers.` : `Ensemble step: long-run trend, tree models and calibration pull the interpretable component back to the published forecast (log-odds ${x.d > 0 ? "+" : ""}${x.d.toFixed(2)}).`}>
+                  <span>{SHORT[x.key]}</span><b>×{Math.exp(x.d).toFixed(2)}</b>
+                </button>
+              );
+            })}
+            <div className="cx-core" data-cx={TRACE_GEOM.x1} data-cy={cascade.ys[8]}><b>{pct(selected?.risk)}</b><span>FORECAST · 6 MO</span></div>
+          </>
         )}
+        {view === "trace" && !cascade && <p className="cx-wait">COMPUTING CASCADE<i>_</i></p>}
       </div>
 
       {view === "atlas" && traj && (

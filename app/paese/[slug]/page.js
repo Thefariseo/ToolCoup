@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import Dossier from "@/components/Dossier";
+import SiteFooter from "@/components/SiteFooter";
 import { allSlugs, getCountry, getSummary, listCountries } from "@/lib/data";
 import { fmtEventDate, pct, TYPE_LABEL } from "@/lib/format";
 
@@ -35,9 +36,10 @@ async function CountryContent({ params }) {
   const last = country.last ? country.coups.find((e) => e.date === country.last.date && e.type === country.last.type) : null;
 
   return (
+    <>
     <main className="wrap">
       <div className="page-head">
-        <Link className="crumb" href="/">← Workspace</Link>
+        <Link className="crumb" href={`/?c=${slug}`}>← Open in console</Link>
         <h1>{country.name}</h1>
         <p className="lede">
           {country.historical
@@ -66,5 +68,7 @@ async function CountryContent({ params }) {
       </div>
       <Dossier country={country} others={others} meta={meta} />
     </main>
+    <SiteFooter generated={meta.generated} />
+    </>
   );
 }

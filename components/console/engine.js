@@ -81,60 +81,31 @@ vec3 curlNoise(vec3 p){
   return vec3((py1.z-py0.z)-(pz1.y-pz0.y),(pz1.x-pz0.x)-(px1.z-px0.z),(px1.y-px0.y)-(py1.x-py0.x))/(2.0*e);
 }`;
 
-// One texel per particle. pos = (x, y, age, lifetime) in stage clip space; vel = (vx, vy); meta (static) =
-// (lane y, +1/-1 sign, seed, lane width; width 0 = parked). Particles ride their group's lane towards the
-// core, are stirred by curl noise (wider lanes = more turbulence), spiral into the core and respawn.
-const SIM_FS = `#version 300 es
+// The cascade: one river of particles flows left to right along a stepped path. Each column is one variable
+// group; the river climbs (amber) or falls (cyan) by that group's push on the log-odds, and its width follows
+// the probability reached so far. Turbulence is simplex noise (after CurlSwarm.tsx): decoration only.
+const CASCADE_VS = `#version 300 es
 precision highp float;
-uniform sampler2D uPos,uVel,uMeta;
-uniform float uTime,uDt,uAspect,uCoreR,uSpeed,uTurb; uniform vec2 uCore;
-layout(location=0) out vec4 oPos; layout(location=1) out vec4 oVel;
-const float SRC=-.56;
-${SIMPLEX}
-float h11(float n){ return fract(sin(n)*43758.5453); }
-void main(){
-  ivec2 t=ivec2(gl_FragCoord.xy);
-  vec4 P=texelFetch(uPos,t,0), V=texelFetch(uVel,t,0), M=texelFetch(uMeta,t,0);
-  if(M.w<=0.){ oPos=vec4(uCore,-1.,1.); oVel=vec4(0.); return; }
-  vec2 p=P.xy, v=V.xy; float age=P.z, life=P.w, seed=M.z;
-  float s=clamp((p.x-SRC)/(uCore.x-.14-SRC),0.,1.), e=s*s*(3.-2.*s);
-  float laneY=mix(M.x,uCore.y,e);
-  vec2 tgt=vec2(uSpeed*(.55+.9*seed),(laneY-p.y)*5.);
-  vec3 cn=curlNoise(vec3(vec2(p.x*uAspect,p.y)*2.2,uTime*.07+seed*3.));
-  tgt+=cn.xy*uTurb*(.02+M.w*.9)*(1.-.55*e);
-  vec2 rel=vec2((p.x-uCore.x)*uAspect,p.y-uCore.y); float r=length(rel); vec2 dir=rel/(r+1e-4);
-  float inside=smoothstep(uCoreR*2.6,uCoreR*.8,r);
-  vec2 sw=(vec2(-dir.y,dir.x)*2.2-dir*.9)*uSpeed*vec2(1./uAspect,1.);
-  tgt=mix(tgt,sw,inside);
-  v=mix(v,tgt,1.-exp(-uDt*3.2));
-  p+=v*uDt; age+=uDt;
-  if(age>life||r<uCoreR*.22){
-    vec2 uv=vec2(t)+.5;
-    float h1=h11(dot(uv,vec2(12.9898,78.233))+uTime*1.7), h2=h11(h1*91.7+seed*13.), h3=h11(h2*57.3+3.1);
-    p=vec2(SRC+(h1-.5)*.025,M.x+(h2-.5)*M.w*1.6); age=0.; life=3.6+h3*3.2; v=vec2(uSpeed*(.55+.9*seed),0.);
-  }
-  oPos=vec4(p,age,life); oVel=vec4(v,0.,1.);
-}`;
-
-const PARTICLE_VS = `#version 300 es
-precision highp float;
-uniform sampler2D uPos,uVel,uMeta;
-uniform vec3 uCam; uniform float uSize,uTime,uPx,uFade,uFocus,uAspect;
+in vec4 aP;
+uniform vec3 uCam; uniform float uY[9], uW[9], uSg[8];
+uniform float uX0,uX1,uTime,uFade,uPx,uFocus;
 out vec3 vCol;
+${SIMPLEX}
 void main(){
-  int S=int(uSize+.5);
-  ivec2 t=ivec2(gl_VertexID%S,gl_VertexID/S);
-  vec4 P=texelFetch(uPos,t,0), V=texelFetch(uVel,t,0), M=texelFetch(uMeta,t,0);
-  if(M.w<=0.||P.z<0.){ gl_Position=vec4(2.,2.,0.,1.); gl_PointSize=0.; vCol=vec3(0.); return; }
-  gl_Position=vec4((P.xy-uCam.yz)*uCam.x,0.,1.);
-  vec3 col=M.y>0. ? vec3(1.,.62,.14) : vec3(.14,.80,.92);
-  float sp=length(V.xy*vec2(uAspect,1.));
-  float b=.26+.95*smoothstep(.06,.45,sp);
-  b*=smoothstep(0.,.5,P.z)*smoothstep(P.w,P.w-.9,P.z);
-  b*=.65+.35*sin(P.x*16.-uTime*2.6+M.z*6.);
-  b*=uFocus<-50. ? 1. : (abs(M.x-uFocus)<.001 ? 1.4 : .18);
-  vCol=mix(col,vec3(1.),smoothstep(.25,.6,sp)*.45)*b*uFade;
-  gl_PointSize=max(1.,uPx*sqrt(uCam.x));
+  float u=fract(aP.x+uTime*(.04+.05*aP.z));
+  float s=u*8.; int i=int(min(floor(s),7.)); float f=s-float(i);
+  float k=smoothstep(.22,.9,f);
+  float y=mix(uY[i],uY[i+1],k), w=mix(uW[i],uW[i+1],k), x=mix(uX0,uX1,u);
+  vec3 q=vec3(x*4.,y*4.,uTime*.22+aP.z*5.);
+  y+=aP.y*w+snoise(q+vec3(9.,-3.,0.))*.009; x+=snoise(q)*.005;
+  gl_Position=vec4((vec2(x,y)-uCam.yz)*uCam.x,0.,1.);
+  float sg=uSg[i];
+  vec3 col=sg>0. ? vec3(1.,.62,.14) : sg<0. ? vec3(.14,.80,.92) : vec3(.55,.85,.80);
+  float b=.32+.8*pow(.5+.5*sin((u*8.-uTime*.9)*3.1416+aP.z*3.),4.);
+  b*=smoothstep(0.,.03,u)*smoothstep(1.,.97,u);
+  b*=uFocus<0. ? 1. : (float(i)==uFocus ? 1.5 : .16);
+  vCol=mix(col,vec3(1.),.22*b*b)*b*uFade;
+  gl_PointSize=max(1.,uPx*sqrt(uCam.x)*(.9+.5*aP.z));
 }`;
 
 // Core: the vortex disc and ring halo of Portal.tsx, driven by the final probability (size, spin, colour).
@@ -238,19 +209,17 @@ function program(gl, vs, fs) {
 
 const RAD = Math.PI / 180;
 export const ATLAS_GEOM = { yb: (row) => 0.38 + (-0.78 - 0.38) * row, x: (t, row) => -0.95 + (0.52 + 0.95) * t + (1 - row) * 0.22, amp: 0.30 };
-export const TRACE_GEOM = { nodeX: -0.56, core: [0.46, 0] };
+export const TRACE_GEOM = { x0: -0.72, x1: 0.62, yTop: 0.5, yBot: -0.5, labelY: -0.76 };
 export const riskNorm = (risk, max) => (risk == null ? -1 : Math.sqrt(Math.min(1, Math.max(0, risk) / max)));
 export const atlasHeight = (risk) => Math.sqrt(Math.min(1, Math.max(0, risk) / 0.3));
 
 const MAXZ = 8, clamp = (v, a, b) => Math.min(b, Math.max(a, v));
-const SRC_X = -0.56;
 
 export function createEngine(canvas) {
   const gl = canvas.getContext("webgl2", { antialias: false, alpha: false, powerPreference: "high-performance" });
   if (!gl) return null;
-  const floatOK = !!gl.getExtension("EXT_color_buffer_float");
   const field = program(gl, FIELD_VS, POINT_FS), atlas = program(gl, ATLAS_VS, POINT_FS), post = program(gl, POST_VS, POST_FS);
-  const simP = floatOK ? program(gl, POST_VS, SIM_FS) : null, partP = floatOK ? program(gl, PARTICLE_VS, POINT_FS) : null;
+  const cascP = program(gl, CASCADE_VS, POINT_FS);
   const vortexP = program(gl, POST_VS, VORTEX_FS);
 
   const quad = gl.createBuffer();
@@ -261,37 +230,14 @@ export function createEngine(canvas) {
   for (const k of [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER]) gl.texParameteri(gl.TEXTURE_2D, k, gl.NEAREST);
   for (const k of [gl.TEXTURE_WRAP_S, gl.TEXTURE_WRAP_T]) gl.texParameteri(gl.TEXTURE_2D, k, gl.CLAMP_TO_EDGE);
 
-  // ---- trace simulation: ping-pong float textures, one texel per particle (CurlSwarm layout)
-  const SIZE = canvas.clientWidth < 700 ? 128 : 256;
-  const floatTex = (data) => {
-    const t = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, t);
-    for (const k of [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER]) gl.texParameteri(gl.TEXTURE_2D, k, gl.NEAREST);
-    for (const k of [gl.TEXTURE_WRAP_S, gl.TEXTURE_WRAP_T]) gl.texParameteri(gl.TEXTURE_2D, k, gl.CLAMP_TO_EDGE);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, SIZE, SIZE, 0, gl.RGBA, gl.FLOAT, data);
-    return t;
-  };
-  let sim = null;
-  if (floatOK) {
-    const pos = [floatTex(null), floatTex(null)], vel = [floatTex(null), floatTex(null)], fbos = [gl.createFramebuffer(), gl.createFramebuffer()];
-    let complete = true;
-    fbos.forEach((f, i) => {
-      gl.bindFramebuffer(gl.FRAMEBUFFER, f);
-      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, pos[i], 0);
-      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.TEXTURE_2D, vel[i], 0);
-      complete = complete && gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE;
-    });
-    if (complete) sim = { pos, vel, fbos, meta: floatTex(null), cur: 0, ready: false };
-  }
-
-  const buf = { field: gl.createBuffer(), atlas: gl.createBuffer() };
+  const buf = { field: gl.createBuffer(), atlas: gl.createBuffer(), cas: gl.createBuffer() };
   const cam0 = () => ({ z: 1, x: 0, y: 0, tz: 1, tx: 0, ty: 0 });
   const st = {
     view: "field", fade: { field: 1, atlas: 0, trace: 0 }, W: 1, H: 1, tw: 1, th: 1, cell: 3, dpr: 1,
     nField: 0, rows: 0, Q: 0, yaw: 0.3, pitch: 0.25, tYaw: null, tPitch: null, morph: 0, tMorph: 0,
     sel: -1, hov: -1, selRow: -1, hovRow: -1, cursor: -1, emit: new Float32Array(32), risk: 0, focus: -99,
     cams: { field: cam0(), atlas: cam0(), trace: cam0() },
-    live: true, drag: false, idle: 0, t: 0, last: 0, raf: 0, visible: true, onFrame: null, sim: !!sim,
+    live: true, drag: false, idle: 0, t: 0, last: 0, raf: 0, visible: true, onFrame: null, cas: null, focusIdx: -1, nCas: 0,
   };
 
   function resize() {
@@ -378,26 +324,8 @@ export function createEngine(canvas) {
     const loc = gl.getAttribLocation(prog.p, "aQ");
     gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
   };
-  const coreR = () => 0.13 + 0.20 * st.risk;
+  const coreR = () => 0.075 + 0.075 * st.risk;
   const unit = (n, t) => { gl.activeTexture(gl.TEXTURE0 + n); gl.bindTexture(gl.TEXTURE_2D, t); };
-
-  function stepSim(dt) {
-    if (!sim?.ready || !st.live) return;
-    const nxt = 1 - sim.cur;
-    gl.bindFramebuffer(gl.FRAMEBUFFER, sim.fbos[nxt]);
-    gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1]);
-    gl.viewport(0, 0, SIZE, SIZE);
-    gl.disable(gl.BLEND);
-    gl.useProgram(simP.p); bindQuad(simP);
-    unit(0, sim.pos[sim.cur]); unit(1, sim.vel[sim.cur]); unit(2, sim.meta);
-    const u = simP.u;
-    gl.uniform1i(u.uPos, 0); gl.uniform1i(u.uVel, 1); gl.uniform1i(u.uMeta, 2);
-    gl.uniform1f(u.uTime, st.t); gl.uniform1f(u.uDt, Math.min(dt, 1 / 30)); gl.uniform1f(u.uAspect, aspect());
-    gl.uniform1f(u.uCoreR, coreR()); gl.uniform1f(u.uSpeed, 0.2); gl.uniform1f(u.uTurb, 1);
-    gl.uniform2f(u.uCore, TRACE_GEOM.core[0], TRACE_GEOM.core[1]);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    sim.cur = nxt;
-  }
 
   function frame(now) {
     st.raf = requestAnimationFrame(frame);
@@ -423,7 +351,6 @@ export function createEngine(canvas) {
       st.idle += dt; if (st.idle > 6) st.yaw += dt * 0.035;
     }
 
-    if (st.fade.trace > 0.01) stepSim(dt);
     gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
     gl.viewport(0, 0, st.tw, st.th);
     gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT);
@@ -440,24 +367,21 @@ export function createEngine(canvas) {
       gl.uniform1f(u.uPx, px * 1.25); gl.uniform1f(u.uFade, st.fade.field); gl.uniform4fv(u.uEmit, st.emit);
       gl.drawArrays(gl.POINTS, 0, st.nField);
     }
-    if (st.fade.trace > 0.01) {
-      const cam = camOf("trace");
+    if (st.fade.trace > 0.01 && st.cas) {
+      const cam = camOf("trace"), c = st.cas;
       gl.useProgram(vortexP.p); bindQuad(vortexP);
       const v = vortexP.u;
-      gl.uniform2f(v.uTex, st.tw, st.th); gl.uniform2f(v.uCore, TRACE_GEOM.core[0], TRACE_GEOM.core[1]); gl.uniform3fv(v.uCam, cam);
+      gl.uniform2f(v.uTex, st.tw, st.th); gl.uniform2f(v.uCore, c.x1, c.ys[8]); gl.uniform3fv(v.uCam, cam);
       gl.uniform1f(v.uTime, st.t); gl.uniform1f(v.uAspect, aspect()); gl.uniform1f(v.uCoreR, coreR());
       gl.uniform1f(v.uRisk, st.risk); gl.uniform1f(v.uFade, st.fade.trace);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-      if (sim?.ready) {
-        gl.useProgram(partP.p);
-        for (let i = 0; i < 8; i++) gl.disableVertexAttribArray(i);
-        unit(0, sim.pos[sim.cur]); unit(1, sim.vel[sim.cur]); unit(2, sim.meta);
-        const u = partP.u;
-        gl.uniform1i(u.uPos, 0); gl.uniform1i(u.uVel, 1); gl.uniform1i(u.uMeta, 2);
-        gl.uniform3fv(u.uCam, cam); gl.uniform1f(u.uSize, SIZE); gl.uniform1f(u.uTime, st.t); gl.uniform1f(u.uPx, px);
-        gl.uniform1f(u.uFade, st.fade.trace); gl.uniform1f(u.uFocus, st.focus); gl.uniform1f(u.uAspect, aspect());
-        gl.drawArrays(gl.POINTS, 0, SIZE * SIZE);
-      }
+      gl.useProgram(cascP.p);
+      attribs(cascP, buf.cas, [["aP", 4, 0]], 4);
+      const u = cascP.u;
+      gl.uniform3fv(u.uCam, cam); gl.uniform1fv(u.uY, c.ys); gl.uniform1fv(u.uW, c.ws); gl.uniform1fv(u.uSg, c.sg);
+      gl.uniform1f(u.uX0, c.x0); gl.uniform1f(u.uX1, c.x1); gl.uniform1f(u.uTime, st.t); gl.uniform1f(u.uFade, st.fade.trace);
+      gl.uniform1f(u.uPx, px); gl.uniform1f(u.uFocus, st.focusIdx);
+      gl.drawArrays(gl.POINTS, 0, st.nCas);
     }
     if (st.fade.atlas > 0.01 && st.rows) {
       gl.useProgram(atlas.p);
@@ -499,36 +423,25 @@ export function createEngine(canvas) {
 
   return {
     state: st, project, unproject, toStage, fromStage,
-    setView(v) { st.view = v; },
+    setView(v) { st.view = v; if (!st.viewSet) { st.viewSet = true; for (const k of Object.keys(st.fade)) st.fade[k] = k === v ? 1 : 0; } },
     setLive(v) { st.live = v; },
     setPlane(v) { st.tMorph = v ? 1 : 0; },
     setField(data, emit) { upload(buf.field, data); st.nField = data.length / 6; st.emit.fill(0); st.emit.set(emit.slice(0, 32)); },
-    /** groups: [{ y, k (0..1 strength), sign (+1 raises / -1 lowers) }]; particles are shared out by strength. */
-    setTrace(groups, risk) {
+    /** ys: clip y of the 9 river levels (base rate, 7 groups, final); ps: probability at each level; sg: sign of each of the 8 steps. */
+    setCascade({ ys, ps, sg, x0, x1 }, risk) {
       st.risk = risk;
-      if (!sim) return;
-      const N = SIZE * SIZE, meta = new Float32Array(N * 4), pos = new Float32Array(N * 4), vel = new Float32Array(N * 4);
-      let o = 0;
-      for (const g of groups) {
-        if (g.k <= 0.003) continue;
-        const n = Math.min(N - o, Math.round(N * (0.015 + 0.125 * g.k))), w = 0.006 + 0.09 * g.k;
-        for (let i = 0; i < n; i++, o++) {
-          const seed = Math.random(), life = 3.6 + Math.random() * 3.2, prog = Math.random();
-          meta.set([g.y, g.sign, seed, w], o * 4);
-          pos.set([SRC_X + prog * (TRACE_GEOM.core[0] - 0.14 - SRC_X), g.y * (1 - prog * prog) + (Math.random() - 0.5) * w * 1.6, prog * life, life], o * 4);
-          vel.set([0.2 * (0.55 + 0.9 * seed), 0, 0, 1], o * 4);
-        }
+      st.cas = { ys: new Float32Array(ys), ws: new Float32Array(ps.map((p) => 0.008 + 0.2 * Math.sqrt(Math.max(0, p)))), sg: new Float32Array(sg), x0, x1 };
+      if (!st.nCas) {
+        const N = canvas.clientWidth < 700 ? 15000 : 42000, d = new Float32Array(N * 4);
+        for (let i = 0; i < N; i++) d.set([Math.random(), (Math.random() + Math.random() + Math.random() - 1.5) / 1.5, Math.random(), 0], i * 4);
+        upload(buf.cas, d); st.nCas = N;
       }
-      for (; o < N; o++) pos.set([0, 0, -1, 1], o * 4);
-      const put = (t, d) => { gl.bindTexture(gl.TEXTURE_2D, t); gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, SIZE, SIZE, gl.RGBA, gl.FLOAT, d); };
-      put(sim.meta, meta); put(sim.pos[sim.cur], pos); put(sim.vel[sim.cur], vel);
-      sim.ready = true;
     },
     setAtlas(data, rows, Q) { upload(buf.atlas, data); st.rows = rows; st.Q = Q; },
     select(idx, lon, lat) { st.sel = idx; if (lon != null) { st.tYaw = lon * RAD; st.tPitch = Math.max(-0.9, Math.min(0.9, lat * RAD * 0.85)); } },
     hover(idx) { st.hov = idx; },
     rows(sel, hov, cursor) { st.selRow = sel; st.hovRow = hov; st.cursor = cursor; },
-    focus(y) { st.focus = y == null ? -99 : y; },
+    focus(i) { st.focusIdx = i == null ? -1 : i; },
     drag(dx, dy) { st.tYaw = null; st.idle = 0; st.yaw -= dx * 2.2 / (zoom() * st.cams.field.z); st.pitch = Math.max(-1.3, Math.min(1.3, st.pitch + dy * 2.2 / (zoom() * st.cams.field.z))); },
     dragging(v) { st.drag = v; st.idle = 0; },
     /** multiply the zoom of the current view by f, keeping the stage point (fx, fy) under the cursor */

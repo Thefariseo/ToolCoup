@@ -7,6 +7,7 @@ import "@fontsource/jetbrains-mono/500.css";
 import "./globals.css";
 import "./console.css";
 import CountrySearch from "@/components/CountrySearch";
+import Nav from "@/components/Nav";
 import { getSummary, listCountries } from "@/lib/data";
 
 
@@ -14,7 +15,8 @@ import { getSummary, listCountries } from "@/lib/data";
 export const metadata = {
   title: { default: "ToolCoup Intelligence", template: "%s · ToolCoup Intelligence" },
   description:
-    "Historical coup evidence and country risk analysis. ACLED signals, cross-source historical records and interpretable forecasts.",
+    "Monthly coup-risk forecasts for every country, filed in public and scored against what happens. ACLED signals, cross-source coup records and an interpretable model.",
+  openGraph: { title: "ToolCoup: coup risk console", description: "Where, when and why: a monthly coup-risk forecast for every country, with a public registry of past forecasts.", type: "website" },
 };
 
 export default function RootLayout({ children }) {
@@ -23,14 +25,10 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
+        <a className="skip" href="#main">Skip to content</a>
         <header className="site-header">
           <Link href="/" className="brand"><span className="brand-mark" aria-hidden="true" /> TOOLCOUP<span className="brand-tag"> / COUP RISK CONSOLE</span></Link>
-          <nav className="site-nav" aria-label="Workspace navigation">
-            <Link href="/">CONSOLE</Link>
-            <Link href="/registry">REGISTRY</Link>
-            <Link href="/world">ARCHIVE</Link>
-            <Link href="/metodo">METHOD</Link>
-          </nav>
+          <Nav />
           <CountrySearch options={options} />
         </header>
         {meta.demo && (
@@ -38,7 +36,7 @@ export default function RootLayout({ children }) {
             <strong>Synthetic demonstration data.</strong> Events and probabilities are randomly generated to demonstrate the interface and do not describe real countries.
           </div>
         )}
-        {children}
+        <div id="main" tabIndex={-1}>{children}</div>
       </body>
     </html>
   );

@@ -1,4 +1,5 @@
 import WorldView from "@/components/WorldView";
+import SiteFooter from "@/components/SiteFooter";
 import { getSummary, listCountries, queryCoups } from "@/lib/data";
 
 export const metadata = { title: "World map" };
@@ -10,5 +11,5 @@ export default function World() {
   const initialCoups = queryCoups({ conf: "C", types: ["riuscito", "fallito"] }).map(
     ({ id, slug, name, iso, date, prec, year, type, conf }) => ({ id, slug, name, iso, date, prec, year, type, conf })
   );
-  return <WorldView countries={countries} meta={meta} initialCoups={initialCoups} />;
+  return <><WorldView countries={countries} meta={meta} initialCoups={initialCoups} /><SiteFooter generated={meta.generated} /></>;
 }

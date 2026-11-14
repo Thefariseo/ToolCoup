@@ -10,7 +10,7 @@ import { fmtEventDate, pct, TYPE_LABEL } from "@/lib/format";
 const VIEWS = [
   { key: "field", n: "1", name: "SIGNAL FIELD", line: "Where. Every country's 6-month probability of a coup attempt. Colour, plume height and pulse rate all encode the same number. Scroll to zoom, drag to rotate." },
   { key: "atlas", n: "2", name: "TEMPORAL ATLAS", line: "When. One ridge per country, 1975 → today: the model's out-of-sample forecast, quarter by quarter. Height = probability. The selected country is lit; the rest recede." },
-  { key: "trace", n: "3", name: "MODEL TRACE", line: "Why. Seven variable groups feed the score. Stream width = size of the push; amber raises, cyan lowers (log-odds, linear component). Click a group to isolate it." },
+  { key: "trace", n: "3", name: "MODEL TRACE", line: "Why. From the recent base rate to this country's forecast: each step is one variable group pushing the odds up (amber) or down (cyan); the river widens with the probability reached. The last step (ensemble) is everything that pulls it back to the published forecast: long-run trend, tree models, calibration. Click a step to list its drivers." },
 ];
 const cache = new Map();
 
@@ -121,7 +121,7 @@ export default function Console({ list, meta, auc, featureGroup, registry }) {
           <button className={live ? "on" : ""} onClick={() => setLive(!live)} aria-pressed={live}><kbd>M</kbd>MOTION {live ? "ON" : "OFF"}</button>
         </nav>
         <div className="cx-stage-wrap">
-          <Stage view={view} list={list} selected={selected} detail={detail} atlas={atlas} plane={plane} live={live} onSelect={setSlug} focus={focus} onFocus={setFocus} apiRef={stageApi} />
+          <Stage view={view} list={list} selected={selected} detail={detail} atlas={atlas} plane={plane} live={live} onSelect={setSlug} focus={focus} onFocus={setFocus} apiRef={stageApi} baseRate={meta.base_rate} />
           <p className="cx-caption">{v.line}</p>
           {view !== "trace" && (
             <div className="cx-legend" aria-hidden="true"><span>0</span><i /><span>{pct(view === "field" ? list[0].risk : 0.3, 0)}{view === "field" ? "" : "+"}</span></div>

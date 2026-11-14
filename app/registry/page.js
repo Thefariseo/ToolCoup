@@ -1,4 +1,5 @@
 import Link from "next/link";
+import SiteFooter from "@/components/SiteFooter";
 import { getRegistry, REPO } from "@/lib/registry";
 import { fmtEventDate, pct } from "@/lib/format";
 
@@ -15,9 +16,9 @@ export default function RegistryPage() {
   const r = getRegistry(), h = r.hindcast, closed = r.issues.filter((i) => i.status === "closed");
   const next = r.issues.filter((i) => i.status === "open").map((i) => i.window[1]).sort()[0];
   return (
-    <main className="rg">
-      <header className="rg-head">
-        <p className="rg-eyebrow">FORECAST REGISTRY</p>
+    <><main className="rg wrap">
+      <header className="rg-head page-head">
+        <p className="eyebrow">FORECAST REGISTRY</p>
         <h1>Filed before the fact. Scored after.</h1>
         <p>
           Each month the published forecast is frozen into one file, committed to the public repository and never edited. When its
@@ -116,5 +117,7 @@ export default function RegistryPage() {
       )}
       <p className="rg-note">Machine-readable: <a href="/api/registry">/api/registry</a>. Scores are recomputed from the archived files on every monthly run; a file whose hash no longer matches the index fails the build.</p>
     </main>
+    <SiteFooter generated={r.generated} />
+    </>
   );
 }

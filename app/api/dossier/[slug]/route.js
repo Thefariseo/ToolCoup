@@ -6,7 +6,7 @@ import { registrySummary } from "@/lib/registry";
 // Each call spends OpenAI credit, so: only the known country slugs are accepted, the response is cached at
 // the CDN for the whole issue (the `issue` query parameter is the cache key), cross-site requests are
 // refused, and there is a best-effort per-IP and per-day limit on top. DOSSIER_DISABLED=1 switches it off.
-export const maxDuration = 120;
+export const maxDuration = 200;
 
 const hits = new Map();           // ip -> timestamps (per server instance: a brake, not a guarantee)
 let day = { start: Date.now(), n: 0 };
