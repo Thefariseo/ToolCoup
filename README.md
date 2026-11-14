@@ -78,7 +78,7 @@ cache né nel repository.
 
 Il pulsante *Dossier · PDF* nella console chiama `/api/dossier/[paese]`: i numeri e i fatti vengono dal nostro
 database (`lib/dossier.js`), i titoli di stampa da una lista fissa di testate (Reuters, AP, BBC, Al Jazeera,
-Crisis Group, ReliefWeb ecc., ultimi 60 giorni, solo titoli), e l'API OpenAI scrive il testo vincolato a quei
+Crisis Group, ReliefWeb ecc., ultimi 60 giorni, solo titoli), e l'API OpenAI (solo il modello `gpt-5.6-luna`, fisso in `lib/dossier.js`) scrive il testo vincolato a quei
 due ingressi. Il PDF è impaginato in `lib/dossier-pdf.js`.
 
 Variabili d'ambiente (mai nel repository: `.env*` è ignorato da git):
@@ -86,7 +86,6 @@ Variabili d'ambiente (mai nel repository: `.env*` è ignorato da git):
 | Variabile | Uso |
 |---|---|
 | `OPENAI_API_KEY` | obbligatoria, solo lato server. Senza, l'API risponde 503 |
-| `OPENAI_MODEL` | facoltativa, default `gpt-5.4-mini` |
 | `DOSSIER_DISABLED=1` | spegne la funzione senza togliere la chiave |
 | `ACLED_EMAIL`, `ACLED_PASSWORD` | solo per `pipeline/fetch_acled.py` in locale |
 
