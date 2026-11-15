@@ -22,10 +22,10 @@ const STEPS = [
   ] },
   { target: ".cx-read", side: "left", title: "The readout", body: [
     "The chance with its 80% range, the rank, the biggest drivers and the coup record.",
-    "Download country brief builds a three-page note that sets our model against recent press. The country page has every figure and a source for each coup.",
+    "Download country brief builds a four-page note, cover included, that sets our model against recent press. The country page has every figure and a source for each coup.",
   ] },
   { target: ".site-header", side: "bottom", title: "The rest of the site", body: [
-    "The registry stores each month's forecast with its date and scores it once the outcome is known. The map shows every recorded coup since 1900. Method explains how the model works and where it fails.",
+    "The logo sits in the middle of every page. Menu, top left, opens the registry (each month's forecast, dated and scored once the outcome is known), violence, markets, the map of every recorded coup since 1900, and the method.",
     "Press ? to open this guide again.",
   ], last: true },
 ];

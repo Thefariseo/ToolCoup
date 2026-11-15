@@ -7,18 +7,11 @@ export default function SiteFooter({ generated }) {
   return (
     <footer className="site-foot">
       <div className="foot-brand">
-        <Brand variant="tagline" height={64} label="Praevex, political instability intelligence" lazy />
+        <Brand variant="tagline" height={72} label="Praevex, political instability intelligence" lazy />
         <p>Each month we publish a coup-risk forecast for every country, keep it unchanged in public, and score it once its window closes.</p>
       </div>
       <nav aria-label="Footer">
-        <div>
-          <h2>Forecasts</h2>
-          {link("/", "Forecast console")}{link("/world", "World map")}{link("/violence", "Violence outlook")}{link("/markets", "Markets")}
-        </div>
-        <div>
-          <h2>Evidence</h2>
-          {link("/registry", "Forecast registry")}{link("/metodo", "Method and validation")}{link("/api/registry", "Registry API")}
-        </div>
+        {link("/", "Forecast")}{link("/registry", "Registry")}{link("/violence", "Violence")}{link("/markets", "Markets")}{link("/world", "Map")}{link("/metodo", "Method")}{link("/api/registry", "Registry API")}
       </nav>
       <p className="foot-note">
         Sources: ACLED, V-Dem, World Bank, Powell &amp; Thyne and other coup datasets. The data refreshes once a month{generated ? `, last on ${generated}` : ""}.

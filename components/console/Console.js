@@ -76,7 +76,7 @@ export default function Console({ list, meta, auc, featureGroup, registry }) {
     const onKey = (e) => {
       const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName);
       if (e.key === "Escape" && typing) { e.target.blur(); return; }
-      if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (typing || e.metaKey || e.ctrlKey || e.altKey || document.querySelector("dialog[open]")) return;
       if (e.key === "ArrowDown" || e.key === "j") { e.preventDefault(); step(1); }
       else if (e.key === "ArrowUp" || e.key === "k") { e.preventDefault(); step(-1); }
       else if (e.key === "/") { e.preventDefault(); filterRef.current?.focus(); }
@@ -222,7 +222,7 @@ export default function Console({ list, meta, auc, featureGroup, registry }) {
             {dossier.state === "busy" ? <>Writing the brief… <small>about 30 s</small></> : <Roll>Download country brief (PDF)</Roll>}
           </button>
           {dossier.state === "error" && dossier.slug === selected.slug && <p role="alert">{dossier.msg}</p>}
-          <p>Three A4 pages, ready in about half a minute.</p>
+          <p>Four A4 pages with a cover, ready in about half a minute.</p>
         </div>
       </aside>
 

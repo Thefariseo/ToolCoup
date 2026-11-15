@@ -93,16 +93,18 @@ cache né nel repository.
 - **Nuove fonti per il modello** (`pipeline/fetch_extensions.py`, `pipeline/extensions.py`, `pipeline/experiment_extensions.py`): forze armate, eta' del leader,
   stress economico mensile, esclusione etnica. Entrano nel modello pubblicato solo se l'esperimento fuori campione lo giustifica.
 
-## Country brief PDF (tre pagine)
+## Country brief PDF (copertina e tre pagine)
 
 Il pulsante *Country brief · PDF* nella console chiama `/api/dossier/[paese]`: i numeri e i fatti vengono dal nostro
 database (`lib/dossier.js`), i titoli di stampa da una lista fissa di testate (Reuters, AP, BBC, Al Jazeera,
 Crisis Group, ReliefWeb ecc., ultimi 75 giorni, solo titoli, tre ricerche in parallelo per gruppo di testate), e l'API
 OpenAI (solo il modello `gpt-5.6-luna`, fisso in `lib/dossier.js`) scrive il testo vincolato a quei due ingressi,
 con il compito di incrociare modello e stampa (tabella *Model x media cross-check*, punti ciechi del modello, tre
-spunti non ovvi). Il PDF è una nota di policy di tre pagine A4 impaginata in `lib/dossier-pdf.js` (caratteri IBM Plex
+spunti non ovvi). Il PDF è una nota di policy A4 di quattro pagine (copertina e tre pagine interne) impaginata in `lib/dossier-pdf.js` (caratteri IBM Plex
 in `assets/fonts`, bandiera da `public/flags/png`); ogni riquadro è misurato e la scala del testo si riduce finché la
 pagina sta nei limiti. In sviluppo, `?mock=1` genera il PDF con un testo finto, senza spendere crediti.
+La copertina (`lib/dossier-cover.js`) e' bianca: logo verticale al centro, poi bandiera e sagoma del paese affiancate (solo il bordo nero, senza
+vicini; da `world-atlas`, proiezione azimutale equivalente centrata sul paese), il nome e una riga di identificativi in basso. Nessun numero.
 
 Il PDF e' composto di grafici disegnati direttamente (nessuna immagine): scheda di sintesi con un micro-grafico per cifra, posizione del paese tra tutti gli altri su scala
 logaritmica, storia del rischio dal 1975 con ogni tentativo su un binario, registro dei tentativi dal 1900, il Model Trace in forma di ledger (dal paese di riferimento alla
