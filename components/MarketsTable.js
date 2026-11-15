@@ -20,26 +20,26 @@ export default function MarketsTable() {
   const down = d ? Object.entries(d.status).filter(([, s]) => !s.ok).map(([k]) => k) : [];
   return (
     <section className="card">
-      {!d && !err && <p className="note">Reading markets…</p>}
+      {!d && !err && <p className="note">Loading markets…</p>}
       {err && <p className="note" role="alert">Prediction markets are unavailable right now.</p>}
-      {d && !rows.length && <p className="note">No open coup market that names a country we track was found.</p>}
+      {d && !rows.length && !down.length && <p className="note">No open coup market that names a country we track was found.</p>}
       {rows.length > 0 && (
         <div className="table-scroll" tabIndex={0} role="region" aria-label="Markets against the model"><table>
           <caption>One market per country, sorted by volume traded</caption>
-          <thead><tr><th scope="col">Country</th><th scope="col">Market</th><th scope="col">Crowd</th><th scope="col">Our model, same horizon</th><th scope="col">Market vs model</th><th scope="col">Venue</th><th scope="col">Volume</th><th scope="col">Closes</th></tr></thead>
+          <thead><tr><th scope="col">Country</th><th scope="col">Market</th><th scope="col">Crowd</th><th scope="col">Our model, same horizon</th><th scope="col">Market against model</th><th scope="col">Venue</th><th scope="col">Volume</th><th scope="col">Closes</th></tr></thead>
           <tbody>{rows.map((m) => {
             const v = marketVerdict(m.p, m.model);
             return (
               <tr key={m.slug}>
-                <th scope="row"><Link href={`/paese/${m.slug}#crowd`} className="vo-link"><Flag iso={m.iso} height={12} /> {m.name}</Link></th>
-                <td>{m.url ? <a href={m.url} target="_blank" rel="noopener noreferrer">{m.question}<span aria-hidden="true"> ↗</span></a> : m.question}</td>
+                <th scope="row"><Link href={`/paese/${m.slug}#crowd`} className="vo-link" data-scramble><Flag iso={m.iso} height={12} /> <span className="sx">{m.name}</span></Link></th>
+                <td>{m.question}</td>
                 <td className="tnum">{p1(m.p)}</td><td className="tnum">{p1(m.model)}</td>
                 <td className={`tnum mk-gap ${v?.kind || ""}`}>{gap(m.p, m.model)}</td>
                 <td>{m.source}</td><td className="tnum">{money(m.volume)}</td><td>{fmtClose(m.closes)}</td>
               </tr>);
           })}</tbody></table></div>
       )}
-      {down.length > 0 && <p className="note">Not reachable at the moment: {down.join(", ")}.</p>}
+      {down.length > 0 && <p className="note">Could not reach {down.join(" and ")} just now, so some countries may be missing.</p>}
     </section>
   );
 }

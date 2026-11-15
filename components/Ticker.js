@@ -34,7 +34,7 @@ export default function Ticker({ initial = [] }) {
   const half = items.map((it, i) => <Item key={i} it={it} />);
   return (
     <section className={`ticker${paused ? " paused" : ""}`} aria-label="Latest coup headlines and model updates">
-      <div className="ticker-label"><i aria-hidden="true" /><span>WIRE</span></div>
+      <div className="ticker-label"><span>LATEST</span></div>
       <div className="ticker-view">
         <div className="ticker-track" style={{ "--tk-dur": `${Math.max(80, items.length * 9)}s` }}>
           <span className="tk-half">{half}</span>

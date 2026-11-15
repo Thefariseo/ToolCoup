@@ -49,7 +49,7 @@ export async function GET(request, { params }) {
     const issue = registrySummary().latest || facts.forecast.issue;
     return new Response(bytes, { headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="toolcoup-dossier-${slug}-${facts.reader.lens === "analyst" ? "" : facts.reader.lens + "-"}${issue}.pdf"`,
+      "Content-Disposition": `attachment; filename="praevex-brief-${slug}-${facts.reader.lens === "analyst" ? "" : facts.reader.lens + "-"}${issue}.pdf"`,
       "Cache-Control": "public, s-maxage=2592000, stale-while-revalidate=86400",
     } });
   } catch (e) {

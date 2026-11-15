@@ -37,7 +37,7 @@ READ_URL = "https://acleddata.com/api/acled/read"
 FIELDS = ["event_id_cnty", "event_date", "year", "event_type", "sub_event_type", "inter1", "inter2",
           "iso", "region", "country", "admin1", "latitude", "longitude", "fatalities"]
 LIMIT = 5000
-UA = "ToolCoup/1.0 (+https://github.com/Thefariseo/ToolCoup)"
+UA = "Praevex/1.0 (+https://github.com/Thefariseo/ToolCoup)"
 
 
 def _post(url: str, form: dict) -> dict:

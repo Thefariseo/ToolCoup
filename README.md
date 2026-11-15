@@ -1,4 +1,6 @@
-# Osservatorio golpe
+# Praevex
+
+Political instability intelligence. Previsione mensile del rischio di colpo di stato per ogni paese.
 
 Colpi di stato dal 1900 a oggi e stima del rischio per paese.
 Pipeline dati in Python (`pipeline/`), sito in Next.js con API (`app/`, `components/`, `lib/`).
@@ -15,6 +17,14 @@ Pipeline dati in Python (`pipeline/`), sito in Next.js con API (`app/`, `compone
 | `.github/workflows/` | aggiornamento mensile automatico |
 | `docs/` | note sulla console (`console.md`) e sui segnali di innesco (`triggers.md`) |
 | `app/`, `components/`, `lib/` | sito e API |
+
+## Marchio
+
+I cinque file originali del logo stanno in `assets/brand/source/`. `python3 scripts/build-brand.py` ricava da quelli tutto
+il resto: le versioni per fondo scuro e per carta in `public/brand/`, le icone del browser (`app/icon.png`,
+`app/apple-icon.png`, `app/favicon.ico`) e l'immagine di anteprima dei link (`app/opengraph-image.png`, `app/twitter-image.png`).
+Il componente `components/Brand.js` e' l'unico punto che disegna il logo nel sito; `lib/dossier-pdf.js` lo mette nell'intestazione
+e a piede di ogni pagina del PDF. Gli originali sono raster: non vanno ridisegnati, solo ritagliati.
 
 ## Aggiornare i dati
 
@@ -78,7 +88,7 @@ cache né nel repository.
 
 - **Violenza politica** (`pipeline/cast.py`, pagina `/violence`): previsione degli eventi di violenza organizzata per paese e provincia nei prossimi sei periodi di
   quattro settimane, con LightGBM Tweedie, riconciliazione gerarchica e intervalli. Metodo ripreso da ACLED CAST; non e' la previsione di ACLED.
-- **Mercati di previsione** (`lib/markets.js`): Polymarket, Kalshi e Manifold, in lettura, accanto al modello.
+- **Mercati di previsione** (`lib/markets.js`): Polymarket e Kalshi, in lettura, accanto al modello. Manifold (moneta virtuale) non viene letto.
 - **Analogie strutturali** (`pipeline/analogs.py`) e **monitor del discorso pubblico** (`lib/discourse.js`: Wikipedia e GDELT).
 - **Nuove fonti per il modello** (`pipeline/fetch_extensions.py`, `pipeline/extensions.py`, `pipeline/experiment_extensions.py`): forze armate, eta' del leader,
   stress economico mensile, esclusione etnica. Entrano nel modello pubblicato solo se l'esperimento fuori campione lo giustifica.
@@ -185,7 +195,7 @@ Per confrontare le alternative senza cambiare il modello pubblicato: `python3 pi
   variazioni di rischio, violenza prevista, registro, mercati). Ogni titolo e' legato a un paese e mostra la nostra stima. Si ferma con il mouse, il fuoco
   o il pulsante; con `prefers-reduced-motion` non scorre.
 - **Mercati di previsione** (`lib/markets.js`): per ogni paese si guida con un solo mercato, quello con piu' volume tra Polymarket e Kalshi (soglia 5.000 $);
-  Manifold, che usa denaro finto, solo se nessuno dei due ne ha uno. Compaiono nella console (blocco *Market check*), in testa alla pagina paese, nella pagina
+  Manifold, che usa denaro finto, non e' una fonte. Compaiono nella console (blocco *Market check*), in testa alla pagina paese, nella pagina
   `/markets`, nel ticker e nel dossier. Polymarket e Kalshi senza link in uscita. Kalshi si scorre in due passate (titoli, poi i mercati degli eventi pertinenti)
   e lo stato dell'API riporta `scan` (pagine, eventi, se il tempo e' finito).
 - **Dossier per lettore** (`lib/dossier-profile.js`): un profilo calcolato con regole sui nostri dati (archetipo del paese, segnali con livello d'allarme,

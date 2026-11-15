@@ -17,7 +17,7 @@ import urllib.request
 from pathlib import Path
 
 OUT = Path(__file__).resolve().parents[1] / "data" / "raw" / "structural"
-UA = {"User-Agent": "ToolCoup/1.0 (research pipeline; +https://github.com/Thefariseo/ToolCoup)"}
+UA = {"User-Agent": "Praevex/1.0 (research pipeline; +https://github.com/Thefariseo/ToolCoup)"}
 VDEM_URL = "https://raw.githubusercontent.com/vdeminstitute/vdemdata/master/data/vdem.RData"
 VDEM_VARS = ["country_name", "country_text_id", "COWcode", "year", "v2x_polyarchy", "v2x_libdem", "v2x_regime",
              "v2x_ex_military", "v2x_ex_hereditary", "v2x_ex_party", "v2x_civlib", "v2x_clphy", "v2xcs_ccsi",

@@ -20,8 +20,7 @@ export default function CountryAnalysis({ country: c, meta }) {
     </nav>
     {!c.historical && <>
       <section id="assessment" className="card country-assessment">
-        <p className="eyebrow">01 / COUNTRY ASSESSMENT</p>
-        <h2>Reading the current estimate</h2>
+<h2>Reading the current estimate</h2>
         <p className="country-reading">The model estimates a <strong>{pct(c.risk)}</strong> probability of at least one coup attempt in {c.name} between <strong>{meta.forecast_from}</strong> and <strong>{meta.forecast_to}</strong>. Successful and failed attempts both count.</p>
         <div className="country-stats">
           <div><span>Change over 3 months</span><strong>{pp(a.delta)}</strong><small>{meta.change_basis === "same_model" ? "Both dates evaluated with the current model" : "Difference between historical model estimates"}</small></div>
@@ -37,7 +36,7 @@ export default function CountryAnalysis({ country: c, meta }) {
       </section>
 
       <section id="signals" className="card">
-        <p className="eyebrow">02 / SHORT-TERM OBSERVATIONS</p><h2>Recent signals in context</h2>
+<h2>Recent signals in context</h2>
         <p className="note">Last three months through {meta.data_end}, compared with the preceding 24 months (at least six observed months required). These descriptive ratios do not modify the forecast.</p>
         <div className="country-signals">{a.signals.map((s) => <article key={s.key}>
           <h3>{s.label}</h3><strong>{s.recentTotal == null ? "—" : num(s.recentTotal)}</strong><span>recorded in the last 3 months</span>
@@ -48,7 +47,7 @@ export default function CountryAnalysis({ country: c, meta }) {
       </section>
 
       <section id="institutions" className="card">
-        <p className="eyebrow">03 / STRUCTURAL PROFILE</p><h2>Institutions, leadership & economy</h2>
+<h2>Institutions, leadership & economy</h2>
         <p className="note">{d?.regime ? `Latest available regime classification: ${d.regime}. ` : "Regime classification unavailable. "}Annual source records are delayed; these indicators may not reflect a recent change of government.</p>
         {d?.indicators ? <div className="table-scroll" tabIndex={0} role="region" aria-label="Structural indicators"><table>
           <caption>Inputs available to this forecast · reference years are the annual records selected by the pipeline</caption>
@@ -58,7 +57,7 @@ export default function CountryAnalysis({ country: c, meta }) {
       </section>
 
       <section id="region" className="card">
-        <p className="eyebrow">04 / COMPARATIVE CONTEXT</p><h2>{c.region}</h2>
+<h2>Compared with {c.region}</h2>
         <div className="country-stats">
           <div><span>Other countries / median</span><strong>{pct(a.region.median)}</strong><small>Excludes {c.name}</small></div>
           <div><span>Own historical median</span><strong>{pct(a.history.median)}</strong><small>Excludes the current estimate</small></div>
@@ -72,7 +71,7 @@ export default function CountryAnalysis({ country: c, meta }) {
       </section>
 
       <section id="quality" className="card">
-        <p className="eyebrow">05 / EVIDENCE & UNCERTAINTY</p><h2>What supports this estimate</h2>
+<h2>What supports this estimate</h2>
         <div className="country-balance"><div><h3>Input coverage</h3>
           {d ? <><p>{observed} of {total} model inputs available before estimator imputation, excluding calendar controls.</p><dl className="country-coverage">{d.coverage.map((g) => <div key={g.key}><dt>{labelEn(g.label)}</dt><dd>{g.observed} / {g.total}</dd></div>)}</dl></> : <p>Detailed coverage is not available for this edition.</p>}
           {c.structural === false && <p>Structural records are unavailable for this territory. Its estimate has a weaker evidence base.</p>}

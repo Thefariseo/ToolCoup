@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Flag from "@/components/Flag";
+import Rise from "@/components/motion/Rise";
 import SiteFooter from "@/components/SiteFooter";
 import { listCountries } from "@/lib/data";
 import { getViolenceGlobal } from "@/lib/outlook";
@@ -27,7 +28,7 @@ export default function ViolencePage() {
   const gain = (k, h) => { const a = acc.find((x) => x.h === h); return a ? Math.round((1 - a.mix[k] / a.ma6[k]) * 100) : null; };
   const cov = acc.map((a) => a.coverage).filter((v) => v != null);
   const Row = ({ r }) => (
-    <tr><th scope="row"><Link href={`/paese/${r.slug}#violence`} className="vo-link"><Flag iso={iso.get(r.slug)} height={12} /> {r.name}</Link></th>
+    <tr><th scope="row"><Link href={`/paese/${r.slug}#violence`} className="vo-link" data-scramble><Flag iso={iso.get(r.slug)} height={12} /> <span className="sx">{r.name}</span></Link></th>
       <td className="tnum">{r.ma6.toFixed(0)}</td><td className="tnum">{Math.round(r.next)} <small>({Math.round(r.lo)}–{Math.round(r.hi)})</small></td>
       <td className="tnum">{r.six.toFixed(0)}</td><td className="tnum">{r.change == null ? "–" : `${r.change >= 0 ? "+" : "−"}${Math.abs(r.change * 100).toFixed(0)}%`}</td></tr>
   );
@@ -36,14 +37,9 @@ export default function ViolencePage() {
     <>
       <main className="wrap">
         <div className="page-head">
-          <p className="eyebrow">VIOLENCE OUTLOOK</p>
-          <h1>Political violence, six periods ahead</h1>
-          <p className="lede">Events of organized violence (battles, explosions and remote violence, violence against civilians) expected in each four-week period, by country and province. Updated monthly from ACLED events; periods end {m.last_period_end}. A separate question from the coup forecast: most violence is not a coup, and most coups are not preceded by it.</p>
-          <div className="facts">
-            <div className="fact"><b>{Math.round(gf[0][0]).toLocaleString("en-GB")}</b><span>events forecast worldwide in the next four-week period</span></div>
-            <div className="fact"><b>{Math.round(sum(gh.slice(-6)) / 6).toLocaleString("en-GB")}</b><span>average per period over the last six</span></div>
-            <div className="fact"><b>{m.units.toLocaleString("en-GB")}</b><span>provinces in {m.countries} countries</span></div>
-          </div>
+          <h1><Rise>Political violence, six periods ahead</Rise></h1>
+          <p className="lede">An ACLED-based forecast of organised political violence (battles, explosions, remote violence and violence against civilians) for each country and province over the next six four-week periods. We expect about {Math.round(gf[0][0]).toLocaleString("en-GB")} events worldwide in the next period, against an average of {Math.round(sum(gh.slice(-6)) / 6).toLocaleString("en-GB")} over the last six, across {m.units.toLocaleString("en-GB")} provinces in {m.countries} countries. Periods end {m.last_period_end}.</p>
+          <p className="rg-note">Violence and coups are separate questions: most violence involves no coup, and most coups follow no spike in violence.</p>
         </div>
         <section className="card">
           <h2>Where the most violence is forecast</h2>
@@ -54,8 +50,8 @@ export default function ViolencePage() {
           <p className="note">Countries averaging at least 10 events per period. Change compares the next six periods with the last six.</p>
           <div className="table-scroll" tabIndex={0} role="region" aria-label="Countries by forecast increase"><table><Head /><tbody>{byRise.map((r) => <Row key={r.slug} r={r} />)}</tbody></table></div>
         </section>
-        <section className="card prose">
-          <h2>How accurate has it been?</h2>
+        <details className="card prose fold">
+          <summary><h2>How accurate has it been?</h2></summary>
           <p>Backtest on {m.backtest_origins} past forecast origins ({m.backtest_stride || 4} periods apart), organized violence, country level. The published forecast is a weighted average of three forecasts: a light gradient boosted machine (one model for all six horizons, trained to get the size of the change from the last six periods right), the average of the last six periods, and the last observed period carried forward. The weights differ by horizon and are fitted only on past origins whose outcome was already known, so nothing in the table looks ahead.</p>
           <p>Two measures. <strong>WAPE</strong> is total absolute error divided by total events, so large conflicts dominate. <strong>Relative error</strong> is the absolute error divided by the country&rsquo;s own six-period average plus one, averaged over countries, so every country counts equally. Lower is better in both.</p>
           <div className="table-scroll" tabIndex={0} role="region" aria-label="Accuracy"><table>
@@ -68,8 +64,8 @@ export default function ViolencePage() {
               <td className="tnum">{a.coverage != null ? `${(a.coverage * 100).toFixed(0)}%` : "–"}</td></tr>)}</tbody>
           </table></div>
           {acc.length > 0 && <p>Against the six-period average, the published forecast has {gain("wape", 1)}% lower WAPE one period ahead and {gain("wape", 6)}% lower six periods ahead; on relative error the gains are {gain("rel", 1)}% and {gain("rel", 6)}%. Most of the remaining error is not predictable from past counts: sudden escalations and de-escalations, and the way events are reported, set the floor. Interval coverage is the share of backtest outcomes inside the {m.interval} band, for countries forecast at one event or more, with each origin&rsquo;s band built from the other origins; it should be near {m.interval.replace("%", "")}%{cov.length ? ` (here ${Math.round(Math.min(...cov) * 100)}% to ${Math.round(Math.max(...cov) * 100)}%)` : ""}.</p>}
-          <p>Method: {m.method}. Adapted from the methodology ACLED publishes for its Conflict Alert System (CAST); this is our own model, built on ACLED event data, and is not ACLED&rsquo;s forecast. Differences from CAST: one model for all horizons instead of one per horizon, absolute-error training, provinces scaled to the country total instead of MinTraceSparse reconciliation, a weighted mix with simple references, simpler scaled-residual intervals, national rather than subnational population and infant-mortality inputs.</p>
-        </section>
+          <p>Method: {m.method}. Adapted from the methodology ACLED publishes for its Conflict Alert System (CAST); this is our own model, built on ACLED event data, and is not ACLED&rsquo;s forecast. It differs from CAST in six ways: one model serves all horizons; training uses absolute error; provinces are scaled to the country total in place of MinTraceSparse reconciliation; the forecast is a weighted mix with simple references; the intervals come from simpler scaled residuals; and the population and infant-mortality inputs are national.</p>
+        </details>
       </main>
       <SiteFooter generated={m.generated} />
     </>

@@ -17,7 +17,7 @@ import urllib.request
 from pathlib import Path
 
 OUT = Path(__file__).resolve().parents[1] / "data" / "raw" / "coup_sources"
-UA = {"User-Agent": "ToolCoup/1.0 (research pipeline; +https://github.com/Thefariseo/ToolCoup)"}
+UA = {"User-Agent": "Praevex/1.0 (research pipeline; +https://github.com/Thefariseo/ToolCoup)"}
 
 FILES = {
     # Archigos 4.1 - Goemans, Gleditsch & Chiozza (2009), capi di stato 1875-2015

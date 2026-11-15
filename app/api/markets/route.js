@@ -1,5 +1,5 @@
 import { watchlist } from "@/lib/console";
-import { allMarkets, isRealMoney, modelAtHorizon, primaryMarket } from "@/lib/markets";
+import { allMarkets, modelAtHorizon, primaryMarket } from "@/lib/markets";
 
 export const maxDuration = 60;
 
@@ -14,7 +14,7 @@ export async function GET(request) {
     if (!m || !me) continue;
     primary[slug] = {
       name: me.name, iso: me.iso, source: m.source, question: m.question, p: m.p, volume: m.volume, closes: m.closes, months: m.months,
-      model: modelAtHorizon(me.risk, m.months), model6m: me.risk, url: isRealMoney(m.source) ? null : m.url, markets: rows.filter((r) => r.kind === "coup").length,
+      model: modelAtHorizon(me.risk, m.months), model6m: me.risk, markets: rows.filter((r) => r.kind === "coup").length,
     };
   }
   const body = { asOf, status, rowsSeen, countries: Object.fromEntries(Object.entries(by).map(([k, v]) => [k, v.length])), primary };

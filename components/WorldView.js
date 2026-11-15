@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Tip, useTip } from "@/components/Tooltip";
+import Rise from "@/components/motion/Rise";
 import WorldMap from "@/components/WorldMap";
 import { fmtEventDate, fmtMonth, num, parseDate, pct, TYPE_LABEL } from "@/lib/format";
 
@@ -126,13 +127,10 @@ export default function WorldView({ countries, meta, initialCoups }) {
 
   return (
     <main className="console">
-      <div className="console-title"><div><p className="eyebrow">STRATEGIC RISK / {meta.demo ? "DEMO" : "RESEARCH EDITION"}</p><h1>World <span>map</span></h1></div><div className="edition"><i /> DATA THROUGH {meta.data_end}<small>ACLED × HISTORICAL EVIDENCE</small></div></div>
-      <div className="telemetry" aria-label="Dataset overview">
-        {[["COVERED COUNTRIES", num(meta.n_countries)], ["ACLED RECORDS", num(meta.n_events)], ["HISTORICAL WINDOW", `${meta.history_from || 1900}—${maxYear}`], ["FORECAST HORIZON", `${meta.horizon} MONTHS`], ["BASE RATE", pct(meta.base_rate)]].map(([label, value]) => <div key={label}><span>{label}</span><b>{value}</b></div>)}
-      </div>
+      <div className="page-head world-head"><h1><Rise>World map</Rise></h1><p className="lede">The current forecast for {num(meta.n_countries)} countries, and every recorded coup attempt since 1900. The forecast draws on {num(meta.n_events)} ACLED events; data runs through {meta.data_end}.</p></div>
     <div className="world">
       <div className="world-main">
-        <div className="instrument-head"><span><i /> 01 / ANALYTICAL WORKSPACE</span><span>{mode === "risk" ? "FORECAST" : "ARCHIVE"} · {mode === "risk" ? `${meta.forecast_from} → ${meta.forecast_to}` : year}</span></div>
+        <div className="instrument-head"><span>Map</span><span>{mode === "risk" ? `Forecast for ${meta.forecast_from} to ${meta.forecast_to}` : `Coups in ${year}`}</span></div>
         <div className={`map-wrap ${mode === "risk" && view === "field" ? "with-field" : ""}`}>
           {<WorldMap
             classOf={classOf} active={active} selectedIso={sel?.iso} dots={mode === "history" ? dots : []}
@@ -170,7 +168,6 @@ export default function WorldView({ countries, meta, initialCoups }) {
             </>)}
           </div>
         </div>
-        {mode === "risk" && <div className="signal-deck"><div><p className="eyebrow">02 / CROSS-COUNTRY DISTRIBUTION</p><div className="risk-spectrum" aria-label="Country risk in descending order">{ranked.map(c => <button key={c.slug} aria-label={`${c.name}: ${pct(c.risk)}`} title={`${c.name}: ${pct(c.risk)}`} onClick={() => setSelected(c.slug)} style={{height: `${Math.max(4, c.risk / maxRisk * 68)}px`}} className={selected === c.slug ? "selected" : ""} />)}</div><div className="signal-foot"><span>ONE BAR / ONE COUNTRY</span><span>{ranked.length} COUNTRIES →</span></div></div><div className="reading"><p className="eyebrow">03 / MODEL INTERPRETATION</p><p>Inspect the evidence behind the estimate.</p><small>Select a country to connect monthly signals, historical events and model contributions.</small><Link href="/metodo">Methodology & validation ↗</Link></div></div>}
         {mode === "history" && (
           <TimeBar year={year} setYear={(y) => { setYear(y); setPlaying(false); }} min={minYear} max={maxYear}
                    perYear={perYear} playing={playing}
@@ -178,16 +175,16 @@ export default function WorldView({ countries, meta, initialCoups }) {
         )}
       </div>
 
-      <aside className="panel" aria-label="Country monitor"><div className="instrument-head"><span>COUNTRY MONITOR</span><span>↓ PROBABILITY</span></div>
+      <aside className="panel" aria-label="Country monitor"><div className="instrument-head"><span>Countries</span><span>Highest probability first</span></div>
         {sel && (
           <div className="panel-sec">
             <div className="card-sel">
               <h3>{sel.name}</h3>
               <div className="row">
-                {sel.risk != null && <span>Risk {pct(sel.risk)}{sel.risk_lo != null && ` (range ${pct(sel.risk_lo)} – ${pct(sel.risk_hi)})`} · {sel.rank} / {ranked.length}</span>}
+                {sel.risk != null && <span>{pct(sel.risk)} chance of an attempt{sel.risk_lo != null && ` (range ${pct(sel.risk_lo)} to ${pct(sel.risk_hi)})`}, rank {sel.rank} of {ranked.length}</span>}
                 <span>{sel.attempts} {sel.attempts === 1 ? "attempt" : "attempts"} since 1900</span>
               </div>
-              <Link className="btn primary" href={`/?c=${sel.slug}&v=field`}>Open in instrument</Link>{" "}<Link className="btn" href={`/paese/${sel.slug}`}>Dossier</Link>{" "}
+              <Link className="btn primary" href={`/?c=${sel.slug}&v=field`}>Open in forecast</Link>{" "}<Link className="btn" href={`/paese/${sel.slug}`}>Country page</Link>{" "}
               <button className="btn" onClick={() => setSelected(null)}>Clear</button>
             </div>
           </div>
@@ -261,7 +258,7 @@ export default function WorldView({ countries, meta, initialCoups }) {
         </>)}
       </aside>
       <Tip tip={tip} />
-    </div><footer className="console-footer"><span><i /> {meta.demo ? "SYNTHETIC DATA" : "RESEARCH DATA"} · GENERATED {meta.generated}</span><span>TOOLCOUP / HISTORICAL EVIDENCE / FORECASTING</span></footer></main>
+    </div></main>
   );
 }
 

@@ -7,12 +7,15 @@ import Stage, { GROUP_NAME } from "@/components/console/Stage";
 import Strip from "@/components/console/Strip";
 import Tour, { TOUR_KEY } from "@/components/console/Tour";
 import { labelEn } from "@/lib/english";
-import { fmtClose, fmtEventDate, marketVerdict, money, pct, TYPE_LABEL } from "@/lib/format";
+import CountUp from "@/components/motion/CountUp";
+import Roll from "@/components/motion/Roll";
+import { fmtClose, fmtEventDate, marketVerdict, money, MONTHS, pct, TYPE_LABEL } from "@/lib/format";
 
+const ymLabel = (s) => { const [y, m] = s.split("-"); return `${MONTHS[m - 1]} ${y}`; };
 const VIEWS = [
-  { key: "field", n: "1", name: "SIGNAL FIELD", line: "Where. Every country's 6-month probability of a coup attempt. Colour, plume height and pulse rate all encode the same number. Scroll to zoom, drag to rotate." },
-  { key: "atlas", n: "2", name: "TEMPORAL ATLAS", line: "When. One ridge per country, 1975 → today: the model's out-of-sample forecast, quarter by quarter. Height = probability. The selected country is lit; the rest recede." },
-  { key: "trace", n: "3", name: "MODEL TRACE", line: "Why. Each group of variables pushes this country's odds up (amber) or down (cyan), starting from a reference country. Click a row for its drivers." },
+  { key: "field", n: "1", ask: "Where", name: "Signal field", line: "The chance of a coup attempt in each country over the next six months. Colour, height and pulse all show that one number. Drag to rotate, scroll to zoom." },
+  { key: "atlas", n: "2", ask: "When", name: "Temporal atlas", line: "The model's forecast for every country since 1975, quarter by quarter. Height is the probability; the selected country is lit." },
+  { key: "trace", n: "3", ask: "Why", name: "Model trace", line: "How each group of variables pushes this country's odds up (amber) or down (cyan) from a reference country. Click a row to see its drivers." },
 ];
 // who the brief is written for: same evidence, different emphasis (see lib/dossier-profile.js)
 const LENSES = [["analyst", "Analyst"], ["investor", "Investor or risk manager"], ["policy", "Diplomat or policy analyst"], ["newsroom", "Journalist or researcher"], ["aid", "Humanitarian or development team"]];
@@ -86,7 +89,7 @@ export default function Console({ list, meta, auc, featureGroup, registry }) {
       const res = await fetch(`/api/dossier/${target}?issue=${issue}&lens=${lens}`);
       if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `HTTP ${res.status}`);
       const url = URL.createObjectURL(await res.blob()), a = document.createElement("a");
-      a.href = url; a.download = `toolcoup-dossier-${target}-${issue}.pdf`; document.body.appendChild(a); a.click(); a.remove();
+      a.href = url; a.download = `praevex-brief-${target}-${issue}.pdf`; document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 5000);
       setDossier({ state: "idle" });
     } catch (e) {
@@ -103,8 +106,12 @@ export default function Console({ list, meta, auc, featureGroup, registry }) {
     <main className="cx">
       <Tour open={tour} onClose={() => setTour(false)} onView={setView} />
       <aside className="cx-list" aria-label="Watchlist">
-        <header><h2>WATCHLIST <em>{shown.length}</em></h2><span>P(ATTEMPT) · {meta.horizon} MO</span></header>
-        <input ref={filterRef} className="cx-input" value={q} onChange={(e) => setQ(e.target.value)} placeholder="filter country / region    [/]" aria-label="Filter countries" />
+        <header>
+          <h2>Watchlist <em>{shown.length}</em></h2>
+          <p>Chance of a coup attempt, {ymLabel(meta.forecast_from)} to {ymLabel(meta.forecast_to)}</p>
+          <p className="sub">Issue {registry?.latest || meta.forecast_from} · data through {ymLabel(meta.data_end)}</p>
+        </header>
+        <input ref={filterRef} className="cx-input" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter by country or region" aria-label="Filter countries" aria-keyshortcuts="/" />
         <ol ref={listRef}>
           {shown.map((c) => {
             const d = c.risk_3m_ago == null ? 0 : c.risk - c.risk_3m_ago;
@@ -119,17 +126,17 @@ export default function Console({ list, meta, auc, featureGroup, registry }) {
               </li>
             );
           })}
-          {!shown.length && <li className="cx-none">NO MATCH</li>}
+          {!shown.length && <li className="cx-none">No country matches.</li>}
         </ol>
       </aside>
 
       <section className="cx-main" aria-label={v.name}>
         <nav className="cx-tabs" aria-label="Views">
-          {VIEWS.map((x) => <button key={x.key} className={view === x.key ? "on" : ""} onClick={() => setView(x.key)} aria-pressed={view === x.key}><kbd>{x.n}</kbd>{x.name}</button>)}
+          {VIEWS.map((x) => <button key={x.key} className={view === x.key ? "on" : ""} onClick={() => setView(x.key)} aria-pressed={view === x.key} aria-keyshortcuts={x.n} title={`${x.name} (key ${x.n})`}><b>{x.ask}</b><span>{x.name}</span></button>)}
           <span className="cx-tabs-fill" />
-          {view === "field" && <button className={plane ? "on" : ""} onClick={() => setPlane(!plane)} aria-pressed={plane}><kbd>G</kbd>{plane ? "PLANE" : "GLOBE"}</button>}
-          <button className={live ? "on" : ""} onClick={() => setLive(!live)} aria-pressed={live}><kbd>M</kbd>MOTION {live ? "ON" : "OFF"}</button>
-          <button onClick={() => setTour(true)} aria-label="Open the guide"><kbd>?</kbd>GUIDE</button>
+          {view === "field" && <button className={plane ? "on" : ""} onClick={() => setPlane(!plane)} aria-pressed={plane} aria-keyshortcuts="g" title="Switch between globe and flat map (key G)">{plane ? "Flat map" : "Globe"}</button>}
+          <button className={live ? "on" : ""} onClick={() => setLive(!live)} aria-pressed={live} aria-keyshortcuts="m" title="Turn the animation on or off (key M)">{live ? "Motion on" : "Motion off"}</button>
+          <button onClick={() => setTour(true)} aria-keyshortcuts="?" title="Open the guide (key ?)">Guide</button>
         </nav>
         <div className="cx-stage-wrap">
           <Stage view={view} list={list} selected={selected} detail={detail} atlas={atlas} plane={plane} live={live} onSelect={setSlug} focus={focus} onFocus={setFocus} apiRef={stageApi} />
@@ -142,38 +149,38 @@ export default function Console({ list, meta, auc, featureGroup, registry }) {
       </section>
 
       <aside className="cx-read" aria-label="Selected country">
-        <header><h2 className="cx-flagrow"><Flag iso={selected.iso} height={14} />{selected.name.toUpperCase()}</h2><span>{selected.region}</span></header>
+        <header><h2 className="cx-flagrow"><Flag iso={selected.iso} height={16} />{selected.name}</h2><span>{selected.region}</span></header>
         <div className="cx-p">
-          <b>{pct(selected.risk)}</b>
-          <span>coup attempt · {meta.forecast_from} → {meta.forecast_to}</span>
+          <b><CountUp value={selected.risk} format={(v) => pct(v)} /></b>
+          <span>chance of a coup attempt, {ymLabel(meta.forecast_from)} to {ymLabel(meta.forecast_to)}</span>
           {selected.risk_lo != null && (
             <div className="cx-ci" title="80% interval from country-resampled refits">
               <i style={{ left: `${(selected.risk_lo / scaleMax) * 100}%`, width: `${((selected.risk_hi - selected.risk_lo) / scaleMax) * 100}%` }} />
               <u style={{ left: `${(selected.risk / scaleMax) * 100}%` }} />
             </div>
           )}
-          {selected.risk_lo != null && <span>80% interval {pct(selected.risk_lo)} – {pct(selected.risk_hi)}</span>}
+          {selected.risk_lo != null && <span>80% range {pct(selected.risk_lo)} to {pct(selected.risk_hi)}</span>}
         </div>
         <dl className="cx-kv">
-          <div><dt>RANK</dt><dd>{selected.pos} / {list.length}</dd></div>
-          <div><dt>VS BASE RATE</dt><dd>{(selected.risk / meta.base_rate).toFixed(1)}×</dd></div>
-          <div><dt>Δ 3 MONTHS</dt><dd className={delta > 0 ? "up" : delta < 0 ? "down" : ""}>{delta == null ? "—" : `${delta > 0 ? "+" : ""}${(delta * 100).toFixed(2)} pp`}</dd></div>
-          <div><dt>ATTEMPTS 1900→</dt><dd>{selected.attempts} <small>({selected.successes} ok)</small></dd></div>
-          <div><dt>LAST</dt><dd>{selected.last ? <>{fmtEventDate({ date: selected.last.date, prec: "day" })} <small>{TYPE_LABEL[selected.last.type]?.toLowerCase()}</small></> : "none recorded"}</dd></div>
+          <div><dt>Rank</dt><dd>{selected.pos} of {list.length}</dd></div>
+          <div><dt>Times the base rate</dt><dd>{(selected.risk / meta.base_rate).toFixed(1)}×</dd></div>
+          <div><dt>Change in 3 months</dt><dd className={delta > 0 ? "up" : delta < 0 ? "down" : ""}>{delta == null ? "n/a" : `${delta > 0 ? "+" : "−"}${Math.abs(delta * 100).toFixed(2)} points`}</dd></div>
+          <div><dt>Attempts since 1900</dt><dd>{selected.attempts} <small>({selected.successes} successful)</small></dd></div>
+          <div><dt>Last attempt</dt><dd>{selected.last ? <>{fmtEventDate({ date: selected.last.date, prec: "day" })} <small>{TYPE_LABEL[selected.last.type]?.toLowerCase()}</small></> : "none recorded"}</dd></div>
         </dl>
         {markets?.[selected.slug] && (() => {
           const mk = markets[selected.slug], verdict = marketVerdict(mk.p, mk.model), f = (v) => pct(v, v < 0.1 ? 1 : 0);
           return (
             <section className={`cx-market ${verdict?.kind || ""}`} aria-label="Prediction market">
-              <header><h3>MARKET CHECK <em>{mk.source}</em></h3><Link href={`/paese/${selected.slug}#crowd`}>DETAIL →</Link></header>
-              <div className="cx-mk"><b>{f(mk.p)}</b><span>{mk.model != null ? <>market · our model <b>{f(mk.model)}</b> at the same horizon</> : "market"}</span></div>
-              <p className="cx-note">“{mk.question}” · closes {fmtClose(mk.closes)} · {money(mk.volume)} traded.{verdict && ` ${verdict.text}`}</p>
+              <header><h3>What the market says <em>{mk.source}</em></h3><Link href={`/paese/${selected.slug}#crowd`}>Compare in detail</Link></header>
+              <div className="cx-mk"><b>{f(mk.p)}</b><span>{mk.model != null ? <>on the market; our model gives <b>{f(mk.model)}</b> over the same horizon</> : "on the market"}</span></div>
+              <p className="cx-note">“{mk.question}” Closes {fmtClose(mk.closes)}; {money(mk.volume)} traded.{verdict && ` ${verdict.text}`}</p>
             </section>
           );
         })()}
         <section className="cx-drivers">
-          <header><h3>DRIVERS {focus && <em>{GROUP_NAME[focus]}</em>}</h3>{focus ? <button onClick={() => setFocus(null)}>CLEAR ×</button> : <span>log-odds</span>}</header>
-          {!detail && <p className="cx-wait">RETRIEVING<i>_</i></p>}
+          <header><h3>Largest drivers {focus && <em>{GROUP_NAME[focus]}</em>}</h3>{focus ? <button onClick={() => setFocus(null)}>Show all</button> : <span>log-odds</span>}</header>
+          {!detail && <p className="cx-wait">Loading…</p>}
           {detail && !drivers.length && <p className="cx-note">{focus ? "None of the six largest drivers belongs to this group." : "No driver decomposition exported for this country."}</p>}
           <ul>
             {drivers.map((d) => (
@@ -183,46 +190,38 @@ export default function Console({ list, meta, auc, featureGroup, registry }) {
               </li>
             ))}
           </ul>
-          <p className="cx-note">Six largest terms of the logistic component. Associations in the training data, not causes.</p>
+          <p className="cx-note">The six largest terms of the logistic component. They are associations found in the data and carry no causal claim.</p>
         </section>
         {detail?.analysis && <section className="cx-country-context">
-          <h3>COUNTRY CONTEXT</h3>
+          <h3>Country context</h3>
           <dl className="cx-kv">
-            <div><dt>REGIONAL RANK</dt><dd>{detail.analysis.region.rank} / {detail.analysis.region.count}</dd></div>
-            <div><dt>REGIONAL MEDIAN*</dt><dd>{pct(detail.analysis.region.median)}</dd></div>
-            <div><dt>REGIME / LATEST DATA</dt><dd>{detail.diagnostics?.regime || "unavailable"}</dd></div>
+            <div><dt>Rank in its region</dt><dd>{detail.analysis.region.rank} of {detail.analysis.region.count}</dd></div>
+            <div><dt>Regional median</dt><dd>{pct(detail.analysis.region.median)}</dd></div>
+            <div><dt>Regime</dt><dd>{detail.diagnostics?.regime || "unavailable"}</dd></div>
           </dl>
-          <p className="cx-note">*Other countries in the region. Annual regime records may lag current events.</p>
-          <details><summary>Recent activity / 3 months</summary><dl className="cx-kv">{detail.analysis.signals.map((s) => <div key={s.key}><dt>{s.label}</dt><dd>{s.recentTotal ?? "—"}<small>{s.ratio != null ? ` / ${s.ratio.toFixed(1)}× baseline` : s.newActivity ? " / after zero baseline" : ""}</small></dd></div>)}</dl><p className="cx-note">Compared with the preceding 24 months. Counts depend on reporting coverage.</p></details>
-          <Link href={`/paese/${selected.slug}#assessment`}>EXPLORE THE FULL ASSESSMENT →</Link>
+          <p className="cx-note">The median covers the other countries in the region. Annual regime records can lag current events.</p>
+          <details><summary>Activity in the last 3 months</summary><dl className="cx-kv">{detail.analysis.signals.map((s) => <div key={s.key}><dt>{s.label}</dt><dd>{s.recentTotal ?? "—"}<small>{s.ratio != null ? ` / ${s.ratio.toFixed(1)}× baseline` : s.newActivity ? " / after zero baseline" : ""}</small></dd></div>)}</dl><p className="cx-note">Compared with the 24 months before. Counts depend on how well events are reported.</p></details>
+          <Link href={`/paese/${selected.slug}#assessment`}>Read the full assessment</Link>
         </section>}
+        <nav className="cx-links">
+          <Link href={`/paese/${selected.slug}`}>Country page and sources</Link>
+          <Link href="/registry">Forecast registry</Link>
+          <Link href="/metodo">Method and validation</Link>
+        </nav>
         <div className="cx-dossier">
-          <label className="cx-lens"><span>BRIEF FOR</span>
+          <label className="cx-lens"><span>Brief for</span>
             <select value={lens} onChange={(e) => { setLens(e.target.value); try { localStorage.setItem("toolcoup-lens", e.target.value); } catch { /* ignore */ } }}>
               {LENSES.map(([k, name]) => <option key={k} value={k}>{name}</option>)}
             </select>
           </label>
           <button onClick={downloadDossier} disabled={dossier.state === "busy"}>
-            {dossier.state === "busy" ? <>COMPILING BRIEF<i>…</i> <small>≈ 30 s</small></> : <>COUNTRY BRIEF · PDF <span>↓</span></>}
+            {dossier.state === "busy" ? <>Writing the brief… <small>about 30 s</small></> : <Roll>Download country brief (PDF)</Roll>}
           </button>
           {dossier.state === "error" && dossier.slug === selected.slug && <p role="alert">{dossier.msg}</p>}
-          <p>Model figures and records from our database, plus headlines from allow-listed outlets, written up with OpenAI.</p>
+          <p>Figures and coup records come from our database, headlines from a fixed list of outlets; the text is drafted with OpenAI.</p>
         </div>
-        <nav className="cx-links">
-          <Link href={`/paese/${selected.slug}`}>COUNTRY PAGE + SOURCES →</Link>
-          <Link href="/registry">FORECAST REGISTRY →</Link>
-          <Link href="/metodo">METHOD & VALIDATION →</Link>
-        </nav>
       </aside>
 
-      <footer className="cx-status">
-        <span><i className="cx-led" />ISSUE {registry?.latest || meta.forecast_from} · #{String(registry?.count || 1).padStart(3, "0")}</span>
-        <span>DATA THROUGH {meta.data_end}</span>
-        <span>WINDOW {meta.forecast_from} → {meta.forecast_to}</span>
-        <span>OUT-OF-SAMPLE AUC {auc?.toFixed(3)} · 1975→</span>
-        <span>{meta.n_countries} COUNTRIES · {meta.n_features} VARIABLES</span>
-        <span className="r">MONTHLY SNAPSHOT — NOT A LIVE FEED · ↑↓ COUNTRY · 1 2 3 VIEW · + − 0 ZOOM</span>
-      </footer>
     </main>
   );
 }

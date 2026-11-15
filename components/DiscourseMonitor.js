@@ -24,10 +24,9 @@ export default function DiscourseMonitor({ slug, name }) {
   const w = d?.wiki, nv = d?.news;
   return (
     <section id="discourse" className="card discourse">
-      <p className="eyebrow">PUBLIC DISCOURSE MONITOR</p>
-      <h2>Is public attention to {name} shifting?</h2>
+<h2>Is public attention to {name} shifting?</h2>
       <p className="note">Background monitoring without polling: sudden changes in how much people read about the country and in how the news talks about it, compared with its own last three months. Social platforms such as X do not offer free access to their discourse, so this uses open sources: Wikipedia readership and the GDELT news archive. These are descriptive alerts. Signals of this kind were tested against the coup model and did not improve it, so they are not model inputs.</p>
-      {!d && !err && <p className="note">Reading public signals…</p>}
+      {!d && !err && <p className="note">Loading public signals…</p>}
       {err && <p className="note" role="alert">Public signals are unavailable right now.</p>}
       {d && (
         <div className="dm-grid">

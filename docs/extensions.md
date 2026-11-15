@@ -118,13 +118,13 @@ Per questo `fetch_acled.py` scarica ora anche `admin1` e le coordinate. Mancano 
 attori in testo ("State forces", "External/Other forces"), non i codici 1-8: i confronti numerici darebbero zero senza avvisare.
 
 ## 4. Mercati di previsione (`lib/markets.js`)
-Polymarket, Kalshi e Manifold, letti da endpoint pubblici (nessuna chiave per leggere). I mercati sono mostrati **accanto** al modello e mai fusi con esso,
+Polymarket e Kalshi, letti da endpoint pubblici (nessuna chiave per leggere). Manifold e' stato tolto: tratta moneta virtuale e i suoi prezzi non sono un segnale affidabile. I mercati sono mostrati **accanto** al modello e mai fusi con esso,
 con la probabilita' del modello riportata sull'orizzonte di ciascun mercato (rischio costante).
 
 Polymarket e Kalshi sono piattaforme a denaro reale e dalla rete italiana risultano **bloccati dall'ADM** (il certificato restituito e' quello della pagina di blocco
-`sito-inibito-giochi.adm.gov.it`): per questo il codice non e' stato provato contro di loro, ma solo contro Manifold. Le richieste partono dal server su Vercel, che non
+`sito-inibito-giochi.adm.gov.it`): per questo il codice non si puo' provare in locale contro di loro. Le richieste partono dal server su Vercel, che non
 e' dietro quel blocco; la risposta di `/api/markets/<paese>` riporta per ogni fonte `ok` o l'errore, ed e' li' che va verificato dopo il deploy. Per prudenza i loro
-mercati compaiono come dato con attribuzione e senza link (la promozione del gioco e' limitata in Italia); Manifold, a moneta virtuale, e' linkato.
+mercati compaiono come dato con attribuzione e senza link (la promozione del gioco e' limitata in Italia).
 ## 5. Analogie strutturali (`pipeline/analogs.py`)
 Per ogni paese, i 30 mesi storici piu' simili (distanza su variabili standardizzate di storia golpista, regime, leader, economia, contagio) e la quota seguita da un tentativo.
 

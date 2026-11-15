@@ -26,7 +26,7 @@ from pathlib import Path
 
 OUT = Path(__file__).resolve().parents[1] / "data" / "raw" / "elections" / "elections.csv"
 API = "https://en.wikipedia.org/w/api.php"
-UA = {"User-Agent": "ToolCoup/1.0 (research pipeline)"}
+UA = {"User-Agent": "Praevex/1.0 (research pipeline)"}
 MONTHS = {m: i + 1 for i, m in enumerate(["january", "february", "march", "april", "may", "june", "july", "august",
                                            "september", "october", "november", "december"])}
 

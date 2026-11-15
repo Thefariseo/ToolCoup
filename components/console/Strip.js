@@ -4,9 +4,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { MONTHS, pct } from "@/lib/format";
 
 const WINDOWS = [{ key: "all", label: "1975→", months: null }, { key: "25", label: "25Y", months: 300 }, { key: "10", label: "10Y", months: 120 }];
-const CHANNELS = [{ key: "unrest", label: "UNREST", cls: "c1" }, { key: "violence", label: "VIOLENCE", cls: "c2" }, { key: "fatalities", label: "FATALITIES", cls: "c3" }];
+const CHANNELS = [{ key: "unrest", label: "Unrest", cls: "c1" }, { key: "violence", label: "Violence", cls: "c2" }, { key: "fatalities", label: "Fatalities", cls: "c3" }];
 const ym = (s) => { const [y, m] = s.split("-").map(Number); return y * 12 + (m - 1); };
-const label = (t) => `${MONTHS[t % 12].toUpperCase()} ${Math.floor(t / 12)}`;
+const label = (t) => `${MONTHS[t % 12]} ${Math.floor(t / 12)}`;
 
 /** Selected country over time: published risk (monthly), recorded coups, ACLED monthly counts. */
 export default function Strip({ country, detail }) {
@@ -47,10 +47,10 @@ export default function Strip({ country, detail }) {
   return (
     <section className="cx-strip" aria-label="Country timeline">
       <header>
-        <h2>TIMELINE <em>{country?.name?.toUpperCase()}</em></h2>
+        <h2>Timeline <em>{country?.name}</em></h2>
         {d && (
           <p className="cx-strip-read">
-            <b>{label(t)}</b><span>P {d.risk(t) == null ? "—" : pct(d.risk(t), 2)}</span>
+            <b>{label(t)}</b><span>Forecast {d.risk(t) == null ? "n/a" : pct(d.risk(t), 2)}</span>
             {CHANNELS.map((c) => <span key={c.key} className={c.cls}>{c.label} {d.ch(c.key, t) ?? "—"}</span>)}
           </p>
         )}

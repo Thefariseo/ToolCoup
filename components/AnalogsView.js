@@ -6,8 +6,7 @@ export default function AnalogsView({ analog, name, modelRisk }) {
   const hits = Math.round(analog.rate * analog.k);
   return (
     <section id="analogs" className="card analogs">
-      <p className="eyebrow">STRUCTURAL ANALOGS / HISTORICAL CASES</p>
-      <h2>What happened after the {analog.k} most similar cases</h2>
+<h2>What happened after the {analog.k} most similar cases</h2>
       <p className="note">The model computes a probability; analogy asks a different question: among past country-months with a similar coup history, regime, leader, economy and regional contagion, how many were followed by a coup attempt within six months? It uses {analog.features} variables and {analog.pool.toLocaleString("en-GB")} resolved country-months, one case per country and two-year span.</p>
       <div className="km-grid analog-stats">
         <div className="km-tile"><span>Analogs followed by an attempt</span><b>{hits} of {analog.k}</b><small>{pct(analog.rate, 0)}</small></div>
