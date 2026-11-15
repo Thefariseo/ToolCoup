@@ -24,13 +24,17 @@ Drag to rotate, click to select.
 forecast from 1975, grouped by region. Height is `sqrt(p / 0.30)`. Hover reads a country and quarter;
 click selects. The white ridge is the selected country.
 
-**3 · Model Trace — why.** A waterfall from the recent base rate to the published forecast. Seven
-variable groups feed the logistic component of the ensemble; each group is a column whose height is its
-log-odds push (y axis in probability), amber streaming up, cyan down. The eighth column (ensemble) is
-whatever returns the figure to the published value (long-run trend, tree models, calibration). The vortex
-on the right is the forecast; its size and spin follow the calibrated probability. The 65k particles are a
-GPGPU simulation (ping-pong RGBA32F textures, curl-noise advection, soft springs into each column box), so
-the swarm re-flows when the country changes. Tree components are not decomposed and nothing here claims they are.
+**3 · Model Trace — why.** A ledger from a reference country to the published forecast. The reference is the
+logistic component's intercept (about 0.25%): where it starts before it knows anything about the country, not the
+base rate. One row per variable group (largest push first): a bar on a log-probability axis runs from the
+probability before the group's term to the probability after it, amber to the right (raises), cyan to the left
+(lowers). Beside the bar, a skyline places the country among every other country with structural records on the
+same group (log-odds), with a "top x%" / "bottom x%" label. Below the groups: the logistic model (the sum of the
+terms), the average of the ensemble members (dots show each member), and the published forecast, calibrated, with
+its 80% range. For territories without structural records the group terms are imputed, and the footer says so.
+Clicking a row filters the drivers list. The rows are crisp SVG (`TraceLedger.js`, layout in `ledger.js`); the
+peer distributions come from `/api/trace` (`lib/trace-peers.js`, read from the published export). Tree components
+are not decomposed and nothing here claims they are. The swarm is only texture under the lines (see Rendering).
 
 ## Rendering
 
@@ -54,11 +58,11 @@ All three views share a camera (`clip' = (clip − pan) × zoom`, 1× to 8×): w
 cursor, drag pans (on the globe it rotates), `+ − 0` and the buttons at the top right of the stage zoom and
 reset. Text labels follow the camera but keep their size.
 
-The **Model Trace** is a GPU particle simulation: 65,536 particles (16,384 on narrow screens) in float
-textures, advanced by curl noise along one lane per variable group, spiralling into a vortex whose size,
-spin and colour follow the final probability. Lane width and particle share follow each group's absolute
-log-odds contribution on a fixed scale, so countries are comparable. Particle count per group is data;
-the turbulence is decoration.
+The **Model Trace** keeps a GPU particle simulation underneath the ledger as texture: 65,536 particles (16,384 on narrow
+screens) in float textures, advanced by curl noise inside one band per ledger row, streaming along the bar in the
+direction of the push, with a small vortex at the published marker whose size and spin follow the final probability.
+The number of particles drawn per band is capped to a constant density, so a short bar is not saturated; the swarm never
+carries a value. The canvas is dimmed (CSS) so the vector lines and numbers are what you read, and the view does not zoom.
 
 Code adapted under the MIT licence from [PSCactux/webgl-shader-lab](https://github.com/PSCactux/webgl-shader-lab)
 (Copyright (c) 2026 PSCactux): simplex/curl noise and the ping-pong GPGPU layout from `CurlSwarm.tsx`, the

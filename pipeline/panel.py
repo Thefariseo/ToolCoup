@@ -179,7 +179,9 @@ def load_events(coupdb_csv: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
     d = pd.to_datetime(db["date"])
     db["t"] = d.dt.year * 12 + d.dt.month - 1
     db["success"] = db["type"].eq("riuscito")
-    target = db[(db["confidence"] == "A") | db["sources"].str.contains("Powell & Thyne")]
+    # il target e' l'evento confermato (livello A o Powell & Thyne) con una data al mese: gli eventi datati solo all'anno
+    # restano nella storia ma non si possono collocare nella finestra di previsione giusta
+    target = db[((db["confidence"] == "A") | db["sources"].str.contains("Powell & Thyne")) & db["date_precision"].isin(["day", "month"])]
     broad = db[db["confidence"].isin(["A", "B", "C"])]
     return target, broad
 

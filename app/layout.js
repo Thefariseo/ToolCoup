@@ -9,7 +9,9 @@ import "./globals.css";
 import "./console.css";
 import CountrySearch from "@/components/CountrySearch";
 import Nav from "@/components/Nav";
+import Ticker from "@/components/Ticker";
 import { getSummary, listCountries } from "@/lib/data";
+import { modelItems } from "@/lib/ticker";
 
 
 
@@ -38,6 +40,7 @@ export default function RootLayout({ children }) {
           </div>
         )}
         <div id="main" tabIndex={-1}>{children}</div>
+        <Ticker initial={modelItems()} />
       </body>
     </html>
   );

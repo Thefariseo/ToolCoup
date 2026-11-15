@@ -5,6 +5,7 @@ import Dossier from "@/components/Dossier";
 import CountryAnalysis from "@/components/CountryAnalysis";
 import AnalogsView from "@/components/AnalogsView";
 import CrowdView from "@/components/CrowdView";
+import MarketFact from "@/components/MarketFact";
 import DiscourseMonitor from "@/components/DiscourseMonitor";
 import StandingView from "@/components/StandingView";
 import ViolenceOutlook from "@/components/ViolenceOutlook";
@@ -66,6 +67,7 @@ async function CountryContent({ params }) {
                 </span>
               </div>
               <div className="fact"><b>#{country.rank}</b><span>of {ranked.length} countries{ratio >= 1 ? `, ${ratio.toFixed(1)} times the base rate` : ", below the base rate"}</span></div>
+              <MarketFact slug={slug} />
             </>
           )}
           <div className="fact"><b>{country.attempts}</b><span>attempts since 1900, {country.successes} successful</span></div>

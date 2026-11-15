@@ -17,11 +17,19 @@ stesso paese con date compatibili (entro 14 giorni, o stesso mese/anno se la dat
 vengono riunite in un unico evento; una fonte non puo' comparire due volte nello stesso evento.
 
 Affidabilita':
-  A  almeno due fonti accademiche indipendenti lo codificano come golpe
-  B  una fonte accademica, confermata da almeno una fonte enciclopedica
-     (prima del 1946 anche: almeno tre fonti enciclopediche indipendenti e concordi)
-  C  una fonte accademica da sola, oppure due fonti enciclopediche concordi
-  D  una sola fonte enciclopedica, solo complotti/presunti, o evento che Colpus giudica inesistente
+  A  confermato: elencato da Powell & Thyne, oppure codificato come golpe o tentativo da almeno due fonti accademiche
+     che registrano eventi, oppure una voce di Wikipedia lo descrive come golpe o tentativo (decisione del progetto:
+     basta), oppure Wikidata lo classifica come golpe e almeno un'altra fonte lo riscontra
+  B  una fonte accademica con riscontro annuale (HRD, PIPE) o enciclopedico senza la parola golpe; oppure due elenchi
+     enciclopedici che lo riportano senza chiamarlo golpe (crisi, rivolta)
+  C  una fonte accademica da sola, oppure solo fonti annuali (PIPE, o HRD insieme a PIPE)
+  D  una sola voce enciclopedica che non lo chiama golpe, solo complotti/presunti, evento che Colpus giudica
+     inesistente, o evento locale (contea, stato federato)
+
+HRD (V-Dem, regimi storici) e PIPE non registrano eventi ma la fine di un regime e il numero di golpe riusciti in un
+anno: possono confermare un evento, non fondarlo. L'HRD codifica come "autogolpe" costituzioni, referendum e poteri
+d'emergenza (Stati Uniti 1964, Italia 1923, Ungheria 2020): un evento che ha come unica fonte l'HRD non entra nel
+database, e viene elencato in excluded_hrd_only.csv con il motivo.
 
 Colpus e' l'unica fonte che riesamina i candidati degli altri dataset: quando ne scarta uno, il
 motivo e' riportato in `colpus_class` (complotto, ammutinamento, autogolpe, doppione...). Le righe
@@ -55,6 +63,13 @@ START_YEAR = 1900
 ORDER = {"pt": 0, "colpus": 1, "csp": 2, "archigos": 4, "hrd": 5, "colpus_rej": 6, "wikipedia_fr": 6.5,
          "wikidata": 7, "wikipedia_c": 8, "wikipedia_de": 8.5, "wikipedia": 9, "wikipedia_es": 9.5, "pipe": 10}
 VIA_RANK = 3
+# fonti che codificano la fine di un regime o un conteggio annuale, non un singolo evento: confermano ma non fondano
+ANNUAL = {"hrd", "pipe"}
+COUP_WORD_RE = re.compile(r"coup|putsch|golpe|staatsstreich|pronunciamiento|mutiny|autogolpe|overthr", re.I)
+# eventi locali presenti negli elenchi di Wikipedia (un vicegovernatore che si fa giurare governatore, una contea...)
+SUBNATIONAL_RE = re.compile(r"(?i:\b(?:county|municipalit\w*|city council|mayor|state legislature|lieutenant governor|prefecture|canton)\b)"
+                            r"|(?i:\bgovernor of )[A-Z]\w+|Free State of Prussia"
+                            r"|\b[A-Z][a-z]+ State coup\b|\bcoup (?:attempt )?in (?:the )?[A-Z][a-z]+ State\b")
 # da quale fonte prendere la descrizione dell'evento: prima quelle in inglese
 LABEL_ORDER = ["wikidata", "wikipedia_c", "wikipedia", "wikipedia_fr", "wikipedia_es", "wikipedia_de"]
 # fonti enciclopediche -> "famiglia": i due elenchi inglesi contano una volta sola, ogni lingua una volta
@@ -99,8 +114,8 @@ def num(v):
 
 
 # ------------------------------------------------------------------ caricamento fonti
-PLOT_RE = re.compile(r"alleg|plot|conspir|planning|planned|plan to|arrested (?:for|after)|accused|foiled|"
-                     r"thwart|uncover|shut down|described as")
+PLOT_RE = re.compile(r"alleg|plot|conspir|planning|planned|plan to|arrested (?:for|after)|on charges of|charged with|"
+                     r"suspected of|accused|foiled|thwart|uncover|shut down|described as")
 FAIL_RE = re.compile(r"attempt|fail|unsuccess|abortive|suppress|crush|put down|defeat|quell|putsch")
 
 
@@ -418,7 +433,7 @@ def cluster(records):
 
 def consolidate(clusters):
     order = ORDER
-    events, atts, used = [], [], {}
+    events, atts, used, excluded = [], [], {}, []
     for c in clusters:
         ms = sorted(c["members"], key=lambda r: order.get(r["src"], VIA_RANK))
         coupish = [m for m in ms if m["outcome"] in ("success", "failed")]
@@ -430,21 +445,32 @@ def consolidate(clusters):
             notcoup = None                          # doppione fuso in un golpe accettato da Colpus
         if not coupish and not plots:
             continue                                    # solo candidati scartati da Colpus
+        if coupish and not plots and all(m["src"] == "hrd" for m in coupish):
+            # fine di regime codificata dall'HRD senza nessun altro riscontro: non e' un golpe documentato
+            h = coupish[0]
+            excluded.append({"ccode": h["ccode"], "country": name_of(h["ccode"]), "date": h["lo"].isoformat(),
+                             "hrd_coding": h["label"], "reason": "regime end coded by V-Dem HRD, no event-level source"})
+            continue
         if coupish:
-            outcome = (sch or ter)[0]["outcome"]
+            # l'esito viene da una fonte che registra eventi, poi da quelle enciclopediche; HRD e PIPE (fine di regime, conteggio annuale) per ultime
+            outcome = ([m for m in sch if m["src"] not in ANNUAL] or ter or sch)[0]["outcome"]
             kind = "riuscito" if outcome == "success" else "fallito"
         else:
             kind = "complotto"
-        n_sch = len({m["src"] for m in sch})
+        ev_src = {m["src"] for m in sch if m["src"] not in ANNUAL}        # fonti accademiche che registrano eventi
+        an_src = {m["src"] for m in sch if m["src"] in ANNUAL}            # fonti annuali o di regime
+        n_ev, n_sch = len(ev_src), len(ev_src) + len(an_src)
         n_ter = len({TERTIARY[m["src"]] for m in ter})
-        if n_sch >= 2:
+        # una voce di Wikipedia vale come conferma se descrive l'evento come golpe o tentativo (il testo dice "coup",
+        # "putsch", "golpe"...); una voce di Wikidata, classificata come colpo di stato per costruzione dell'elenco, vale
+        # se almeno un'altra fonte la riscontra. Una voce sola e senza quelle parole (crisi, rivolta, offensiva) resta D.
+        wp_worded = any(m["src"].startswith("wikipedia") and COUP_WORD_RE.search(m["label"]) for m in ter)
+        wd_backed = any(m["src"] == "wikidata" for m in ter) and len({m["src"] for m in coupish}) >= 2
+        if "pt" in ev_src or n_ev >= 2 or wp_worded or wd_backed:
             tier = "A"
-        elif n_sch == 1 and n_ter >= 1:
-            tier = "B"
-        elif n_sch == 0 and n_ter >= 3 and c["lo"].year < 1946:
-            tier = "B"          # prima del 1946 nessun dataset accademico registra i falliti: tre
-                                # fonti enciclopediche indipendenti e concordi valgono una conferma
-        elif n_sch == 1 or n_ter >= 2:
+        elif n_ter >= 2 or (n_ev == 1 and (an_src or n_ter >= 1)):
+            tier = "B"          # due elenchi enciclopedici senza la parola golpe, o fonte accademica + riscontro annuale/enciclopedico
+        elif n_sch >= 1:
             tier = "C"
         else:
             tier = "D"
@@ -459,10 +485,13 @@ def consolidate(clusters):
         eid = base if used[base] == 1 else f"{base}-{used[base]}"
         outs = {m["outcome"] for m in sch} or {m["outcome"] for m in ter}
         label = next((m["label"] for src in LABEL_ORDER for m in ms if m["src"] == src and m["label"]), "")
+        local = bool(not sch and coupish and SUBNATIONAL_RE.search(" ".join(m["label"] for m in ter)))
+        if local:
+            tier = "D"                              # evento locale: non e' un golpe nazionale
         events.append({
             "event_id": eid, "ccode": cc, "country": name_of(cc),
             "date": best["lo"].isoformat(), "date_precision": best["prec"], "year": best["lo"].year,
-            "type": kind, "confidence": tier,
+            "type": kind, "confidence": tier, "scope": "subnational" if local else "national",
             "n_scholarly": n_sch, "n_encyclopedic": n_ter,
             "sources": "; ".join(dict.fromkeys(SOURCE_NAMES.get(m["src"], m["src"]) for m in coupish + plots)),
             "outcome_disputed": len(outs) > 1,
@@ -478,6 +507,8 @@ def consolidate(clusters):
                          "source_id": m["sid"], "source_outcome": m["outcome"],
                          "source_date": m["lo"].isoformat(), "source_date_precision": m["prec"],
                          "source_label": m["label"]})
+    if not events:                                           # nessun evento (solo righe escluse): niente da ordinare
+        return pd.DataFrame(events), pd.DataFrame(atts), pd.DataFrame(excluded)
     ev = pd.DataFrame(events).sort_values(["ccode", "date"]).reset_index(drop=True)
     # stesso paese, stesso esito, date a meno di un mese e nessuna fonte in comune: con buona
     # probabilita' e' lo stesso evento datato diversamente. Non si fonde d'ufficio: si segnala.
@@ -487,12 +518,14 @@ def consolidate(clusters):
         a, b = ev.loc[i - 1], ev.loc[i]
         if a.ccode != b.ccode or a.type != b.type or a.type == "complotto" or (d[i] - d[i - 1]).days > 31:
             continue
-        if set(a.sources.split("; ")) & set(b.sources.split("; ")):
-            continue
+        enc = lambda s: s.startswith("Wikipedia") or s == "Wikidata"
+        shared = set(a.sources.split("; ")) & set(b.sources.split("; "))
         weak, strong = (i - 1, i) if (a.n_scholarly, a.n_encyclopedic) < (b.n_scholarly, b.n_encyclopedic) else (i, i - 1)
+        if shared and (not all(enc(s) for s in shared) or not all(enc(s) for s in ev.loc[weak, "sources"].split("; "))):
+            continue        # una fonte accademica in comune: sono due eventi distinti; due voci Wikidata dello stesso fatto no
         ev.loc[weak, "possible_duplicate_of"] = ev.loc[strong, "event_id"]
     ev = ev.sort_values(["date", "ccode"]).reset_index(drop=True)
-    return ev, pd.DataFrame(atts)
+    return ev, pd.DataFrame(atts), pd.DataFrame(excluded)
 
 
 def main():
@@ -508,10 +541,12 @@ def main():
     unknown = sorted({r["ccode"] for r in records if r["ccode"] is not None and r["ccode"] not in COUNTRIES})
     if unknown:
         print("ATTENZIONE - codici paese non in anagrafe:", unknown)
-    ev, atts = consolidate(cluster(records))
+    ev, atts, excluded = consolidate(cluster(records))
     OUT.mkdir(parents=True, exist_ok=True)
     ev.to_csv(OUT / "coups.csv", index=False)
     atts.to_csv(OUT / "attestations.csv", index=False)
+    excluded.sort_values(["country", "date"]).to_csv(OUT / "excluded_hrd_only.csv", index=False)
+    print(f"  esclusi: {len(excluded)} fini di regime dell'HRD senza nessun altro riscontro -> excluded_hrd_only.csv")
     # Wikipedia article of each Wikidata item that has one (the site links records to it)
     rows = json.loads((SRC / "wikidata" / "wikidata_coups.json").read_text())["results"]["bindings"]
     arts = {r["e"]["value"].rsplit("/", 1)[1]: r["article"]["value"] for r in rows if "article" in r}

@@ -1,6 +1,6 @@
 // WebGL2 renderer for the console stage. Three scenes share one low-resolution buffer that is then
 // quantised with an ordered (Bayer) dither: FIELD (the world as a dot field), ATLAS (risk ridgelines
-// for every country since 1975) and TRACE (a waterfall of swarm particles from the base rate to the forecast).
+// for every country since 1975) and TRACE (a swarm that streams inside the bars of the ledger drawn over it).
 // Motion is decoration on fixed data positions: nothing here generates or alters a value.
 //
 // Third-party code (MIT): the simplex noise and curl-noise field, and the ping-pong GPGPU layout of the
@@ -81,16 +81,16 @@ vec3 curlNoise(vec3 p){
   return vec3((py1.z-py0.z)-(pz1.y-pz0.y),(pz1.x-pz0.x)-(px1.z-px0.z),(px1.y-px0.y)-(py1.x-py0.x))/(2.0*e);
 }`;
 
-// The trace is a waterfall made of a swarm. 65k particles live in a GPGPU ping-pong simulation (the layout and the
-// curl-noise advection follow CurlSwarm.tsx). Each particle is assigned to one column (base rate, seven variable
-// groups, ensemble step, forecast core) in proportion to that column's weight and is held inside the column's box by a
-// soft spring. Inside an amber box the swarm streams upward, inside a cyan one downward, so the box height IS the
-// step's push on the log-odds. Change the country and the springs drag the whole swarm to the new boxes.
-// Motion is decoration on positions that come from data; nothing here invents a value.
+// The trace is a ledger of bars (drawn as crisp SVG by TraceLedger.js) with a swarm underneath as texture. 65k particles
+// live in a GPGPU ping-pong simulation (the layout and the curl-noise advection follow CurlSwarm.tsx). Each particle is
+// assigned to one row (reference country, seven variable groups, published range, forecast core) in proportion to that
+// row's weight and is held inside the row's band by a soft spring. Inside an amber band the swarm streams to the right, inside
+// a cyan one to the left, so the band's length IS the group's push on the log-odds. Change the country and the springs drag
+// the whole swarm to the new bands. Motion is decoration on positions that come from data; nothing here invents a value.
 const SIM_FS = `#version 300 es
 precision highp float;
 uniform sampler2D uState,uRand;
-uniform float uSim,uDt,uTime,uAspect,uRisk,uCum[11],uXc[10],uHw[10],uLo[10],uHi[10],uDir[10]; uniform vec3 uCore;
+uniform float uSim,uDt,uTime,uAspect,uRisk,uCum[11],uYc[10],uHh[10],uLo[10],uHi[10],uDir[10]; uniform vec3 uCore;
 out vec4 o;
 ${SIMPLEX}
 float hsh(vec2 v){ return fract(sin(dot(v,vec2(12.9898,78.233)))*43758.5453); }
@@ -111,15 +111,15 @@ void main(){
     p=vec2(uCore.x+cos(a)*rr/uAspect+vel.x*uDt, uCore.y+sin(a)*rr+vel.y*uDt);
     along=fract(a/6.2832);
   } else {
-    float xc=uXc[c], hw=uHw[c], lo=uLo[c], hi=uHi[c], dir=uDir[c];
-    vel.y+=dir*(.05+.16*r.w);
-    vel.x-=(p.x-clamp(p.x,xc-hw,xc+hw))*7.;
-    vel.y-=(p.y-clamp(p.y,lo,hi))*7.;
+    float yc=uYc[c], hh=uHh[c], lo=uLo[c], hi=uHi[c], dir=uDir[c];
+    vel.x+=dir*(.05+.16*r.w)/uAspect;
+    vel.y-=(p.y-clamp(p.y,yc-hh,yc+hh))*7.;
+    vel.x-=(p.x-clamp(p.x,lo,hi))*7.;
     p+=vel*uDt;
-    bool inx=abs(p.x-xc)<hw*1.6;
-    if(dir>0. && p.y>hi && p.y<hi+.05 && inx){ p.y=lo; p.x=xc+(hsh(r.zw+uTime)-.5)*2.*hw; }
-    if(dir<0. && p.y<lo && p.y>lo-.05 && inx){ p.y=hi; p.x=xc+(hsh(r.wz+uTime)-.5)*2.*hw; }
-    along=clamp((p.y-lo)/max(hi-lo,1e-3),0.,1.);
+    bool iny=abs(p.y-yc)<hh*1.8+.01;
+    if(dir>0. && p.x>hi && p.x<hi+.05 && iny){ p.x=lo; p.y=yc+(hsh(r.zw+uTime)-.5)*2.*hh; }
+    if(dir<0. && p.x<lo && p.x>lo-.05 && iny){ p.x=hi; p.y=yc+(hsh(r.wz+uTime)-.5)*2.*hh; }
+    along=clamp((p.x-lo)/max(hi-lo,1e-3),0.,1.);
   }
   o=vec4(p,along,float(c));
 }`;
@@ -127,7 +127,7 @@ void main(){
 const TRACE_VS = `#version 300 es
 precision highp float; precision highp sampler2D;
 uniform sampler2D uState,uRand;
-uniform vec3 uCam,uCore; uniform float uSim,uTime,uAspect,uFade,uFocus,uRisk,uSg[10];
+uniform vec3 uCam,uCore; uniform float uSim,uTime,uAspect,uFade,uFocus,uRisk,uSg[10],uKeep[10];
 out vec3 vCol;
 ${RAMP}
 void main(){
@@ -135,12 +135,13 @@ void main(){
   ivec2 ij=ivec2(id%n, id/n);
   vec4 s=texelFetch(uState,ij,0), r=texelFetch(uRand,ij,0);
   int c=int(s.w+.5);
-  float sg=uSg[c], along=s.z, len=.012+.05*r.w;
+  float alive=step(r.y,uKeep[c]);
+  float sg=uSg[c], along=s.z, len=.008+.03*r.w;
   vec2 p=s.xy, off=vec2(0.);
   if(c==9){
     vec2 d=vec2((p.x-uCore.x)*uAspect,p.y-uCore.y); float l=max(length(d),1e-3);
-    off=vec2(d.y/l/uAspect,-d.x/l)*len*1.6;
-  } else if(sg!=0.) off=vec2(0.,-sg*len);
+    off=vec2(d.y/l/uAspect,-d.x/l)*uCore.z*(.18+.35*r.w);
+  } else if(sg!=0.) off=vec2(-sg*len/uAspect,0.);
   else off=vec2(len*.5/uAspect,0.);
   p+=off*tail;
   gl_Position=vec4((p-uCam.yz)*uCam.x,0.,1.);
@@ -150,14 +151,9 @@ void main(){
   b*=.75+.5*r.y;
   b*=uFocus<-.5 ? 1. : (float(c)==uFocus+1. ? 1.9 : .22);
   b*=1.-.85*tail;
+  b*=alive;
   vCol=mix(col,vec3(1.),.3*b)*b*uFade;
 }`;
-
-const LINE_VS = `#version 300 es
-precision highp float;
-in vec2 aP; in vec3 aC; uniform vec3 uCam; uniform float uFade,uTime;
-out vec3 vCol;
-void main(){ gl_Position=vec4((aP-uCam.yz)*uCam.x,0.,1.); vCol=aC*uFade*(.9+.1*sin(uTime*2.+aP.x*9.)); }`;
 
 // Core: the vortex disc and ring halo of Portal.tsx, driven by the final probability (size, spin, colour).
 const VORTEX_FS = `#version 300 es
@@ -260,9 +256,6 @@ function program(gl, vs, fs) {
 
 const RAD = Math.PI / 180;
 export const ATLAS_GEOM = { yb: (row) => 0.38 + (-0.78 - 0.38) * row, x: (t, row) => -0.95 + (0.52 + 0.95) * t + (1 - row) * 0.22, amp: 0.30 };
-export const TRACE_GEOM = { x0: -0.72, xa: -0.58, xb: 0.4, x1: 0.62, yTop: 0.5, yBot: -0.5, labelY: -0.76 };
-/** centre x of step column i (0..7) and its half width, in clip units */
-export const traceCol = (i) => { const cw = (TRACE_GEOM.xb - TRACE_GEOM.xa) / 8; return { x: TRACE_GEOM.xa + (i + 0.5) * cw, hw: cw * 0.3 }; };
 export const riskNorm = (risk, max) => (risk == null ? -1 : Math.sqrt(Math.min(1, Math.max(0, risk) / max)));
 export const atlasHeight = (risk) => Math.sqrt(Math.min(1, Math.max(0, risk) / 0.3));
 
@@ -283,7 +276,7 @@ export function createEngine(canvas) {
   for (const k of [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER]) gl.texParameteri(gl.TEXTURE_2D, k, gl.NEAREST);
   for (const k of [gl.TEXTURE_WRAP_S, gl.TEXTURE_WRAP_T]) gl.texParameteri(gl.TEXTURE_2D, k, gl.CLAMP_TO_EDGE);
 
-  const buf = { field: gl.createBuffer(), atlas: gl.createBuffer(), lines: gl.createBuffer() };
+  const buf = { field: gl.createBuffer(), atlas: gl.createBuffer() };
   const cam0 = () => ({ z: 1, x: 0, y: 0, tz: 1, tx: 0, ty: 0 });
   const st = {
     view: "field", fade: { field: 1, atlas: 0, trace: 0 }, W: 1, H: 1, tw: 1, th: 1, cell: 3, dpr: 1,
@@ -377,7 +370,7 @@ export function createEngine(canvas) {
     const loc = gl.getAttribLocation(prog.p, "aQ");
     gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
   };
-  const coreR = () => 0.1 + 0.1 * st.risk;
+  const coreR = () => (st.cas ? st.cas.core.r : 0.05) * (0.75 + 0.5 * st.risk);
   const unit = (n, t) => { gl.activeTexture(gl.TEXTURE0 + n); gl.bindTexture(gl.TEXTURE_2D, t); };
 
   // ---- GPGPU swarm (ping-pong RGBA32F: x, y, position along the box, column)
@@ -403,8 +396,21 @@ export function createEngine(canvas) {
     const ok = gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE;
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     if (!ok) return null;
-    return { n, tex: tex2, fbo: fbos, cur: 0, rand: make(rnd), step: program(gl, POST_VS, SIM_FS), draw: program(gl, TRACE_VS, POINT_FS),
-             line: program(gl, LINE_VS, POINT_FS), nLines: 0 };
+    return { n, tex: tex2, fbo: fbos, cur: 0, rand: make(rnd), step: program(gl, POST_VS, SIM_FS), draw: program(gl, TRACE_VS, POINT_FS) };
+  }
+  // Share of each class's particles that is drawn: enough for about DENS per low-resolution cell, so that a short band is not
+  // saturated by the whole swarm. Recomputed when the canvas is resized or a new ledger arrives.
+  const DENS = 4;
+  function keepOf(c) {
+    if (c.kw === st.W && c.kh === st.H) return c.keep;
+    const cell2 = st.cell * st.cell, keep = new Float32Array(10);
+    for (let i = 0; i < 10; i++) {
+      const n = sim.n * sim.n * (c.cum[i + 1] - c.cum[i]);
+      const area = i < 9 ? (c.hi[i] - c.lo[i]) * (st.W / 2) * c.hh[i] * st.H : Math.PI * ((coreR() * st.H) / 2) ** 2;
+      keep[i] = n > 0 ? Math.min(1, (DENS * area) / cell2 / n) : 1;
+    }
+    c.kw = st.W; c.kh = st.H; c.keep = keep;
+    return keep;
   }
   function stepSim(dt) {
     const c = st.cas, u = sim.step.u, nxt = 1 - sim.cur;
@@ -414,8 +420,8 @@ export function createEngine(canvas) {
     unit(0, sim.tex[sim.cur]); unit(1, sim.rand);
     gl.uniform1i(u.uState, 0); gl.uniform1i(u.uRand, 1);
     gl.uniform1f(u.uSim, sim.n); gl.uniform1f(u.uDt, dt); gl.uniform1f(u.uTime, st.t); gl.uniform1f(u.uAspect, aspect()); gl.uniform1f(u.uRisk, st.risk);
-    gl.uniform1fv(u.uCum, c.cum); gl.uniform1fv(u.uXc, c.xc); gl.uniform1fv(u.uHw, c.hw); gl.uniform1fv(u.uLo, c.lo); gl.uniform1fv(u.uHi, c.hi); gl.uniform1fv(u.uDir, c.dir);
-    gl.uniform3f(u.uCore, c.x1, c.ys[8], coreR());
+    gl.uniform1fv(u.uCum, c.cum); gl.uniform1fv(u.uYc, c.yc); gl.uniform1fv(u.uHh, c.hh); gl.uniform1fv(u.uLo, c.lo); gl.uniform1fv(u.uHi, c.hi); gl.uniform1fv(u.uDir, c.dir);
+    gl.uniform3f(u.uCore, c.core.x, c.core.y, coreR());
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     sim.cur = nxt;
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -466,23 +472,19 @@ export function createEngine(canvas) {
       const cam = camOf("trace"), c = st.cas;
       gl.useProgram(vortexP.p); bindQuad(vortexP);
       const v = vortexP.u;
-      gl.uniform2f(v.uTex, st.tw, st.th); gl.uniform2f(v.uCore, c.x1, c.ys[8]); gl.uniform3fv(v.uCam, cam);
+      gl.uniform2f(v.uTex, st.tw, st.th); gl.uniform2f(v.uCore, c.core.x, c.core.y); gl.uniform3fv(v.uCam, cam);
       gl.uniform1f(v.uTime, st.t); gl.uniform1f(v.uAspect, aspect()); gl.uniform1f(v.uCoreR, coreR());
       gl.uniform1f(v.uRisk, st.risk); gl.uniform1f(v.uFade, st.fade.trace);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       if (sim) {
-        gl.useProgram(sim.line.p);
-        attribs(sim.line, buf.lines, [["aP", 2, 0], ["aC", 3, 2]], 5);
-        gl.uniform3fv(sim.line.u.uCam, cam); gl.uniform1f(sim.line.u.uFade, st.fade.trace); gl.uniform1f(sim.line.u.uTime, st.t);
-        gl.drawArrays(gl.LINES, 0, sim.nLines);
         gl.useProgram(sim.draw.p);
         for (let i = 0; i < 8; i++) gl.disableVertexAttribArray(i);
         const u = sim.draw.u;
         unit(0, sim.tex[sim.cur]); unit(1, sim.rand);
         gl.uniform1i(u.uState, 0); gl.uniform1i(u.uRand, 1);
         gl.uniform3fv(u.uCam, cam); gl.uniform1f(u.uSim, sim.n); gl.uniform1f(u.uTime, st.t); gl.uniform1f(u.uFade, st.fade.trace);
-        gl.uniform1f(u.uFocus, st.focusIdx); gl.uniform1f(u.uRisk, st.risk); gl.uniform1fv(u.uSg, c.sg);
-        gl.uniform3f(u.uCore, c.x1, c.ys[8], coreR()); gl.uniform1f(u.uAspect, aspect());
+        gl.uniform1f(u.uFocus, st.focusIdx); gl.uniform1f(u.uRisk, st.risk); gl.uniform1fv(u.uSg, c.sg); gl.uniform1fv(u.uKeep, keepOf(c));
+        gl.uniform3f(u.uCore, c.core.x, c.core.y, coreR()); gl.uniform1f(u.uAspect, aspect());
         gl.drawArrays(gl.LINES, 0, sim.n * sim.n * 2);
       }
     }
@@ -530,34 +532,22 @@ export function createEngine(canvas) {
     setLive(v) { st.live = v; },
     setPlane(v) { st.tMorph = v ? 1 : 0; },
     setField(data, emit) { upload(buf.field, data); st.nField = data.length / 6; st.emit.fill(0); st.emit.set(emit.slice(0, 32)); },
-    /** ys: clip y of the 9 levels (base rate, 7 groups, ensemble); sg: sign of each of the 8 steps; mag: |log-odds push| of each step. */
-    setCascade({ ys, sg, mag, x0, x1 }, risk) {
+    /**
+     * boxes: the 9 swarm bands in clip units, one per ledger row (0 reference country, 1-7 the groups in GROUP_ORDER, 8 the published range),
+     * each {x0, x1, y, h, dir, w}: extent along the row, row centre, half thickness, flow direction (+1 right, -1 left, 0 still), weight.
+     * core: {x, y, r, w} the vortex at the published marker; risk: the forecast on the console's 0-1 scale (spin and size of the vortex).
+     */
+    setLedger({ boxes, core }, risk) {
       st.risk = risk;
       if (sim === null) sim = makeSim() || false;
-      const xc = new Float32Array(10), hw = new Float32Array(10), lo = new Float32Array(10), hi = new Float32Array(10), dir = new Float32Array(10);
-      const w = new Float32Array(10), sgn = new Float32Array(10);
-      xc[0] = x0; hw[0] = 0.03; lo[0] = ys[0] - 0.007; hi[0] = ys[0] + 0.007; w[0] = 0.5;
-      const lines = [];
-      const seg = (x1_, y1_, x2_, y2_, col) => lines.push(x1_, y1_, ...col, x2_, y2_, ...col);
-      const dim = [0.16, 0.24, 0.23];
-      for (let i = 0; i < 8; i++) {
-        const { x, hw: h } = traceCol(i), a = Math.min(ys[i], ys[i + 1]), b = Math.max(ys[i], ys[i + 1]), mid = (a + b) / 2, half = Math.max((b - a) / 2, 0.011);
-        xc[i + 1] = x; hw[i + 1] = h; lo[i + 1] = mid - half; hi[i + 1] = mid + half;
-        dir[i + 1] = sg[i]; sgn[i + 1] = sg[i]; w[i + 1] = 0.4 + Math.min(1.5, mag[i]) * 0.9;
-        const col = sg[i] > 0 ? [0.5, 0.31, 0.07] : sg[i] < 0 ? [0.07, 0.4, 0.46] : dim;
-        const L = x - h, R = x + h;
-        seg(L, mid - half, R, mid - half, col); seg(R, mid - half, R, mid + half, col); seg(R, mid + half, L, mid + half, col); seg(L, mid + half, L, mid - half, col);
-        const nx = i < 7 ? traceCol(i + 1).x - traceCol(i + 1).hw : x1 - 0.1;
-        seg(R, ys[i + 1], nx, ys[i + 1], dim);
-      }
-      seg(x0 + 0.03, ys[0], traceCol(0).x - traceCol(0).hw, ys[0], dim);
-      seg(x0 - 0.03, ys[0], x0 + 0.03, ys[0], [0.25, 0.4, 0.38]);
-      xc[9] = x1; hw[9] = 0; lo[9] = hi[9] = ys[8]; w[9] = 2.2;
-      const tot = w.reduce((s_, v) => s_ + v, 0), cum = new Float32Array(11);
+      const yc = new Float32Array(10), hh = new Float32Array(10), lo = new Float32Array(10), hi = new Float32Array(10), dir = new Float32Array(10), w = new Float32Array(10);
+      boxes.forEach((b, i) => { yc[i] = b.y; hh[i] = b.h; lo[i] = b.x0; hi[i] = b.x1; dir[i] = b.dir; w[i] = b.w; });
+      const body = w.reduce((s_, v) => s_ + v, 0);
+      yc[9] = core.y; lo[9] = hi[9] = core.x; w[9] = (body * core.w) / (1 - core.w);
+      const tot = body + w[9], cum = new Float32Array(11);
       for (let i = 0; i < 10; i++) cum[i + 1] = cum[i] + w[i] / tot;
       cum[10] = 1.01;
-      st.cas = { ys: new Float32Array(ys), sg: sgn, cum, xc, hw, lo, hi, dir, x1 };
-      if (sim) { upload(buf.lines, new Float32Array(lines)); sim.nLines = lines.length / 5; }
+      st.cas = { cum, yc, hh, lo, hi, dir, sg: dir, core };
     },
     setAtlas(data, rows, Q) { upload(buf.atlas, data); st.rows = rows; st.Q = Q; },
     select(idx, lon, lat) { st.sel = idx; if (lon != null) { st.tYaw = lon * RAD; st.tPitch = Math.max(-0.9, Math.min(0.9, lat * RAD * 0.85)); } },
@@ -568,6 +558,7 @@ export function createEngine(canvas) {
     dragging(v) { st.drag = v; st.idle = 0; },
     /** multiply the zoom of the current view by f, keeping the stage point (fx, fy) under the cursor */
     zoomAt(fx, fy, f) {
+      if (st.view === "trace") return;                 // the ledger is laid out in pixels: it does not zoom
       const c = st.cams[st.view], cx = fx * 2 - 1, cy = 1 - fy * 2, z1 = clamp(c.tz * f, 1, MAXZ);
       if (st.view !== "field" || st.tMorph === 1) {
         const wx = cx / c.tz + c.tx, wy = cy / c.tz + c.ty;
@@ -578,7 +569,7 @@ export function createEngine(canvas) {
     /** pan by a pointer delta given as a fraction of the stage size */
     pan(dfx, dfy) {
       const c = st.cams[st.view];
-      if (st.view === "field" && st.morph < 0.99) return;
+      if (st.view === "trace" || (st.view === "field" && st.morph < 0.99)) return;
       c.tx -= (dfx * 2) / c.z; c.ty += (dfy * 2) / c.z; clampCam(c); c.x = c.tx; c.y = c.ty;
     },
     resetCam() { const c = st.cams[st.view]; c.tz = 1; c.tx = 0; c.ty = 0; },

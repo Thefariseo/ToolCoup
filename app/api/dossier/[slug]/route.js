@@ -6,7 +6,7 @@ import { allMarkets, modelAtHorizon } from "@/lib/markets";
 import { buildPdf } from "@/lib/dossier-pdf";
 import { registrySummary } from "@/lib/registry";
 
-// GET /api/dossier/niger?issue=2026-11  ->  PDF
+// GET /api/dossier/niger?issue=2026-11&lens=investor  ->  PDF   (lens: analyst | investor | policy | newsroom | aid)
 // Each call spends OpenAI credit, so: only the known country slugs are accepted, the response is cached at
 // the CDN for the whole issue (the `issue` query parameter is the cache key), cross-site requests are
 // refused, and there is a best-effort per-IP and per-day limit on top. DOSSIER_DISABLED=1 switches it off.
@@ -24,15 +24,18 @@ export async function GET(request, { params }) {
   if (!dossierKnown(slug)) return fail(404, "Unknown country.");
   if (request.headers.get("sec-fetch-site") === "cross-site") return fail(403, "Cross-site requests are not allowed.");
 
-  const ip = (request.headers.get("x-forwarded-for") || "local").split(",")[0].trim(), now = Date.now();
-  if (now - day.start > 864e5) day = { start: now, n: 0 };
-  const recent = (hits.get(ip) || []).filter((t) => now - t < 36e5);
-  if (recent.length >= PER_IP_HOUR || day.n >= PER_DAY) return fail(429, "Too many dossiers requested. Try again later.", { "Retry-After": "3600" });
-  hits.set(ip, [...recent, now]); day.n++;
+  if (!mockRequest) {                                       // mock requests (development only) spend no credit, so they are not counted
+    const ip = (request.headers.get("x-forwarded-for") || "local").split(",")[0].trim(), now = Date.now();
+    if (now - day.start > 864e5) day = { start: now, n: 0 };
+    const recent = (hits.get(ip) || []).filter((t) => now - t < 36e5);
+    if (recent.length >= PER_IP_HOUR || day.n >= PER_DAY) return fail(429, "Too many dossiers requested. Try again later.", { "Retry-After": "3600" });
+    hits.set(ip, [...recent, now]); day.n++;
+  }
 
   try {
-    const facts = buildFacts(slug), chart = buildChart(slug);
+    const facts = buildFacts(slug, new URL(request.url).searchParams.get("lens") || "analyst"), chart = buildChart(slug);
     const mock = process.env.NODE_ENV !== "production" && new URL(request.url).searchParams.get("mock") === "1";   // layout work without spending credit
+    if (mock && new URL(request.url).searchParams.get("json") === "1") return Response.json(facts.profile);   // development: inspect the reading frame
     const press = mock ? { items: [], note: "mock" } : await fetchPress(slug, facts.country.name);
     try {                                                    // markets are an extra reading: their absence never blocks the brief
       const m = (await allMarkets()).by[slug]?.filter((x) => x.kind === "coup").slice(0, 3) || [];
@@ -46,7 +49,7 @@ export async function GET(request, { params }) {
     const issue = registrySummary().latest || facts.forecast.issue;
     return new Response(bytes, { headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="toolcoup-dossier-${slug}-${issue}.pdf"`,
+      "Content-Disposition": `attachment; filename="toolcoup-dossier-${slug}-${facts.reader.lens === "analyst" ? "" : facts.reader.lens + "-"}${issue}.pdf"`,
       "Cache-Control": "public, s-maxage=2592000, stale-while-revalidate=86400",
     } });
   } catch (e) {

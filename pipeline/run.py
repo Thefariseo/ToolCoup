@@ -24,6 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import model as M  # noqa: E402
 from data import RAW_SERIES, load_acled, monthly_panel, ord_label  # noqa: E402
 from export_web import export as export_web  # noqa: E402
+from diagnostics import country_diagnostics  # noqa: E402
 from panel import ALL_FEATURES, GROUP_LABELS, GROUPS, build_panel  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -33,12 +34,15 @@ CACHE = ROOT / "data" / "raw" / "acled_monthly.pkl"
 WF_CACHE = ROOT / "data" / "raw" / "walk_forward.pkl"
 
 MODEL_LABELS = {
+    "base_rate": "Tasso storico noto prima dell'anno previsto",
     "ensemble": "Insieme calibrato (modello pubblicato)",
     "ensemble_raw": "Insieme prima della calibrazione",
     "logit": "Componente: regressione logistica",
     "gbm": "Componente: gradient boosting",
     "rf": "Componente: foresta casuale",
+    "lgbm": "Componente: LightGBM",
     "ensemble_noacled": "Insieme senza i segnali ACLED",
+    "ensemble_three": "Insieme a tre componenti, senza LightGBM",
     "storia_contagio": "Solo storia golpista e contagio",
     "storia": "Solo storia golpista del paese",
 }
@@ -80,8 +84,11 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--horizon", type=int, default=6, help="orizzonte di previsione in mesi")
     ap.add_argument("--boot", type=int, default=20, help="ricampionamenti per gli intervalli di incertezza")
+    ap.add_argument("--no-archive", action="store_true", help="aggiorna il sito senza creare un'edizione nel registro")
     args = ap.parse_args()
     H = args.horizon
+    if H < 1 or H > 24 or args.boot < 0 or args.boot == 1:
+        ap.error("--horizon deve essere 1–24; --boot deve essere 0 oppure almeno 2")
     missing = [str(p.relative_to(ROOT)) for p in (ACLED_DIR, COUPDB, ROOT / "data" / "raw" / "structural" / "vdem_structural.csv")
                if not p.exists() or (p.is_dir() and not list(p.glob("*.csv")))]
     if missing:
@@ -103,10 +110,9 @@ def main():
 
     # ---------------- validazione fuori campione
     # la validazione costa una ventina di minuti: si riusa finche' panel e modelli non cambiano
-    sig = (len(panel), t_end, H, tuple(ALL_FEATURES), tuple(M.SPECS), float(panel["y"].sum()),
-           float(panel["h_since_attempt"].sum().round(3)), float(panel["v2x_polyarchy"].sum().round(3)))
+    sig = M.validation_signature(panel, H)
     cached = pd.read_pickle(WF_CACHE) if WF_CACHE.exists() else None
-    if cached is not None and cached["sig"] == sig:
+    if cached is not None and cached["sig"] == sig and cached["preds"].index.equals(panel.index):
         print("Validazione: riuso i risultati salvati (panel invariato)")
         preds = cached["preds"]
     else:
@@ -116,6 +122,9 @@ def main():
     preds["ensemble_raw"] = M.combine(preds, M.ENSEMBLE)
     preds["ensemble_noacled"] = M.combine(preds, M.ENSEMBLE_NOACLED)
     preds["ensemble"], cal = M.calibrate_forward(panel, preds["ensemble_raw"], H)
+    # le edizioni fino al 2026-11 usavano tre componenti: tenerle come riferimento mostra cosa aggiunge LightGBM
+    preds["ensemble_three"], _ = M.calibrate_forward(panel, M.combine(preds, M.ENSEMBLE_THREE), H)
+    preds["base_rate"] = M.base_rate_forward(panel, H)
 
     oos = known & preds["ensemble"].notna()
     windows = {"all": oos, "recent": oos & (panel["year"] >= 2000), "acled": oos & panel["a_unrest_surge"].notna()}
@@ -139,6 +148,8 @@ def main():
         diff("ensemble", "storia", windows["all"], "Insieme contro sola storia golpista (dal 1975)"),
         diff("ensemble", "storia", windows["recent"], "Insieme contro sola storia golpista (dal 2000)"),
         diff("ensemble_raw", "ensemble_noacled", windows["acled"], "Con e senza segnali ACLED (periodo ACLED)"),
+        diff("ensemble", "ensemble_three", windows["all"] & preds["ensemble_three"].notna(), "Con e senza LightGBM (dal 1975)"),
+        diff("ensemble", "ensemble_three", windows["recent"] & preds["ensemble_three"].notna(), "Con e senza LightGBM (dal 2000)"),
     ]
     calibration = M.calibration_table(panel.loc[windows["recent"], "y"], preds.loc[windows["recent"], "ensemble"])
 
@@ -148,6 +159,11 @@ def main():
     models = M.fit_final(train)
     latest = panel[panel["t"] == t_end].copy()
     latest["risk"] = M.predict_ensemble(models, latest, cal)
+    previous = panel[panel["t"] == t_end - 3].copy()
+    previous["risk"] = M.predict_ensemble(models, previous, cal)
+    previous_risk = previous.set_index("unit")["risk"]
+    components = {name: mdl.predict_proba(latest[cols])[:, 1] for name, (mdl, cols) in models.items()}
+    diagnostics = country_diagnostics(latest, components)
     explained = M.explain(models, latest)
     if args.boot > 0:
         draws = M.bootstrap_intervals(train, latest, cal, reps=args.boot)
@@ -171,12 +187,12 @@ def main():
             continue
         row, g, a = lat.loc[unit], by_unit[unit], am_by[name]
         hist = g.loc[g["risk_hist"].first_valid_index():] if g["risk_hist"].notna().any() else g.iloc[0:0]
-        prev = g.loc[g["t"] == t_end - 3, "risk_hist"]
         full = a.set_index("t").reindex(range(int(a["t"].min()), t_end + 1), fill_value=0)
         countries.append({
             "name": name, "iso": None if pd.isna(info.loc[name, "iso"]) else f"{int(info.loc[name, 'iso']):03d}",
             "region": info.loc[name, "region"], "risk": r(row["risk"]), "risk_lo": r(row["risk_lo"]),
-            "risk_hi": r(row["risk_hi"]), "risk_3m_ago": r(prev.iat[0]) if len(prev) else None,
+            "risk_hi": r(row["risk_hi"]), "risk_3m_ago": r(previous_risk.get(unit)),
+            "diagnostics": diagnostics[unit],
             "structural": bool(unit > 0), "drivers": row["explain"]["drivers"], "groups": row["explain"]["groups"],
             "risk_hist": {"start": ord_label(int(hist["t"].iat[0])) if len(hist) else None,
                           "values": [r(v) for v in hist["risk_hist"]]},
@@ -206,6 +222,9 @@ def main():
             "first_test_year": M.FIRST_TEST_YEAR, "n_oos": int(oos.sum()), "n_oos_pos": int(panel.loc[oos, "y"].sum()),
             "coup_source": "db", "history_from": 1900, "n_coups_history": int(pinfo["n_broad"]),
             "boot": args.boot, "calibration": [round(cal[0], 3), round(cal[1], 3)],
+            "model_version": "2.1-lgbm", "validation_signature": sig,
+            "ensemble_weights": {name: 1 / len(M.ENSEMBLE) for name in M.ENSEMBLE},
+            "change_basis": "same_model", "interval_method": "country bootstrap; fixed calibration; 80% percentile range",
             "groups": [{"key": k, "label": GROUP_LABELS[k], "n": len(v)} for k, v in GROUPS.items() if k != "tempo"],
         },
         "metrics": metrics, "comparisons": comparisons, "calibration": calibration,
@@ -215,9 +234,10 @@ def main():
     }
     export_web(result, COUPDB, ROOT / "webdata")
     import registry                       # archivia l'edizione (se nuova) e aggiorna i punteggi del registro
-    registry.archive()
-    (ROOT / "webdata" / "registry.json").write_text(json.dumps(registry.build(), ensure_ascii=False, separators=(",", ":")),
-                                                    encoding="utf-8")
+    if not args.no_archive:
+        registry.archive()
+        (ROOT / "webdata" / "registry.json").write_text(json.dumps(registry.build(), ensure_ascii=False, separators=(",", ":")),
+                                                        encoding="utf-8")
     print("Top 10 rischio:", ", ".join(f"{c['name']} {c['risk']:.1%}" for c in countries[:10]))
 
 

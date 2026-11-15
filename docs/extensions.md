@@ -77,22 +77,42 @@ Validazione anno per anno, modelli addestrati solo sul passato, dal 2005. Ogni r
 
 **Lettura.** Nessun gruppo di variabili migliora la previsione: gli intervalli includono lo zero o sono negativi, e le variabili aggiunte tutte insieme la peggiorano in modo evidente (rumore e sovra-adattamento). E' lo stesso esito dei segnali di innesco e del calendario elettorale (`docs/triggers.md`): il modello strutturale, la storia golpista e il regime dicono gia' quasi tutto quello che queste fonti sanno. Nove gruppi sono stati provati, quindi un singolo risultato appena positivo sarebbe comunque da prendere con prudenza. **Nessuna di queste variabili entra nel modello pubblicato**; restano come contesto descrittivo sulla pagina di ogni paese.
 
-**LightGBM.** Come singolo modello batte `HistGradientBoostingClassifier` (AUC +0,012 con probabilita' 0,96 nel periodo 2015-2026, +0,007 con 0,95 dal 2005). Aggiunto come quarto membro dell'insieme migliora ogni misura in entrambe le finestre (AUC, AUC-PR, Brier skill, quota di tentativi nel 10% piu' alto) ma di poco e senza escludere lo zero (P(meglio) circa 0,85). E' pronto in `pipeline/lgbm.py` (`make_lgbm`) e si attiva aggiungendolo a `SPECS` e `ENSEMBLE` in `pipeline/model.py`: la decisione cambia il numero pubblicato nel registro, quindi non e' attivo.
+**LightGBM.** Come singolo modello batte `HistGradientBoostingClassifier` (AUC +0,012 con probabilita' 0,96 nel periodo 2015-2026, +0,007 con 0,95 dal 2005). Aggiunto come quarto membro dell'insieme migliora ogni misura in entrambe le finestre (AUC, AUC-PR, Brier skill, quota di tentativi nel 10% piu' alto) ma di poco e senza escludere lo zero (P(meglio) circa 0,85). **E' stato attivato comunque, per scelta del progetto, come quarto componente dell'insieme** (`SPECS` e `ENSEMBLE` in `pipeline/model.py`, costruttore in `pipeline/lgbm.py`), a partire dalla prima edizione mensile successiva (2026-12): il numero pubblicato nel registro cambia da quell'edizione, le precedenti restano com'erano. Per non nascondere il cambio, `run.py` calcola a ogni edizione anche l'insieme a tre componenti e la pagina Method mostra il confronto con e senza LightGBM; ogni nuova edizione del registro riporta versione del modello e componenti.
 
 ## 2. LightGBM
-`make_lgbm()` in `pipeline/lgbm.py`: 250 alberi, 8 foglie, tasso 0,03, sottocampionamento, valori mancanti gestiti nativamente. Entra nell'insieme solo se l'esperimento lo giustifica.
+`make_lgbm()` in `pipeline/lgbm.py`: 250 alberi, 8 foglie, tasso 0,03, sottocampionamento, valori mancanti gestiti nativamente, `deterministic` e `force_row_wise` per avere lo stesso risultato con qualunque numero di thread. Quarto componente dell'insieme dall'edizione 2026-12 (vedi sopra: il miglioramento misurato e' piccolo e non distinguibile da zero).
 
 ## 3. Violenza politica (`pipeline/cast.py`)
 Sistema di allerta sulla violenza sul modello della metodologia pubblicata da ACLED CAST. E' un nostro modello, non la previsione di ACLED.
-Periodi di 28 giorni, sei orizzonti, admin1 > paese > globale, tre tipi di evento piu' il totale; LightGBM Tweedie con offset sulla media mobile a 6 periodi;
-riconciliazione gerarchica WLS (non MinTraceSparse); intervalli da residui di un backtest a finestra mobile.
+Periodi di 28 giorni, sei orizzonti, province (admin1) > paese, tre tipi di evento piu' il totale.
 
-**Verifica e correzione.** Nel backtest (5 origini, 244 paesi) il modello da solo batte i riferimenti semplici solo a 1-3 periodi: a 4-6 periodi e' peggiore della media
-a 6 periodi e dell'ultimo periodo su tutte le misure (WAPE 0,27-0,35 contro 0,23-0,31; errore relativo, RMSLE) e a ogni livello (paese, provincia). Pesi per orizzonte stimati sullo
-stesso backtest sono risultati instabili (valutati leave-one-origin-out, peggiori dell'ultimo periodo oltre i 2 periodi): la previsione pubblicata e' quindi la **media semplice
-di modello, media a 6 periodi e ultimo periodo**, a pesi uguali e non stimati, coerente a ogni livello perche' le tre componenti lo sono. A 1-3 periodi la miscela e' un po' migliore
-dei riferimenti; piu' lontano e' vicina alla persistenza, e il valore aggiunto della pagina e' l'intervallo (copertura misurata sul backtest, vicina all'80%) e la scomposizione per provincia.
-Cinque origini sono poche: i numeri sono indicativi. `pipeline/cast.py --reuse` riusa il backtest salvato.
+**Versione 2 (novembre 2026).** Per ogni tipo e per il totale, a livello paese, **un solo LightGBM per tutti e sei gli orizzonti** (l'orizzonte e' una variabile),
+con errore assoluto (L1) invece di Tweedie, addestrato sul logaritmo del rapporto tra i conteggi futuri e la media mobile a 6 periodi, con peso piu' alto alle osservazioni
+recenti (emivita 40 periodi). Le tre scelte sono state misurate in `pipeline/experiment_cast.py` su 24 origini: la metrica pubblicata (WAPE, errore relativo) e' un errore
+assoluto, che si minimizza con la mediana e non con la media; sei volte piu' righe per modello riducono la varianza ai lunghi orizzonti; il peso recente segue i cambi di regime
+(Ucraina, Sudan, Sahel). 131 variabili a livello paese (ritardi, medie, pendenza, massimo, EWMA, quota degli attori, paesi vicini, totale mondiale, V-Dem, dati nazionali).
+
+**Combinazione.** La previsione pubblicata e' una media pesata di modello, media a 6 periodi e ultimo periodo. I pesi, per orizzonte, si stimano (WAPE + errore relativo) soltanto
+sulle origini del backtest il cui esito era gia' noto, con riduzione verso i pesi uguali: nessuna informazione dal futuro. Le province hanno un modello analogo per il totale,
+poi ridimensionato perche' sommino al paese; i tipi sono ridimensionati al totale (piu' semplice della riconciliazione MinT di CAST: il totale paese e' piu' preciso della somma delle province).
+Intervalli all'80%: residui del backtest a finestra mobile, scalati con sqrt(previsione + 1), quantili per tipo, orizzonte e classe di dimensione; la copertura e' misurata leave-one-origin-out.
+
+**Risultati (24 origini a passo di due periodi, 244 paesi, totale organizzato).**
+
+| Periodi avanti | WAPE miscela | WAPE media a 6 | WAPE ultimo | errore relativo miscela | errore relativo media a 6 | copertura 80% |
+|---|---|---|---|---|---|---|
+| 1 | 0,139 | 0,186 | 0,143 | 0,382 | 0,415 | 0,82 |
+| 2 | 0,202 | 0,220 | 0,211 | 0,560 | 0,586 | 0,80 |
+| 3 | 0,214 | 0,239 | 0,222 | 0,519 | 0,538 | 0,80 |
+| 4 | 0,235 | 0,254 | 0,252 | 0,574 | 0,592 | 0,81 |
+| 5 | 0,257 | 0,274 | 0,274 | 0,551 | 0,576 | 0,80 |
+| 6 | 0,265 | 0,288 | 0,282 | 0,604 | 0,627 | 0,80 |
+
+La miscela batte la media a 6 periodi a ogni orizzonte e su ogni misura: WAPE da -25% a un periodo a -6% a cinque, errore relativo da -8% a -3%, RMSLE da -7% a -1%.
+Rispetto alla versione 1 (media semplice di modello Tweedie, media a 6 periodi e ultimo periodo; `old_mix` in `experiment_cast.py`, stesse 24 origini e stessi paesi) il guadagno
+e' reale ma **modesto**: WAPE da -3% a -9% (media -6%), errore relativo da -1% a -3% (media -2%), RMSLE circa -2%.
+**Cosa non e' risolto:** oltre i due periodi il margine sulla persistenza e' piccolo, perche' gran parte dell'errore (escalation improvvise, copertura delle fonti) non si prevede dai conteggi passati; con 24
+origini sovrapposte (orizzonte fino a sei periodi) i numeri hanno una soglia di rumore di diversi punti percentuali, quindi i guadagni sulla versione 1 vanno letti come indicativi. `pipeline/cast.py --reuse` riusa il backtest salvato.
 
 Per questo `fetch_acled.py` scarica ora anche `admin1` e le coordinate. Mancano le variabili subnazionali WorldPop e CIESIN. Attenzione: l'API ACLED restituisce le etichette degli
 attori in testo ("State forces", "External/Other forces"), non i codici 1-8: i confronti numerici darebbero zero senza avvisare.

@@ -24,8 +24,8 @@ const STEPS = [
     "The selected country is lit and its trajectory is marked: peak, now, and the coups that were recorded.",
   ] },
   { target: ".cx-stage-wrap", side: "inside", view: "trace", title: "3 · MODEL TRACE — WHY", body: [
-    "A waterfall from the global base rate to this country's forecast. Each column is one family of variables: amber streams up and raises the odds, cyan streams down and lowers them. Taller means a bigger push.",
-    "Click a column to filter the drivers on the right. These are associations in the data, not causes.",
+    "A ledger from a reference country to this country's forecast. Each row is one family of variables: amber bars raise the odds, cyan bars lower them. The strip on the right shows where every other country stands on the same group.",
+    "Click a row to filter the drivers on the right. These are associations in the data, not causes.",
   ] },
   { target: ".cx-read", side: "left", title: "THE READOUT", body: [
     "The probability with its 80% interval, rank, multiple of the base rate, the largest drivers and the recorded coup history.",

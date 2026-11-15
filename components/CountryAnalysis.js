@@ -4,7 +4,7 @@ import { labelEn } from "@/lib/english";
 
 const pp = (v) => v == null ? "Unavailable" : `${v > 0 ? "+" : ""}${(v * 100).toFixed(2)} pp`;
 const value = (v) => v == null ? "Unavailable" : v.toLocaleString("en", { maximumFractionDigits: 2 });
-const MODEL_NAMES = { logit: "Logistic regression", gbm: "Gradient boosting", rf: "Random forest" };
+const MODEL_NAMES = { logit: "Logistic regression", gbm: "Gradient boosting", rf: "Random forest", lgbm: "LightGBM" };
 
 export default function CountryAnalysis({ country: c, meta }) {
   const a = c.analysis, d = c.diagnostics;
@@ -15,7 +15,7 @@ export default function CountryAnalysis({ country: c, meta }) {
   const down = (c.groups || []).filter((g) => g.contrib < 0).sort((x, y) => x.contrib - y.contrib).slice(0, 2);
   return <div className="country-analysis">
     <nav className="country-sections" aria-label="Country dossier sections">
-      {!c.historical && <><a href="#assessment">Assessment</a><a href="#history">Risk history</a><a href="#signals">Recent signals</a><a href="#institutions">Institutions & economy</a><a href="#region">Regional context</a><a href="#quality">Evidence quality</a></>}
+      {!c.historical && <><a href="#assessment">Assessment</a><a href="#history">Risk history</a><a href="#signals">Recent signals</a><a href="#institutions">Institutions & economy</a><a href="#region">Regional context</a><a href="#quality">Evidence quality</a><a href="#crowd">Market check</a></>}
       <a href="#archive">Coup archive</a>
     </nav>
     {!c.historical && <>
@@ -83,7 +83,7 @@ export default function CountryAnalysis({ country: c, meta }) {
         </div></div>
         <details className="country-method"><summary>Sources, timing and interpretation</summary>
           <p>V-Dem annual indicators enter from April of the following year; economic indicators from July. These are assumed release lags, not a reconstruction of historical data vintages. Revised source datasets can contain information unavailable at the time.</p>
-          <p>Missing inputs are imputed by the linear and random-forest components; gradient boosting handles missingness directly. Missing data is not evidence of stability. Coverage counts are not confidence scores.</p>
+          <p>Missing inputs are imputed by the linear and random-forest components; the gradient-boosting components handle missingness directly. Missing data is not evidence of stability. Coverage counts are not confidence scores.</p>
           <p>Source agreement and forecast uncertainty describe different things. The forecast includes failed attempts, excludes plots, and does not estimate the probability of war, unrest or government collapse.</p>
           <p><a href="https://www.v-dem.net/data/">V-Dem data</a> · <a href="https://data.worldbank.org/">World Bank</a> · <a href="https://acleddata.com/">ACLED</a> · <Link href="/metodo">Full validation</Link> · <Link href="/registry">Forecast registry</Link></p>
         </details>

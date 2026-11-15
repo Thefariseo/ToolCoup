@@ -182,8 +182,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 41-19110803,PIPE (Przeworski),Haiti-1911-1,success,1911-01-01,year,
 41-19140127,V-Dem historical regimes,2617,success,1914-01-27,day,golpe non militare: fine di Auguste and Oreste's Haiti
 41-19140127,Wikipedia,"41:January 27, 1914: Oreste Zamor, along his brother Charles Za",success,1914-01-27,day,"January 27, 1914: Oreste Zamor, along his brother Charles Zamor, overthrew Michel Oreste."
-41-20010207,V-Dem historical regimes,2635,success,2001-02-07,day,golpe non militare: fine di Return of elected executives 1994 - 
-41-20240425,V-Dem historical regimes,2638,success,2024-04-25,day,golpe non militare: fine di Post-2006 alternation of governments
 41-19501206,Svolik,41-1950-12-6,success,1950-12-06,day,
 41-19501206,Colpus,41-1950-12-6,notcoup,1950-12-06,day,legal
 41-19630430,Bjornskov & Rode,41-1963-4-30,failed,1963-04-30,day,
@@ -526,12 +524,10 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 145-19431220,PIPE (Przeworski),Bolivia-1943-1,success,1943-01-01,year,
 145-19200612,V-Dem historical regimes,2522,success,1920-06-12,day,golpe non militare: fine di Liberal Regime/Presidency of Jose Manuel Pando/Ismael Montes/Eliodoro Villazon/Ismael Montes/Jose Gutierrez Guerra
 145-19200612,Wikipedia (ES),es22,success,1920-01-01,year,Golpe de Estado en Bolivia de 1920
-145-19300528,V-Dem historical regimes,2523,success,1930-05-28,day,golpe non militare: fine di Republican junta
 145-19370713,V-Dem historical regimes,2526,success,1937-07-13,day,golpe militare: fine di Military rule
 145-19370713,Wikipedia,"145:July 13, 1937: Germán Busch overthrew David Toro.",success,1937-07-13,day,"July 13, 1937: Germán Busch overthrew David Toro."
 145-19370713,Wikipedia,"1937:Bolivia: Dissatisfied with the speed of new reforms, Germán ",success,1937-01-01,year,"Bolivia: Dissatisfied with the speed of new reforms, Germán Busch led a popular movement which secured the resignation of David Toro."
 145-19370713,PIPE (Przeworski),Bolivia-1937-1,success,1937-01-01,year,
-145-20171128,V-Dem historical regimes,2545,success,2017-11-28,day,autogolpe: fine di Plurinational State of Bolivia
 145-19460721,Singh,145-1946-7-21,success,1946-07-21,day,
 145-19460721,Perez-Linan,145-1946-7-21,success,1946-07-21,day,
 145-19460721,Thompson,145-1946-7-21,success,1946-07-21,day,
@@ -913,7 +909,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 800-19480406,V-Dem historical regimes,4904,success,1948-04-08,day,golpe militare: fine di Post-1947 military rule
 800-19480406,Colpus,800-1948-4-6,notcoup,1948-04-06,day,autogolpe
 800-19480406,Wikidata,Q13019387,success,1948-04-06,day,Siamese coup d'état of 1948
-800-20170406,V-Dem historical regimes,4918,success,2017-04-06,day,autogolpe: fine di National Council of Peace and Order
 800-19571227,Svolik,800-1957-12-27,success,1957-12-27,day,
 800-19571227,Colpus,800-1957-12-27,notcoup,1957-12-27,day,legal
 800-19731014,Colpus,800-1973-10-14,notcoup,1973-10-14,day,protest
@@ -1398,7 +1393,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 652-19620729,Center for Systemic Peace,128,plot,1962-07-29,day,Nasserites
 652-19630408,Center for Systemic Peace,142,plot,1963-04-08,day,Nasserites
 652-19870510,Center for Systemic Peace,531,plot,1987-05-10,day,unspecified
-652-19541224,V-Dem historical regimes,9709,success,1954-12-24,day,golpe militare: fine di Shishakli solitary rule
 652-19820202,Luttwak,652-1982-2-2,failed,1982-02-02,day,
 652-19820202,Colpus,652-1982-2-2,notcoup,1982-02-02,day,prior defection
 652-20250416,Wikidata,Q134375948,failed,2025-04-16,day,2025 Syrian coup d'état attempt
@@ -1574,7 +1568,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 130-19110811,PIPE (Przeworski),Ecuador-1911-1,success,1911-01-01,year,
 130-19371023,V-Dem historical regimes,7516,success,1937-10-23,day,golpe militare: fine di Junta government
 130-19371023,PIPE (Przeworski),Ecuador-1937-1,success,1937-01-01,year,
-130-19381202,V-Dem historical regimes,7517,success,1938-12-02,day,autogolpe: fine di Junta government
 130-19700622,Singh,130-1970-6-22,success,1970-06-22,day,
 130-19700622,V-Dem historical regimes,7526,success,1970-06-22,day,autogolpe: fine di Constitutional rule restored and Velasco's fith presidency
 130-19700622,Colpus,130-1970-6-22,notcoup,1970-06-22,day,autogolpe
@@ -1707,9 +1700,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 651-19670827,Luttwak,651-1967-8-27,failed,1967-08-27,day,
 651-19670827,Colpus,651-1967-8-27,notcoup,1967-08-27,day,coup plot
 651-19710513,Center for Systemic Peace,274,plot,1971-05-13,day,"V.Pres. Ali Sabry, Gen. Fawzi"
-651-19280719,V-Dem historical regimes,1317,success,1928-07-19,day,autogolpe: fine di Post-constitutional independent Egypt
-651-19301022,V-Dem historical regimes,1318,success,1930-10-22,day,autogolpe: fine di Post-1928 governance by decree
-651-20140118,V-Dem historical regimes,1328,success,2014-01-18,day,autogolpe: fine di Supreme Constiutional Court/Sisi rule
 651-19541117,Cline Center,651-1954-11-17,success,1954-11-17,day,
 651-19541117,Colpus,651-1954-11-17,notcoup,1954-11-17,day,combined
 651-19610928,Cline Center,651-1961-9-28,success,1961-09-28,day,
@@ -1884,8 +1874,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 101-19081219,Wikipedia,1908:1908 Venezuelan coup d'état: Juan Vicente Gómez took office ,success,1908-01-01,year,1908 Venezuelan coup d'état: Juan Vicente Gómez took office as President of Venezuela after Cipriano Castro left for Europe to receive medical treatment.
 101-19081219,Wikipedia (ES),es4,success,1908-01-01,year,Golpe de Estado en Venezuela de 1908
 101-19081219,PIPE (Przeworski),Venezuela-1908-1,success,1908-01-01,year,
-101-20090215,V-Dem historical regimes,5124,success,2009-02-15,day,autogolpe: fine di Post-1959 alternation
-101-20170730,V-Dem historical regimes,5125,success,2017-07-30,day,autogolpe: fine di 2009 constitution
 101-19470726,Thompson,101-1947-7-26,failed,1947-07-26,day,
 101-19470726,Colpus,101-1947-7-26,notcoup,1947-07-26,day,mutiny
 101-19501113,Luttwak,101-1950-11-13,failed,1950-11-13,day,
@@ -2017,8 +2005,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 630-19080603,V-Dem historical regimes,7903,success,1908-06-03,day,autogolpe: fine di Constitution of 1906/The First Majlis
 630-19080603,Wikipedia,630:1908: The Majlis were bombarded by Vladimir Liakhov in suppo,success,1908-01-01,year,1908: The Majlis were bombarded by Vladimir Liakhov in support of Mohammad Ali Shah Qajar.
 630-19080603,Wikipedia,1908:1908 bombardment of the Majlis in Iran: Persian Cossack forc,failed,1908-01-01,year,"1908 bombardment of the Majlis in Iran: Persian Cossack forces, commanded by Vladimir Liakhov and the other Russian officers, bombarded and by that suppressed t"
-630-19111224,V-Dem historical regimes,7905,success,1911-12-24,day,golpe non militare: fine di The Second Majlis
-630-19251215,V-Dem historical regimes,7910,success,1925-12-15,day,golpe non militare: fine di Ahmad Shah/ beginning of Reza Khan's rule
 630-19790211,Cline Center,630-1979-2-11,success,1979-02-11,day,
 630-19790211,Singh,630-1979-2-11,success,1979-02-11,day,
 630-19790211,V-Dem historical regimes,7913,success,1979-01-16,day,golpe non militare: fine di Mohammad Reza Shah Pahlavi - second period
@@ -2358,7 +2344,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 90-19571027,Perez-Linan,90-1957-10-27,success,1957-10-27,day,
 90-19571027,Archigos,GUA-1957-2,success,1957-10-27,day,rimosso: Mendoza Azurdia
 90-19571027,Colpus,90-1957-10-27,notcoup,1957-10-27,day,legal
-90-19701113,V-Dem historical regimes,7820,success,1970-11-13,day,autogolpe: fine di Civilian and military hybrid government
 90-19460626,Cline Center,90-1946-6-26,failed,1946-06-26,day,
 90-19460626,Colpus,90-1946-6-26,notcoup,1946-06-26,day,coup plot
 90-19501106,Cline Center,90-1950-11-6,failed,1950-11-06,day,
@@ -2754,7 +2739,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 140-19371110,Wikipedia,"140:November 10, 1937: Getúlio Vargas dissolved the National Con",success,1937-11-10,day,"November 10, 1937: Getúlio Vargas dissolved the National Congress, installing the Estado Novo dictatorship."
 140-19371110,Wikipedia,"1937:1937 Brazilian coup d'état: President Getúlio Vargas, govern",success,1937-01-01,year,"1937 Brazilian coup d'état: President Getúlio Vargas, governing democratically since 1934, launched a self-coup and became the Dictator of the Estado Novo (""New"
 140-19371110,PIPE (Przeworski),Brazil-1937-1,success,1937-01-01,year,
-140-19670124,V-Dem historical regimes,1914,success,1967-01-24,day,autogolpe: fine di Castelo Branco rule
 140-19691025,Perez-Linan,140-1969-10-25,success,1969-10-25,day,
 140-19691025,Colpus,140-1969-10-25,notcoup,1969-10-25,day,legal
 140-19301003,Wikipedia (FR),fr33,success,1930-10-03,day,Getúlio Vargas Júlio Prestes et Washington Luís Pereira de Sousa Coup d'État réussi : révolution de 1930
@@ -2893,7 +2877,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 91-19240201,PIPE (Przeworski),Honduras-1924-1,success,1924-01-01,year,
 91-19031025,V-Dem historical regimes,2708,success,1903-10-25,day,golpe militare: fine di P. Bonilla - Sierra 
 91-19031025,PIPE (Przeworski),Honduras-1903-1,success,1903-01-01,year,
-91-19360415,V-Dem historical regimes,2715,success,1936-04-15,day,autogolpe: fine di Post-1924 constitutional alternations
 91-19541205,Perez-Linan,91-1954-11-15,success,1954-01-01,year,
 91-19541205,V-Dem historical regimes,2717,success,1954-12-05,day,golpe non militare: fine di Galvez' presidency
 91-19541205,Colpus,91-1954-11-15,notcoup,1954-01-01,year,legal
@@ -2936,7 +2919,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 663-20210403,Wikidata,Q106357052,plot,2021-04-03,day,2021 alleged Jordanian coup d'état attempt
 663-20210403,Wikipedia,663:2021: A coup attempt by Prince Hamzah bin Hussein to overthr,failed,2021-01-01,year,"2021: A coup attempt by Prince Hamzah bin Hussein to overthrow his half-brother, King Abdullah II, failed."
 663-20210403,Wikipedia,"2021:2021 arrests in Jordan: On 3 April, authorities arrested top",failed,2021-04-03,day,"2021 arrests in Jordan: On 3 April, authorities arrested top officials and members of the royal family, including former Crown Prince Hamzah bin Hussein, for in"
-663-19520101,V-Dem historical regimes,8303,success,1952-01-01,day,autogolpe: fine di Independent Transjordan
 663-19700101,Wikipedia,663:1970: A Palestine Liberation Organization coup attempt again,failed,1970-01-01,year,"1970: A Palestine Liberation Organization coup attempt against King Hussein failed. King Hussein retaliated with Black September conflict, driving the PLO to Le"
 645-19580714,Powell & Thyne,645-1958-7-14,success,1958-07-14,day,
 645-19580714,Colpus,645-1958-7-14,success,1958-07-14,day,
@@ -3295,8 +3277,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 770-19930418,Colpus,770-1993-4-18,notcoup,1993-04-18,day,legal
 770-19961105,Archigos,PAK-1993-4,success,1996-11-05,day,rimosso: Benazir Bhutto
 770-19961105,Colpus,770-1996-11-5,notcoup,1996-11-05,day,legal
-770-19770307,V-Dem historical regimes,2905,success,1977-03-07,day,autogolpe: fine di Bhutto's premiership
-770-19980528,V-Dem historical regimes,2911,success,1998-05-28,day,autogolpe: fine di Elected government 1993 - 1998
 770-20001004,Marshall (WHIV),770-2000-10-4,failed,2000-10-04,day,
 770-20001004,Colpus,770-2000-10-4,notcoup,2000-10-04,day,not exist
 770-20021011,Marshall (WHIV),770-2002-10-11,failed,2002-10-11,day,
@@ -3683,8 +3663,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 640-19130123,Wikipedia,"1913:1913 Ottoman coup d'état: Led by Talaat and Enver Pasha, the",success,1913-01-01,year,"1913 Ottoman coup d'état: Led by Talaat and Enver Pasha, the Committee of Union and Progress overthrew the Freedom and Accord Party coalition and introduced a m"
 640-19130123,Wikipedia (ES),es11,success,1913-01-01,year,Golpe de Estado en el Imperio otomano de 1913
 640-19130123,PIPE (Przeworski),Ottoman Empire-1913-1,success,1913-01-01,year,
-640-19571027,V-Dem historical regimes,9913,success,1957-10-27,day,autogolpe: fine di Democratic Party
-640-20170416,V-Dem historical regimes,9920,success,2017-04-16,day,autogolpe: fine di Post-1982 constitutional Republic of Turkey
 640-19680302,Luttwak,640-1968-3-2,failed,1968-03-02,day,
 640-19680302,Colpus,640-1968-3-2,notcoup,1968-03-02,day,not exist
 640-19750302,Cline Center,640-1975-3-2,failed,1975-03-02,day,
@@ -4000,7 +3978,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 92-19441021,Wikipedia,"1944:El Salvador: On 20 October, Andrés Ignacio Menéndez was over",success,1944-01-01,year,"El Salvador: On 20 October, Andrés Ignacio Menéndez was overthrown by Osmín Aguirre y Salinas."
 92-19441021,Wikipedia (ES),es79,success,1944-01-01,year,Golpe de Estado del Domingo de Ramos
 92-19441021,PIPE (Przeworski),El Salvador-1944-1,success,1944-01-01,year,
-92-20250731,V-Dem historical regimes,2222,success,2025-07-31,day,autogolpe: fine di Post-1994 alternation of administrations
 92-19801207,Svolik,92-1980-12-7,success,1980-12-07,day,
 92-19801207,Colpus,92-1980-12-7,notcoup,1980-12-07,day,autogolpe
 92-19440402,Wikidata,Q104858891,failed,1944-04-02,day,Palm Sunday Coup
@@ -4176,7 +4153,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 530-19160927,Wikipedia,"1916:Ethiopia: While touring the city of Harar, Lij Iyasu was dep",failed,1916-01-01,year,"Ethiopia: While touring the city of Harar, Lij Iyasu was deposed by a cabal of aristocrats in favor of his aunt Zewditu. Forces loyal to him were defeated at Se"
 530-19300401,V-Dem historical regimes,3806,success,1930-04-01,day,autogolpe: fine di Formal leadership of Zawditu/Regent Ras Tafari
 530-19300401,Wikipedia,1930:Gugsa Wale's rebellion in Ethiopia: An uprising by Ras Gugsa,failed,1930-01-01,year,Gugsa Wale's rebellion in Ethiopia: An uprising by Ras Gugsa Welle against King Tafari Makonnen (later Emperor Haile Selassie I) was put down decisively at the 
-530-19310716,V-Dem historical regimes,3807,success,1931-07-16,day,autogolpe: fine di Haile Selassie I 
 530-19910527,Luttwak,530-1991-5-27,success,1991-05-27,day,
 530-19910527,V-Dem historical regimes,3813,success,1991-05-28,day,golpe militare: fine di Mengistu regime
 530-19910527,Colpus,530-1991-5-27,notcoup,1991-05-27,day,prior defection
@@ -4418,14 +4394,12 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 235-19260528,Wikipedia,1926:28 May 1926 coup d'état in Portugal: Nationalist military fo,success,1926-05-01,month,"28 May 1926 coup d'état in Portugal: Nationalist military forces overthrew the unstable First Portuguese Republic and instituted a new regime, the National Dict"
 235-19260528,Wikipedia (ES),es35,success,1926-01-01,year,Golpe de Estado del 28 de mayo de 1926
 235-19260528,PIPE (Przeworski),Portugal-1926-1,success,1926-01-01,year,
-235-19070515,V-Dem historical regimes,2111,success,1907-05-15,day,autogolpe: fine di Post-1852 Act/Era of regeneration
 235-19171205,V-Dem historical regimes,2115,success,1917-12-05,day,golpe militare: fine di The First Republic
 235-19171205,Wikipedia (FR),fr10,success,1917-12-05,day,Sidónio Pais Bernardino Machado Coup d'État réussi : coup d'État de 1917 au Portugal
 235-19171205,Wikidata,Q25428964,success,1917-12-05,day,December 1917 coup d'état
 235-19171205,Wikipedia,235:December 1917: A coup d'état led to Sidónio Pais' dictatorsh,success,1917-12-01,month,December 1917: A coup d'état led to Sidónio Pais' dictatorship.
 235-19171205,Wikipedia (ES),es16,success,1917-01-01,year,Golpe de Estado de diciembre de 1917
 235-19171205,PIPE (Przeworski),Portugal-1917-1,success,1917-01-01,year,
-235-19330319,V-Dem historical regimes,2118,success,1933-03-19,day,autogolpe: fine di Ditadura Nacional
 235-19150514,Wikipedia (FR),fr7,success,1915-05-14,day,Joaquim Pimenta de Castro et Manuel de Arriaga Le régime parlementaire Coup d'État réussi : coup d'État du 14 mai 1915 au Portugal
 235-19150514,Wikidata,Q2998926,success,1915-05-14,day,1915 Portuguese coup d'état
 235-19150514,Wikipedia,"235:May 14, 1915: An uprising overthrew Joaquim Pimenta de Castr",success,1915-05-14,day,"May 14, 1915: An uprising overthrew Joaquim Pimenta de Castro's government."
@@ -4642,7 +4616,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 461-20090412,Center for Systemic Peace,781,plot,2009-04-12,day,Kpatche Gnassingbe
 461-20090412,Bjornskov & Rode,461-2009-4-13,failed,2009-04-13,day,
 461-20090412,Colpus,461-2009-4-13,notcoup,2009-04-13,day,coup plot
-461-20240419,V-Dem historical regimes,13407,success,2024-04-19,day,autogolpe: fine di Eyadema's and Gnassingbe's rule
 461-19670414,Cline Center,461-1967-4-14,success,1967-04-14,day,
 461-19670414,Svolik,461-1967-4-14,success,1967-04-14,day,
 461-19670414,Colpus,461-1967-4-14,notcoup,1967-04-14,day,autogolpe
@@ -4921,7 +4894,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 434-20130222,Bjornskov & Rode,434-2013-3-3,failed,2013-03-03,day,
 434-20130222,Colpus,434-2013-3-3,notcoup,2013-03-03,day,coup plot
 434-20130222,Wikidata,Q116442519,failed,2013-01-01,year,2013 Beninese coup d'état attempt
-434-20210411,V-Dem historical regimes,5212,success,2021-04-11,day,autogolpe: fine di Benin under 1990 constitution
 434-19680801,Svolik,434-1968-8-1,success,1968-08-01,day,
 434-19680801,Colpus,434-1968-8-1,notcoup,1968-08-01,day,legal
 434-19691021,Cline Center,434-1969-10-21,failed,1969-10-21,day,
@@ -4932,8 +4904,8 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 434-20130304,Wikidata,Q110775011,failed,2013-03-04,day,2013 Beninese coup d'état attempt
 434-20130304,Wikipedia,"434:March 4, 2013: Failed coup attempt by Colonel  against Presi",failed,2013-03-04,day,"March 4, 2013: Failed coup attempt by Colonel  against President Thomas Boni Yayi."
 434-20130304,Wikipedia,2013:2013 Beninese coup d'état attempt led by Col. Pamphile Zomah,failed,2013-01-01,year,2013 Beninese coup d'état attempt led by Col. Pamphile Zomahoun against President Boni Yayi.
-434-20240926,Wikipedia,"434:September 26, 2024: 3 people arrested on charges of organisi",success,2024-09-26,day,"September 26, 2024: 3 people arrested on charges of organising a coup."
-434-20240926,Wikipedia,"2024:On September 26, 2024, 3 people arrested on charges of organ",success,2024-09-01,month,"On September 26, 2024, 3 people arrested on charges of organising a coup in Benin."
+434-20240926,Wikipedia,"434:September 26, 2024: 3 people arrested on charges of organisi",plot,2024-09-26,day,"September 26, 2024: 3 people arrested on charges of organising a coup."
+434-20240926,Wikipedia,"2024:On September 26, 2024, 3 people arrested on charges of organ",plot,2024-09-01,month,"On September 26, 2024, 3 people arrested on charges of organising a coup in Benin."
 481-19640217,Powell & Thyne,481-1964-2-17,failed,1964-02-17,day,
 481-19640217,Colpus,481-1964-2-17,failed,1964-02-17,day,
 481-19640217,Center for Systemic Peace,156,failed,1964-02-18,day,Jean-Hilaire Aubame
@@ -4969,7 +4941,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 481-20230830,Wikipedia (DE),de75,success,2023-08-30,day,"Am 30. August 2023 verkündeten Vertreter der Gendarmerie, der republikanischen Garde und anderer Sicherheitskräfte, dass Staatspräsident Ali-Ben Bongo Ondimba a"
 481-20230830,Wikipedia,2023:2023 Gabonese coup d'état: Following the 2023 Gabonese gener,success,2023-01-01,year,"2023 Gabonese coup d'état: Following the 2023 Gabonese general election, and president Ali Bongo Ondimba's declaration of victory, soldiers from the presidentia"
 481-20230830,Wikipedia (ES),es319,success,2023-01-01,year,Golpe de Estado en Gabón de 2023
-481-19680312,V-Dem historical regimes,11605,success,1968-03-12,day,autogolpe: fine di Independent Republic of Gabon under M'ba
 615-19640630,Powell & Thyne,615-1964-6-30,failed,1964-06-30,day,
 615-19640630,Cline Center,615-1964-6-30,failed,1964-06-30,day,
 615-19640630,Singh,615-1964-6-30,failed,1964-06-30,day,
@@ -5026,7 +4997,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 615-20190402,Cline Center,615-2019-4-2,success,2019-04-02,day,
 615-20190402,Wikipedia,"615:On April 2, 2019, the president Abdelaziz Bouteflika resigne",success,2019-04-02,day,"On April 2, 2019, the president Abdelaziz Bouteflika resigned under pressure from the military, following the 2019–2021 Algerian protests"
 615-20190402,Wikipedia,"2019:On April 2, president Abdelaziz Bouteflika resigned under pr",success,2019-04-01,month,"On April 2, president Abdelaziz Bouteflika resigned under pressure from the military, following the 2019–2021 Algerian protests."
-615-20081112,V-Dem historical regimes,10308,success,2008-11-12,day,"autogolpe: fine di Post-coup, civil war-torn Algeria"
 615-19680425,Luttwak,615-1968-4-25,failed,1968-04-25,day,
 615-19680425,Colpus,615-1968-4-25,notcoup,1968-04-25,day,assassination
 615-19920702,Svolik,615-1992-7-2,success,1992-07-02,day,
@@ -5077,7 +5047,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 850-19561116,Thompson,850-1956-11-16,failed,1956-11-16,day,
 850-19561116,Colpus,850-1956-11-16,notcoup,1956-11-16,day,not regime leader
 850-20161202,Center for Systemic Peace,845,plot,2016-12-02,day,Rachmawati Sukarnoputri; Ahmad Dhani; two former army generals; six others
-850-19570221,V-Dem historical regimes,5608,success,1957-02-21,day,autogolpe: fine di Independent Indonesia
 850-19500426,Cline Center,850-1950-4-26,failed,1950-04-26,day,
 850-19500426,Luttwak,850-1950-4-26,failed,1950-04-26,day,
 850-19500426,Colpus,850-1950-4-26,notcoup,1950-04-26,day,mutiny
@@ -5279,8 +5248,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 516-20060306,Center for Systemic Peace,749,plot,2006-03-06,day,unspecified
 516-20060801,Center for Systemic Peace,757,plot,2006-08-01,month,"Alphonse-Marie Kadege, former-President Domitien Ndayizeye"
 516-20100129,Center for Systemic Peace,789,plot,2010-01-29,day,unspecified (13 soldiers arrested)
-516-20100628,V-Dem historical regimes,6912,success,2010-06-28,day,autogolpe: fine di Post-2005 constitution
-516-20180517,V-Dem historical regimes,6913,success,2018-05-17,day,autogolpe: fine di Nkurunziza's rule
 516-19720330,Morrison,516-1972-3-30,failed,1972-03-30,day,
 516-19720330,Colpus,516-1972-3-30,notcoup,1972-03-30,day,prior defection
 516-19960725-2,Wikidata,Q4591257,success,1996-07-25,day,1996 Burundian coup d'état
@@ -5410,9 +5377,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 482-20210113,Wikidata,Q108495378,failed,2020-12-01,month,Battle of Bangui
 482-20210113,Wikipedia,"482:January 13, 2021: A coup attempt by rebel groups, led by for",failed,2021-01-13,day,"January 13, 2021: A coup attempt by rebel groups, led by former president François Bozizé, against Faustin-Archange Touadéra fails."
 482-20210113,Wikipedia,2020:2020–21 Central African Republic coup attempt: In December 2,failed,2020-01-01,year,2020–21 Central African Republic coup attempt: In December 2020 major rebel groups in Central African Republic led by former president François Bozizé formed th
-482-19620101,V-Dem historical regimes,7103,success,1962-01-01,day,autogolpe: fine di Independent Central African Republic under MESAN
-482-19771204,V-Dem historical regimes,7105,success,1977-12-04,day,autogolpe: fine di Bokassa's personal rule
-482-20230821,V-Dem historical regimes,7114,success,2023-08-21,day,autogolpe: fine di Post-2015 constitution 
 482-20020615,Cline Center,482-2002-6-15,failed,2002-06-15,day,
 482-20020615,Colpus,482-2002-6-15,notcoup,2002-06-15,day,prior defection
 482-20020615,Wikipedia (ES),es264,success,2002-01-01,year,Golpe militar
@@ -5741,7 +5705,7 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 475-20240413,Wikipedia,2024:Oyo State coup attempt in Nigeria,failed,2024-04-13,day,Oyo State coup attempt in Nigeria
 475-19810101,Wikipedia,"475:1981/1982: Between March 1981 and early 1982, businessman Al",failed,1981-01-01,year,"1981/1982: Between March 1981 and early 1982, businessman Alhaji Zanna B. U. Mandara tried to recruit Army personnel particularly of the Brigade of Guards in an"
 475-19870101,Wikipedia,"475:1987: Sometime in 1987, Major Akinloye Akinyemi was arrested",plot,1987-01-01,year,"1987: Sometime in 1987, Major Akinloye Akinyemi was arrested and tried by a tribunal headed by Brigadier O. D. Diya for attempted coup plotting."
-475-20251001,Wikipedia,475:October 2025: sixteen army officers arrested on charges of o,success,2025-10-01,month,October 2025: sixteen army officers arrested on charges of organising a coup.
+475-20251001,Wikipedia,475:October 2025: sixteen army officers arrested on charges of o,plot,2025-10-01,month,October 2025: sixteen army officers arrested on charges of organising a coup.
 475-20251001,Wikipedia,2025:2025 Nigeria coup attempt,failed,2025-01-01,year,2025 Nigeria coup attempt
 452-19660224,Powell & Thyne,452-1966-2-24,success,1966-02-24,day,
 452-19660224,Colpus,452-1966-2-24,success,1966-02-24,day,
@@ -6017,7 +5981,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 451-19960908,Cline Center,451-1996-9-8,failed,1996-09-08,day,
 451-19960908,Luttwak,451-1996-9-8,failed,1996-09-08,day,
 451-19960908,Colpus,451-1996-9-8,notcoup,1996-09-08,day,coup plot
-451-19710420,V-Dem historical regimes,9505,success,1971-04-20,day,autogolpe: fine di Sierra Leone under PM Stevens
 451-19750719,Cline Center,451-1975-7-19,failed,1975-07-19,day,
 451-19750719,Colpus,451-1975-7-19,notcoup,1975-07-19,day,coup plot
 451-19961216,McGowan,451-1996-12-16,failed,1996-12-16,day,
@@ -6182,7 +6145,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 680-19800421,Svolik,680-1980-4-21,success,1980-04-21,day,
 680-19800421,Cline Center,680-1980-4-2,success,1980-04-02,day,
 680-19800421,Colpus,680-1980-4-2,notcoup,1980-04-02,day,not exist
-680-19701201,V-Dem historical regimes,2303,success,1970-12-01,day,autogolpe: fine di People's Republic of South Yemen
 680-19781227,Svolik,680-1978-12-27,success,1978-12-27,day,
 680-19781227,Colpus,680-1978-12-27,notcoup,1978-12-27,day,legal
 432-19681119,Powell & Thyne,432-1968-11-19,success,1968-11-19,day,
@@ -6304,7 +6266,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 411-20040307,Wikipedia,"411:March 7, 2004: A coup attempt is stopped before the plotters",plot,2004-03-07,day,"March 7, 2004: A coup attempt is stopped before the plotters can arrive in country."
 411-20040307,Wikipedia,2004:2004 Equatorial Guinea coup attempt (also known as the Wonga,plot,2004-03-07,day,2004 Equatorial Guinea coup attempt (also known as the Wonga Coup): A plot was developed to replace President Teodoro Obiang Nguema Mbasogo with exiled oppositi
 411-20090211,Center for Systemic Peace,780,failed,2009-02-11,day,Jose Abeso Nsue; Manuel Ndong Anseme; Alipio Ndong Asumu; Jacinto Micha Obiang
-411-19710507,V-Dem historical regimes,16003,success,1971-05-07,day,autogolpe: fine di Republic of Equatorial Guinea
 411-19761101,Wikidata,Q24938804,failed,1976-11-01,month,1976 coup attempt Equatorial Guinea
 411-19790818,Wikidata,Q20977839,success,1979-08-18,day,1979 Equatorial Guinea coup d'état
 411-20171224,Wikidata,Q51140334,failed,2017-12-01,month,2017 Equatorial Guinea coup attempt
@@ -6456,7 +6417,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 811-20001124,Wikidata,Q127685166,failed,2000-11-24,day,2000 Cambodian coup d'état attempt
 811-20001124,Wikipedia,"811:November 20, 2000: Attempted coup against Prime Minister Hun",failed,2000-11-20,day,"November 20, 2000: Attempted coup against Prime Minister Hun Sen."
 811-20001124,Wikipedia,2000:2000 Cambodian coup d'état attempt,failed,2000-01-01,year,2000 Cambodian coup d'état attempt
-811-20171117,V-Dem historical regimes,5514,success,2017-11-17,day,autogolpe: fine di Cambodia under the CPP
 811-19690812,Svolik,811-1969-8-12,success,1969-08-12,day,
 811-19690812,Colpus,811-1969-8-12,notcoup,1969-08-12,day,legal
 811-19750326,Luttwak,811-1975-3-26,failed,1975-03-26,day,
@@ -6594,7 +6554,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 500-19660222,Wikipedia (FR),fr122,success,1966-03-02,day,Milton Obote Edward Muteesa Coup d'État réussi
 500-19660222,Wikipedia,500:February 1966: Milton Obote overthrew King Mutesa II of Buga,success,1966-02-01,month,February 1966: Milton Obote overthrew King Mutesa II of Buganda.
 500-19660222,PIPE (Przeworski),Uganda-1966-1,success,1966-01-01,year,
-500-19801217,V-Dem historical regimes,5005,success,1980-12-17,day,golpe non militare: fine di Transitional government 
 500-19640123,Cline Center,500-1964-1-23,failed,1964-01-23,day,
 500-19640123,Luttwak,500-1964-1-23,failed,1964-01-23,day,
 500-19640123,Colpus,500-1964-1-23,notcoup,1964-01-23,day,mutiny
@@ -6815,8 +6774,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 155-19320617,PIPE (Przeworski),Chile-1932-2,success,1932-01-01,year,
 155-19320913,Archigos,CHL-1932-3,success,1932-09-13,day,rimosso: Davila
 155-19320913,Wikipedia,"155:September 27, 1932: A successful coup of General Pedro Vigno",success,1932-09-27,day,"September 27, 1932: A successful coup of General Pedro Vignola that resulted in the resignation of President Bartolomé Blanche and a return to civilian rule."
-155-19270510,V-Dem historical regimes,7218,success,1927-05-10,day,golpe non militare: fine di Post-1925 constitution
-155-19810311,V-Dem historical regimes,7226,success,1981-03-11,day,autogolpe: fine di The Pinochet period
 155-19691015,Cline Center,155-1969-10-15,failed,1969-10-15,day,
 155-19691015,Colpus,155-1969-10-15,notcoup,1969-10-15,day,mutiny
 155-19691015,Wikidata,Q7673953,failed,1969-10-21,day,Tacnazo insurrection
@@ -7093,7 +7050,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 436-20110712,Wikipedia,"436:July 12–13, 2011: A coup attempt against Mahamadou Issoufou ",failed,2011-07-12,day,"July 12–13, 2011: A coup attempt against Mahamadou Issoufou failed."
 436-20110712,Wikipedia,2011:2011 Nigerien coup attempt: A group of Dissenting factions o,failed,2011-07-12,day,2011 Nigerien coup attempt: A group of Dissenting factions of the armed forces launched failed attempt to overthrow Mahamadou Issoufou from the presidency.
 436-20151218,Center for Systemic Peace,839,plot,2015-12-18,day,senior military officers
-436-20090626,V-Dem historical regimes,6011,success,2009-06-26,day,autogolpe: fine di Tandja's government
 352-19740715,Powell & Thyne,352-1974-7-15,success,1974-07-15,day,
 352-19740715,Colpus,352-1974-7-15,success,1974-07-15,day,
 352-19740715,Center for Systemic Peace,313,success,1974-07-15,day,"military coup; Sampson, Clerides"
@@ -7305,8 +7261,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 483-20130501,Wikipedia,"483:May 1, 2013: Failed coup against Idriss Déby.",failed,2013-05-01,day,"May 1, 2013: Failed coup against Idriss Déby."
 483-20130501,Wikipedia,2013:2013 Chadian coup attempt on 1 May 2013 against President Id,failed,2013-05-01,month,2013 Chadian coup attempt on 1 May 2013 against President Idriss Déby.
 483-20190212,Center for Systemic Peace,852,failed,2019-02-12,day,Union of Forces of Resistance (UFR)
-483-20180504,V-Dem historical regimes,10909,success,2018-05-04,day,autogolpe: fine di Deby's Chad
-483-20240506,V-Dem historical regimes,10911,success,2024-05-06,day,autogolpe: fine di Transitional Military Council Rule
 483-20051016,Singh,483-2005-10-16,failed,2005-10-16,day,
 483-20051016,Colpus,483-2005-10-16,notcoup,2005-10-16,day,mutiny
 483-19790323,Wikipedia (FR),fr187,success,1979-03-23,day,Goukouni Oueddei Félix Malloum Coup d'État réussi : pendant la deuxième guerre civile Tchadienne
@@ -7376,7 +7330,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 581-20130422,Wikipedia,2013:2013 Comorian coup attempt against President Ikililou Dhoini,failed,2013-04-20,day,2013 Comorian coup attempt against President Ikililou Dhoinine.
 581-20180814,Center for Systemic Peace,850,plot,2018-08-14,day,"Several soldiers and prominent author, Said Ahmag Said Tourqi"
 581-19891218,Archigos,COM-1978,success,1989-12-18,day,rimosso: Bob Denard
-581-20180730,V-Dem historical regimes,15312,success,2018-07-30,day,autogolpe: fine di Federal government of the Comoros
 771-19750815,Powell & Thyne,771-1975-8-15,success,1975-08-15,day,
 771-19750815,Colpus,771-1975-8-15,success,1975-08-15,day,
 771-19750815,Center for Systemic Peace,331,success,1975-08-15,day,Maj. Shariful Huq Dalim
@@ -7465,7 +7418,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 771-19761108,Center for Systemic Peace,356,success,1976-11-08,day,BG Musharaf
 771-19801017,Center for Systemic Peace,426,failed,1980-10-17,day,"4 colonels incl. Col. Alam, Col. Rashid"
 771-20120119,Center for Systemic Peace,809,plot,2012-01-19,day,Maj. Ziaul Haq; Lt.Col. Ehsan Yusuf; Maj. Rakir; Hizbut-Tahrir
-771-20140105,V-Dem historical regimes,2410,success,2014-01-05,day,autogolpe: fine di 2008-2014 constitutional alternation
 771-19800617,Luttwak,771-1980-6-17,failed,1980-06-17,day,
 771-19800617,Bjornskov & Rode,771-1980-6-17,failed,1980-06-17,day,
 771-19800617,Colpus,771-1980-6-17,notcoup,1980-06-17,day,coup plot
@@ -7497,7 +7449,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 540-19770527,Wikipedia,"540:May 27, 1977: The Minister of Interior Nito Alves failed to ",failed,1977-05-27,day,"May 27, 1977: The Minister of Interior Nito Alves failed to overthrow Agostinho Neto."
 540-19770527,Wikipedia,1977:1977 Angolan coup attempt,failed,1977-05-27,day,1977 Angolan coup attempt
 540-20160329,Center for Systemic Peace,840,plot,2016-03-29,day,Luanda Book Club
-540-20100121,V-Dem historical regimes,10404,success,2010-01-21,day,autogolpe: fine di Republic of Angola
 540-19971001,Wikipedia,1997:On 16 October 1997 Cobra militia supported by tanks and a fo,success,1997-10-01,month,"On 16 October 1997 Cobra militia supported by tanks and a force of 1,000 Angolan troops cemented their control of Brazzaville, Republic of the Congo, having ous"
 540-20150101,Wikipedia,2015:Angolan coup attempt.,failed,2015-01-01,year,Angolan coup attempt.
 591-19770605,Powell & Thyne,591-1977-6-5,success,1977-06-05,day,
@@ -7508,7 +7459,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 591-19770605,Wikipedia,"591:June 5, 1977: France-Albert René overthrew James Mancham.",success,1977-06-05,day,"June 5, 1977: France-Albert René overthrew James Mancham."
 591-19770605,Wikipedia,1977:1977 Seychelles coup d'état: Supporters of the United Seyche,success,1977-01-01,year,1977 Seychelles coup d'état: Supporters of the United Seychelles party overthrew President James Mancham and installed France-Albert René as president.
 591-19770605,PIPE (Przeworski),Seychelles-1977-1,success,1977-01-01,year,
-591-19790605,V-Dem historical regimes,19904,success,1979-06-05,day,autogolpe: fine di Rene's rule
 591-19811125,Wikipedia (FR),fr201,failed,1981-11-25,day,Mercenaires sud-africains France-Albert René Coup d'État raté : tentative de coup d'État de 1981 aux Seychelles
 591-19811125,Wikidata,Q29378733,failed,1981-11-25,day,1981 Seychelles coup d'état attempt
 591-19811125,Wikipedia,"591:November 25, 1981: South African mercenaries attempted to re",failed,1981-11-25,day,"November 25, 1981: South African mercenaries attempted to replace France-Albert René with former president James Mancham"
@@ -7791,8 +7741,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 551-19810614,Center for Systemic Peace,441,plot,1981-06-14,day,unspecified
 551-19881007,Center for Systemic Peace,550,plot,1988-10-07,day,LTG Christon Tembo
 551-19930301,Center for Systemic Peace,627,plot,1993-03-01,month,"incl. Maj. Wezi Kuanda, Tilyenji Kuanda, Panji Kuanda"
-551-19730825,V-Dem historical regimes,6105,success,1973-08-25,day,autogolpe: fine di Republic of Zambia:  Kaunda before constituion
-551-19960516,V-Dem historical regimes,6107,success,1996-05-16,day,autogolpe: fine di Zambia since 1991 constitution
 551-19901117,Marshall (WHIV),551-1990-11-17,failed,1990-11-17,day,
 551-19901117,Colpus,551-1990-11-17,notcoup,1990-11-17,day,not exist
 404-19801115,Powell & Thyne,404-1980-11-15,success,1980-11-15,day,
@@ -8188,7 +8136,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 438-20091205,Cline Center,438-2009-12-5,failed,2009-12-05,day,
 438-20091205,Archigos,GUI-2008-2,success,2009-12-05,day,rimosso: Dadis Camara
 438-20091205,Colpus,438-2009-12-5,notcoup,2009-12-05,day,assassination
-438-20201018,V-Dem historical regimes,6308,success,2020-10-18,day,autogolpe: fine di Elected government
 438-19760513,Cline Center,438-1976-5-13,failed,1976-05-13,day,
 438-19760513,Colpus,438-1976-5-13,notcoup,1976-05-13,day,coup plot
 438-20050119,Singh,438-2005-1-19,failed,2005-01-19,day,
@@ -8428,7 +8375,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 950-20001101,Center for Systemic Peace,707,failed,2000-11-01,month,Ratulnoke Takiveikata
 950-20071103,Center for Systemic Peace,768,plot,2007-11-03,day,Ratu Inoke Takiveikata; Col. Metuisela Mua; Barbadoes Mills
 950-20000714,Archigos,FJI-2000-2,success,2000-07-14,day,rimosso: Bainimarama
-950-20130907,V-Dem historical regimes,16210,success,2013-09-07,day,autogolpe: fine di Bainimarama's interim rule
 950-19870928,Wikipedia,"950:September 28, 1987: Sitiveni Rabuka overthrew Governor Gener",success,1987-09-28,day,"September 28, 1987: Sitiveni Rabuka overthrew Governor General Ratu Sir Penaia Ganilau and Queen Elizabeth II. Fiji is proclaimed a republic."
 950-19870928,PIPE (Przeworski),Fiji-1987-2,success,1987-01-01,year,
 616-19871107,Powell & Thyne,616-1987-11-7,success,1987-11-07,day,
@@ -8457,7 +8403,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 616-19570725,Archigos,TUN-1943,success,1957-07-25,day,rimosso: Muhammad al-Amin
 616-19570725,Colpus,616-1957-7-25,notcoup,1957-07-25,day,autogolpe
 616-19570725,Wikipedia,"616:July 15, 1957: Habib Bourguiba overthrew King Muhammad VIII ",success,1957-07-15,day,"July 15, 1957: Habib Bourguiba overthrew King Muhammad VIII al-Amin."
-616-19750318,V-Dem historical regimes,9810,success,1975-03-18,day,autogolpe: fine di Republic of Tunisia: Bourgiba's precidency
 616-20210725,V-Dem historical regimes,9814,success,2021-07-25,day,autogolpe: fine di Interim constitution
 616-20210725,Wikipedia,"616:July 25, 2021: President Kais Saied conducted a self-coup by",success,2021-07-25,day,"July 25, 2021: President Kais Saied conducted a self-coup by dismissing his prime minister Hichem Mechichi and dissolving the Assembly of the Representatives of"
 616-20210725,Wikipedia,2021:2021 Tunisian self-coup: Kais Saied launches a self-coup and,success,2021-01-01,year,2021 Tunisian self-coup: Kais Saied launches a self-coup and overthrows the Assembly of the Representatives of the People.
@@ -8505,7 +8450,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 365-19930923,Wikipedia,1993:1993 Russian constitutional crisis (also known as the 1993 O,success,1993-10-01,month,"1993 Russian constitutional crisis (also known as the 1993 October Coup, Black October, the Shooting of the White House or Ukase 1400): President Boris Yeltsin "
 365-19930923,Wikipedia (ES),es246,success,1993-01-01,year,Crisis constitucional rusa de 1993
 365-19900201,Center for Systemic Peace,563,plot,1990-02-01,month,unspecified
-365-20120304,V-Dem historical regimes,1109,success,2012-03-04,day,autogolpe: fine di Russian Federation
 365-19530626,Singh,365-1953-6-26,success,1953-06-26,day,
 365-19530626,Colpus,365-1953-6-26,notcoup,1953-06-26,day,autogolpe
 365-20230623,Wikipedia (FR),fr310,failed,2023-06-23,day,Evgueni Prigojine (groupe Wagner) Vladimir Poutine Coup d'État raté : rébellion du groupe Wagner
@@ -8676,7 +8620,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 437-20120608,Wikipedia,2012:2012 Ivorian coup attempt: Pro-Laurent Gbagbo military offic,failed,2012-01-01,year,2012 Ivorian coup attempt: Pro-Laurent Gbagbo military officers failed to oust Alassane Ouattara.
 437-20110411,Archigos,CDI-2000,success,2011-04-11,day,rimosso: Laurent Gbagbo
 437-20110411,Colpus,437-2011-4-11,notcoup,2011-04-11,day,prior defection
-437-20201031,V-Dem historical regimes,6408,success,2020-10-31,day,autogolpe: fine di Constitutional alternation post 2011
 437-20041108,Marshall (WHIV),437-2004-11-8,failed,2004-11-08,day,
 437-20041108,Colpus,437-2004-11-8,notcoup,2004-11-08,day,foreign
 437-20060101,Wikipedia,2006:The military of Côte d'Ivoire claims to foil a coup attempt ,failed,2006-01-01,year,The military of Côte d'Ivoire claims to foil a coup attempt targeting President Laurent Gbagbo.
@@ -8684,7 +8627,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 522-20001207,Colpus,522-2000-12-7,failed,2000-12-07,day,
 522-20001207,Center for Systemic Peace,709,failed,2000-12-07,day,Gen. Yasin Yabeh
 522-19910108,Center for Systemic Peace,581,failed,1991-01-08,day,incl. Ali Aref Bourhan
-522-19811024,V-Dem historical regimes,11304,success,1981-10-24,day,autogolpe: fine di Independent Djibouti under Gouled 
 781-20120207,Powell & Thyne,781-2012-2-7,success,2012-02-07,day,
 781-20120207,Colpus,781-2012-2-7,success,2012-02-07,day,
 781-20120207,Wikidata,Q4146914,success,2012-02-07,day,2011–2012 Maldives political crisis
@@ -8747,8 +8689,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 552-20141209,Center for Systemic Peace,834,plot,2014-12-09,day,Vice President Joice Mujuru
 552-19651111,V-Dem historical regimes,6204,success,1965-11-11,day,autogolpe: fine di Post-Federation Southern Rhodesia
 552-19651111,Wikipedia,552:1965: Following the colonial government's Unilateral Declara,success,1965-01-01,year,"1965: Following the colonial government's Unilateral Declaration of Independence, the colonial governor dismissed the government, but the government ignored thi"
-552-19700302,V-Dem historical regimes,6205,success,1970-03-02,day,autogolpe: fine di Unrecognized  Rhodesia
-552-19830103,V-Dem historical regimes,6209,success,1983-01-03,day,autogolpe: fine di Mugabe's presidency
 552-19800214,Wikipedia,"552:February 14, 1980: A planned coup to overthrow Robert Mugabe",plot,1980-02-14,day,"February 14, 1980: A planned coup to overthrow Robert Mugabe was canceled."
 315-19480225,Colpus,315-1948-2-25,success,1948-02-25,day,
 315-19480225,Center for Systemic Peace,15,plot,1948-02-23,day,"Jan Ursiny, Czech national Socialist Party"
@@ -8767,7 +8707,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 315-19490830,Center for Systemic Peace,38,plot,1949-08-30,day,"Dr. Jaroslav Berkovec, Emanuel Cancik, Vratislav Polesny, and others"
 315-19500318,Center for Systemic Peace,40,plot,1950-03-18,day,Leading members of Catholic religious orders
 315-19510225,Center for Systemic Peace,43,plot,1951-02-25,day,"Vladimir Clementis, Otto Sling, Marie Svermova"
-315-19480509,V-Dem historical regimes,15704,success,1948-05-09,day,autogolpe: fine di Elected communist government 1946-1948
 315-19871217,Cline Center,315-1987-12-17,success,1987-12-17,day,
 315-19871217,Colpus,315-1987-12-17,notcoup,1987-12-17,day,legal
 315-19490517,Wikidata,Q19760552,failed,1949-05-17,day,Prokeš coup
@@ -8791,7 +8730,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 290-19260512,Wikipedia,1926:May Coup in Poland: Marshal Józef Piłsudski overthrew the de,success,1926-05-12,day,May Coup in Poland: Marshal Józef Piłsudski overthrew the democratically elected government of President Stanisław Wojciechowski and Prime Minister Wincenty Wit
 290-19260512,Wikipedia (ES),es34,success,1926-01-01,year,Golpe de Estado de mayo de 1926
 290-19260512,PIPE (Przeworski),Poland-1926-1,success,1926-01-01,year,
-290-19520722,V-Dem historical regimes,1709,success,1952-07-22,day,autogolpe: fine di Post-WII Poland
 290-19561021,Svolik,290-1956-10-21,success,1956-10-21,day,
 290-19561021,Colpus,290-1956-10-21,notcoup,1956-10-21,day,foreign
 290-19701220,Svolik,290-1970-12-20,success,1970-12-20,day,
@@ -8853,8 +8791,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 310-19190807,Wikipedia,"310:August 7, 1919: István Friedrich overthrew the MSZDP governm",success,1919-08-07,day,"August 7, 1919: István Friedrich overthrew the MSZDP government of Gyula Peidl."
 310-19190807,Wikipedia,1919:István Friedrich overthrew the Hungarian People's Republic l,success,1919-01-01,year,"István Friedrich overthrew the Hungarian People's Republic led by Gyula Peidl, in Romanian-occupied Budapest."
 310-19190807,PIPE (Przeworski),Hungary-1919-1,success,1919-01-01,year,
-310-19490820,V-Dem historical regimes,21014,success,1949-08-20,day,autogolpe: fine di Second Hungarian Republic under Soviet influence
-310-20200330,V-Dem historical regimes,21019,success,2020-03-30,day,autogolpe: fine di Post-2012 constitution Hungary
 310-19470531,Cline Center,310-1947-5-31,success,1947-05-31,day,
 310-19470531,Colpus,310-1947-5-31,notcoup,1947-05-31,day,autogolpe
 310-19470531,Wikipedia,"310:May 28–31, 1947: Mátyás Rákosi and the Hungarian Communist P",success,1947-05-28,day,"May 28–31, 1947: Mátyás Rákosi and the Hungarian Communist Party overthrew Ferenc Nagy's government by arresting members of the National Assembly."
@@ -8919,7 +8855,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 712-19840823,Colpus,712-1984-8-23,success,1984-08-23,day,
 712-19840823,Svolik,712-1984-8-23,success,1984-08-23,day,
 712-19240826,Archigos,MON-1923,success,1924-08-26,day,rimosso: Danzin
-712-19241126,V-Dem historical regimes,8904,success,1924-11-26,day,autogolpe: fine di Brief constitutional monarchy
 265-19710503,Colpus,265-1971-5-3,success,1971-05-03,day,
 265-19710503,Svolik,265-1971-5-3,success,1971-05-03,day,
 265-19891018,Colpus,265-1989-10-18,success,1989-10-18,day,
@@ -8942,7 +8877,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 355-19650407,Wikidata,Q15916329,failed,1965-04-08,day,1965 Bulgarian coup attempt
 355-19650407,Wikipedia,355:April 1965: A plot within the Bulgarian Communist Party to o,plot,1965-04-01,month,April 1965: A plot within the Bulgarian Communist Party to overthrow Todor Zhivkov and establish an anti-Soviet Communist government was foiled.
 355-19650407,Wikipedia,1965:1965 Bulgarian coup attempt: A conspiracy by officials in th,plot,1965-04-08,day,1965 Bulgarian coup attempt: A conspiracy by officials in the Bulgarian Communist Party and officers in the Bulgarian People's Army to overthrow Todor Zhivkov w
-355-19200328,V-Dem historical regimes,15209,success,1920-03-28,day,autogolpe: fine di Stamboliiski Coalition Government
 355-19230609,V-Dem historical regimes,15210,success,1923-06-09,day,golpe militare: fine di BANU
 355-19230609,Wikipedia (FR),fr17,success,1923-06-09,day,Alexandre Tsankov Alexandre Stambolijski Coup d'État réussi : coup d'État du 9 juin 1923
 355-19230609,Wikidata,Q960894,success,1923-06-09,day,1923 Bulgarian coup d'état
@@ -9060,7 +8994,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 940-20000605,Wikipedia,"940:June 5, 2000: Malaita Eagle Force overthrew Prime Minister B",success,2000-06-05,day,"June 5, 2000: Malaita Eagle Force overthrew Prime Minister Bartholomew Ulufa'alu."
 940-20000605,Wikipedia,2000:2000 Solomon Islands coup d'état: Rebel Malaita Eagle Forces,success,2000-01-01,year,"2000 Solomon Islands coup d'état: Rebel Malaita Eagle Forces led a coup against Prime Minister Bartholomew Ulufa'alu. Ulufa'alua was forced to resign, and was r"
 940-19941031,Archigos,SOL-1993,success,1994-10-31,day,rimosso: Hilly
-940-20000630,V-Dem historical regimes,20305,success,2000-06-30,day,golpe militare: fine di Independent Solomon Islands
 790-20021004,Colpus,790-2002-10-4,success,2002-10-04,day,
 790-20021004,Center for Systemic Peace,723,success,2002-10-04,day,King Gyanendra
 790-20021004,Luttwak,790-2002-10-4,success,2002-10-04,day,
@@ -9083,9 +9016,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 790-19601215,PIPE (Przeworski),Nepal-1960-1,success,1960-01-01,year,
 790-19510218,Archigos,NEP-1948,success,1951-02-18,day,rimosso: Mohan Rana
 790-19510218,Colpus,790-1951-2-18,notcoup,1951-02-18,day,prior defection
-790-19010305,V-Dem historical regimes,5809,success,1901-03-05,day,golpe non militare: fine di Rule of the Shamser Ranas/Reign of Bir/Reign of Dev
-790-19600106,V-Dem historical regimes,5812,success,1960-01-06,day,autogolpe: fine di 1959 Constitution
-790-19621216,V-Dem historical regimes,5813,success,1962-12-16,day,autogolpe: fine di King Mahendra rule without constitution 
 790-19501107,Bjornskov & Rode,790-1950-11-7,failed,1950-11-07,day,
 790-19501107,Colpus,790-1950-11-7,notcoup,1950-11-07,day,autogolpe
 790-19991013,Marshall (WHIV),790-1999-10-13,failed,1999-10-13,day,
@@ -9131,13 +9061,11 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 93-19260114,Wikipedia,1926:Nicaragua: Emiliano Chamorro overthrows Carlos José Solórzan,success,1926-01-01,year,"Nicaragua: Emiliano Chamorro overthrows Carlos José Solórzano, starting the Constitutionalist War."
 93-19260114,Wikipedia (ES),es33,success,1926-01-01,year,El Lomazo
 93-19260114,PIPE (Przeworski),Nicaragua-1926-1,success,1926-01-01,year,
-93-19260314,V-Dem historical regimes,5911,success,1926-03-14,day,golpe non militare: fine di US Protectorate under Solorzano
 93-19360609,V-Dem historical regimes,5915,success,1936-06-09,day,golpe non militare: fine di Batista presidency
 93-19360609,Wikipedia,"93:June 6, 1936: Anastasio Somoza Garcia orchestrated a first c",success,1936-06-06,day,"June 6, 1936: Anastasio Somoza Garcia orchestrated a first coup, in which he ousted his uncle, President Juan Bautista Sacasa."
 93-19360609,Wikipedia,1936:1936 Nicaraguan coup d'état: a coup by National Guard direct,success,1936-01-01,year,"1936 Nicaraguan coup d'état: a coup by National Guard director Anastasio Somoza García forces the resignation of president Juan Bautista Sacasa, beginning the S"
 93-19360609,Wikipedia (ES),es67,success,1936-01-01,year,Golpe de Estado en Nicaragua de 1936
 93-19360609,PIPE (Przeworski),Nicaragua-1936-1,success,1936-01-01,year,
-93-20250130,V-Dem historical regimes,5920,success,2025-01-30,day,autogolpe: fine di Ortega rule
 93-19790717,Luttwak,93-1979-7-17,success,1979-07-17,day,
 93-19790717,Colpus,93-1979-7-17,notcoup,1979-07-17,day,prior defection
 93-19790717,PIPE (Przeworski),Nicaragua-1979-1,success,1979-01-01,year,
@@ -9168,7 +9096,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 325-19221029,Wikipedia,"1922:March on Rome in Italy: Between 27 and 29 October, the March",success,1922-10-01,month,"March on Rome in Italy: Between 27 and 29 October, the March on Rome by the Blackshirts led to the installation of Benito Mussolini of the National Fascist Part"
 325-19221029,Wikipedia (ES),es24,success,1922-01-01,year,Marcha sobre Roma
 325-19221029,PIPE (Przeworski),Italy-1922-1,success,1922-01-01,year,
-325-19231115,V-Dem historical regimes,8205,success,1923-11-15,day,autogolpe: fine di Constitutional Mussolini rule
 325-19701208,Wikipedia (FR),fr146,failed,1970-12-08,day,Junio Valerio Borghese Giuseppe Saragat Coup d'État raté : coup d'État Borghese
 325-19701208,Wikidata,Q1099135,failed,1970-12-07,day,Golpe Borghese
 325-19701208,Wikipedia,"325:December 7–8, 1970: Coup attempt by neo-fascist groups led b",failed,1970-12-07,day,"December 7–8, 1970: Coup attempt by neo-fascist groups led by Junio Valerio Borghese, a former Italian Royal Navy commander of World War II, failed after the CI"
@@ -9181,7 +9108,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 2-20210106,Wikipedia (FR),fr297,failed,2021-01-06,day,Partisans du président sortant Donald Trump Joe Biden <br/> (président élu) Coup d'État raté : assaut du Capitole par des partisans de Donald Trump
 2-20210106,Wikidata,Q102422710,failed,2021-01-01,year,attempts to overturn the 2020 United States presidential election
 2-20210106,Wikipedia (ES),es304,success,2021-01-01,year,Asalto al Capitolio de Estados Unidos de 2021
-2-19640702,V-Dem historical regimes,2003,success,1964-07-02,day,golpe non militare: fine di Post nineteenth amendment
 2-19920116,Marshall (WHIV),2-1992-1-16,failed,1992-01-16,day,
 2-19920116,Colpus,2-1992-1-16,notcoup,1992-01-16,day,not exist
 2-20210106-2,Wikidata,Q104705419,failed,2021-01-06,day,January 6 United States Capitol attack
@@ -9229,7 +9155,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 510-19800626,Colpus,510-1980-6-26,notcoup,1980-06-26,day,coup plot
 510-19830101,Center for Systemic Peace,466,plot,1983-01-01,month,Hatty Maghee and more than 30 others
 510-19880101,Center for Systemic Peace,540,plot,1988-01-01,month,unspecified
-510-19621209,V-Dem historical regimes,4703,success,1962-12-09,day,autogolpe: fine di Independent state of Tanganyika
 510-19720407,Morrison,510-1972-4-7,failed,1972-04-07,day,
 510-19720407,Colpus,510-1972-4-7,notcoup,1972-04-07,day,assassination
 510-19931029,Marshall (WHIV),510-1993-10-29,failed,1993-10-29,day,
@@ -9245,7 +9170,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 710-19260420,Archigos,CHN-1924,success,1926-04-20,day,rimosso: Tuan Chi-jui
 710-19260420,Wikipedia,"710:April 18, 1926: Zhang Xueliang and Wu Peifu captured the cap",success,1926-04-18,day,"April 18, 1926: Zhang Xueliang and Wu Peifu captured the capital, Beijing, and then sacked the city, leading to the collapse of the Beiyang government and the n"
 710-19260420,PIPE (Przeworski),China-1926-1,success,1926-01-01,year,
-710-19131215,V-Dem historical regimes,11010,success,1913-12-15,day,autogolpe: fine di Provisional Constitution of the Republic of China/Provisional Presidency of Yuan Shikai
 710-19170614,V-Dem historical regimes,11012,success,1917-06-14,day,golpe militare: fine di Beyiang military rule under Li Yuanhong
 710-19170614,Wikipedia,"710:June 14, 1917: Qing-loyalist general Zhang Xun overthrew Chi",success,1917-06-14,day,"June 14, 1917: Qing-loyalist general Zhang Xun overthrew Chinese president Li Yuanhong and later proclaim the restoration of the Qing Empire with Puyi as empero"
 710-19170614,PIPE (Przeworski),China-1917-1,success,1917-01-01,year,
@@ -9361,7 +9285,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 731-19950101,Wikidata,Q134733745,failed,1995-01-01,year,6th Corps Incident
 370-19980101,Center for Systemic Peace,687,plot,1998-01-01,month,opposition parties
 370-20170321,Center for Systemic Peace,846,plot,2017-03-21,day,unspecified
-370-19961124,V-Dem historical regimes,10702,success,1996-11-24,day,autogolpe: fine di Constitutional Republic of Belarus
 339-19980913,Center for Systemic Peace,689,failed,1998-09-13,day,supporters of Berisha
 339-19980913,Luttwak,339-1998-9-13,failed,1998-09-13,day,
 339-19980913,Colpus,339-1998-9-13,notcoup,1998-09-13,day,protest
@@ -9372,7 +9295,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 339-19241224,V-Dem historical regimes,1205,success,1924-12-24,day,golpe militare: fine di Independent Albania II - unsettled borders and administration
 339-19241224,Wikipedia,"339:June–December 1924: The June Revolution (Albanian:  or ), al",success,1924-12-01,month,"June–December 1924: The June Revolution (Albanian:  or ), also known as the Antibourgeois Democratic Revolution (Albanian: ), was a peasant insurgency backed by"
 339-19241224,PIPE (Przeworski),Albania-1924-1,success,1924-01-01,year,
-339-19280901,V-Dem historical regimes,1206,success,1928-09-01,day,autogolpe: fine di Zogu's Republic of Albania under de facto proctectoracy of Italy
 339-19220308,Wikidata,Q131831522,failed,1922-03-08,day,Albanian Revolt of 1922
 339-19220308,Wikipedia,1922:Albania: A failed coup d'état attempt was led by Bajram Curr,failed,1922-01-01,year,"Albania: A failed coup d'état attempt was led by Bajram Curri, Elez Isufi, Hamit Toptani and Halit Lleshi."
 339-19140101,Wikipedia,"339:1914: The Peasant Revolt in Albania, also known as the Islam",success,1914-01-01,year,"1914: The Peasant Revolt in Albania, also known as the Islamic Revolt or Muslim Uprising in Albania, was an uprising of peasants from central Albania, mostly Mu"
@@ -9396,7 +9318,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 372-19920106,Wikipedia,"372:December 22, 1991 to January 6, 1992: Warlords Tengiz Kitova",success,1991-12-22,day,"December 22, 1991 to January 6, 1992: Warlords Tengiz Kitovani and Jaba Ioseliani overthrew President Zviad Gamsakhurdia."
 372-19920106,Wikipedia,1991:1991–92 Georgian coup d'état (also known as the Tbilisi War ,failed,1991-01-01,year,1991–92 Georgian coup d'état (also known as the Tbilisi War or the Putsch of 1991–92): A military coup removed President Zviad Gamsakhurdia from office.
 372-19920106,PIPE (Przeworski),Georgia-1991-1,success,1991-01-01,year,
-372-19950824,V-Dem historical regimes,11803,success,1995-08-24,day,autogolpe: fine di Post-1992 Georgia
 372-19920624,Singh,372-1992-6-24,failed,1992-06-24,day,
 372-19920624,Bjornskov & Rode,372-1992-6-24,success,1992-06-24,day,
 372-19920624,Colpus,372-1992-6-24,notcoup,1992-06-24,day,prior defection
@@ -9416,7 +9337,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 553-20080513,Colpus,553-2008-5-15,notcoup,2008-05-15,day,coup plot
 553-20120405,Center for Systemic Peace,812,plot,2012-04-05,day,Peter Mutharika; Bright Msaka; Goodall Gondwe; and other government officials
 553-20120405,Wikipedia,2012:2012 Malawian constitutional crisis,success,2012-01-01,year,2012 Malawian constitutional crisis
-553-19660706,V-Dem historical regimes,8704,success,1966-07-06,day,autogolpe: fine di Independent Republic of Malawi under Banda
 701-20020401,Center for Systemic Peace,721,plot,2002-04-01,month,Muhammad Nazarov
 703-20030515,Center for Systemic Peace,725,failed,2003-05-15,day,Adyl Karimov
 703-20030515,Colpus,703-2003-5-15,notcoup,2003-05-15,day,prior defection
@@ -9424,7 +9344,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 703-20160512,Center for Systemic Peace,841,plot,2016-05-12,day,Bekbolot Talgarbekov; Marat Sultanov; Torobay Kolubayev
 703-20170417,Center for Systemic Peace,847,plot,2017-04-17,day,Bektur Asanov; Kubanychbek Kadyrov; Ernest Karybekov
 703-20170930,Center for Systemic Peace,849,plot,2017-09-30,day,Kanatbek Isayev
-703-20210110,V-Dem historical regimes,12205,success,2021-01-10,day,autogolpe: fine di Parliamentary Republic of Kyrgyzstan
 703-20050324,Luttwak,703-2005-3-24,success,2005-03-24,day,
 703-20050324,Colpus,703-2005-3-24,notcoup,2005-03-24,day,protest
 703-20100408,Luttwak,703-2010-4-8,success,2010-04-08,day,
@@ -9433,8 +9352,8 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 703-20230506,Wikipedia,"703:May 6, 2023: Kyrgyz authorities arrested 30 people on charge",plot,2023-05-06,day,"May 6, 2023: Kyrgyz authorities arrested 30 people on charges of plotting a coup against President Sadyr Japarov."
 703-20230506,Wikipedia,"2023:On 6 May, 30 people were arrested in Kyrgyzstan for an attem",failed,2023-05-01,month,"On 6 May, 30 people were arrested in Kyrgyzstan for an attempted coup."
 703-20240701,Wikipedia,703:July 2024: Kyrgyz intelligence services foiled a planned cou,plot,2024-07-01,month,July 2024: Kyrgyz intelligence services foiled a planned coup.
-703-20240701,Wikipedia,2024:Kyrgyz security services arrested five on charges of organis,failed,2024-01-01,year,Kyrgyz security services arrested five on charges of organising a coup attempt on July 5.
-703-20241113,Wikipedia,"703:November 13, 2024: Seven people arrested on charges of organ",success,2024-11-13,day,"November 13, 2024: Seven people arrested on charges of organising a coup."
+703-20240701,Wikipedia,2024:Kyrgyz security services arrested five on charges of organis,plot,2024-01-01,year,Kyrgyz security services arrested five on charges of organising a coup attempt on July 5.
+703-20241113,Wikipedia,"703:November 13, 2024: Seven people arrested on charges of organ",plot,2024-11-13,day,"November 13, 2024: Seven people arrested on charges of organising a coup."
 703-20241113,Wikipedia,2024:Thirty people are arrested while seven are accused of organi,plot,2024-01-01,year,Thirty people are arrested while seven are accused of organizing a coup in Kyrgyzstan on November 19.
 703-20260512,Wikipedia,"703:May 12, 2026: Former security chief Kamchybek Tashiev and se",plot,2026-05-12,day,"May 12, 2026: Former security chief Kamchybek Tashiev and seven others are arrested on charges of planning a coup."
 703-20250101,Wikipedia,2025:2025 Kyrgyz coup attempt,failed,2025-01-01,year,2025 Kyrgyz coup attempt
@@ -9474,7 +9393,6 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 341-20161016,Wikipedia,"341:October 16, 2016: There was an attempted coup by opposition ",failed,2016-10-16,day,"October 16, 2016: There was an attempted coup by opposition and Russian agents against the government of Milo Đukanović on the day of the 2016 Montenegrin parli"
 341-20161016,Wikipedia (DE),de62,failed,2016-10-16,day,Der Putschversuch in Montenegro 2016 war von serbischen und pro-russischen Oppositionsgruppen während der Verkündung des Wahlergebnis der Parlamentswahl in Mont
 341-20161016,Wikipedia,2016:Montenegrin coup plot: Attempted coup by Main Intelligence D,plot,2016-01-01,year,Montenegrin coup plot: Attempted coup by Main Intelligence Directorate agents and pro-Russian organisations from Serbia and Montenegro against the government of
-341-19290106,V-Dem historical regimes,18305,success,1929-01-06,day,"autogolpe: fine di Kingdom of Serbs, Croats and Slovenes"
 368-19261219,Archigos,LIT-1926-1,success,1926-12-19,day,rimosso: Grinius
 368-19261219,V-Dem historical regimes,17305,success,1926-12-15,day,golpe militare: fine di Second State of Lithuania
 368-19261219,Wikipedia (FR),fr30,failed,1926-12-17,day,Antanas Smetona et Augustinas Voldemaras Kazys Grinius Coup d'État raté : coup d'État de 1926 en Lituanie
@@ -9572,7 +9490,7 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 255-19231108,Wikidata,Q1494320,failed,1923-10-01,month,Küstrin Putsch
 255-19231108,Wikipedia,"255:November 8, 1923: A failed attempt by Nazi Party leader Adol",failed,1923-11-08,day,"November 8, 1923: A failed attempt by Nazi Party leader Adolf Hitler with Erich Ludendorff to seize control of Bavaria and overthrow Gustav Ritter von Kahr's st"
 255-19231108,Wikipedia (DE),de6,success,1923-11-08,day,Der Hitler-Putsch begann mit einem Übergriff auf eine Großveranstaltung des bayerischen Generalstaatskommissars Gustav von Kahr im Münchener Bürgerbräukeller; e
-255-19231108,Wikipedia,1923:Beer Hall Putsch in Germany: A failed coup was attempted by ,failed,1923-11-08,day,Beer Hall Putsch in Germany: A failed coup was attempted by Nazi Party leader Adolf Hitler against the leaders of the Weimar Republic. The Nazis were repelled b
+255-19231108,Wikipedia,1923:Beer Hall Putsch in Germany: A failed coup was attempted by ,plot,1923-11-08,day,Beer Hall Putsch in Germany: A failed coup was attempted by Nazi Party leader Adolf Hitler against the leaders of the Weimar Republic. The Nazis were repelled b
 255-19231108,Wikipedia (ES),es25,success,1923-01-01,year,Putsch de Múnich
 255-19440720,Wikipedia (FR),fr56,plot,1944-07-20,day,Claus von Stauffenberg Adolf Hitler Coup d'État raté : complot du 20 juillet 1944
 255-19440720,Wikipedia,"255:July 20, 1944: Members of the German resistance within the W",failed,1944-07-20,day,"July 20, 1944: Members of the German resistance within the Wehrmacht led by Claus von Stauffenberg attempted to assassinate Adolf Hitler and seize control from "
@@ -9646,7 +9564,7 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 740-19360226,Wikipedia,1936:February 26 Incident in Japan: A coup attempt by junior mili,failed,1936-02-26,day,February 26 Incident in Japan: A coup attempt by junior military officers failed in installing a militarist government.
 740-19360226,Wikipedia (ES),es63,success,1936-01-01,year,Incidente del 26 de febrero
 740-19450815,Wikipedia (FR),fr60,failed,1945-08-15,day,Kenji Hatanaka Hirohito Coup d'État raté : incident de Kyūjō
-740-19450815,Wikidata,Q713163,failed,1945-08-15,day,Kyūjō Incident
+740-19450815,Wikidata,Q11493837,failed,1945-08-15,day,Mount Atago incident
 740-19450815,Wikipedia,"740:August 14–15, 1945: A coup against Emperor Hirohito by membe",failed,1945-08-14,day,"August 14–15, 1945: A coup against Emperor Hirohito by members of the Ministry of the Army and the Imperial Guard opposed to surrendering to the Allied Powers a"
 740-19450815,Wikipedia (DE),de15,success,1945-08-14,day,In der Nacht vom 14. auf den 15. August 1945 besetzte eine Gruppe von Militärs den Palast in Tokio. Dies war der Vorabend der Ausstrahlung der Radioansprache de
 740-19450815,Wikipedia,1945:Kyūjō incident in Japan: Attempt by elements of the Ministry,failed,1945-01-01,year,Kyūjō incident in Japan: Attempt by elements of the Ministry of War to prevent Japan's surrender.
@@ -9664,7 +9582,7 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 740-19341101,Wikipedia,740:November 1934: A coup by members of the Imperial Japanese Ar,failed,1934-11-01,month,November 1934: A coup by members of the Imperial Japanese Army failed to achieve a Shōwa Restoration.
 740-19450309,Wikidata,Q2633177,success,1945-03-09,day,Japanese coup d'état in French Indochina
 740-19450309,Wikipedia,1945:Japanese coup d'état in French Indochina,success,1945-01-01,year,Japanese coup d'état in French Indochina
-740-19450815-2,Wikidata,Q11493837,failed,1945-08-15,day,Mount Atago incident
+740-19450815-2,Wikidata,Q713163,failed,1945-08-15,day,Kyūjō Incident
 740-19450824,Wikidata,Q1048684,failed,1945-08-24,day,Matsue Incident
 740-19450824,Wikipedia,"740:August 24, 1945: A failed coup by dissidents opposed to surr",failed,1945-08-24,day,"August 24, 1945: A failed coup by dissidents opposed to surrender was led by Isao Okazaki in Matsue."
 740-19611212,Wikidata,Q11356646,failed,1961-12-12,day,Sanmu Incident

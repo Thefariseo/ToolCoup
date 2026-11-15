@@ -161,14 +161,36 @@ ridistribuzione. Il sito contiene conteggi mensili per paese, non gli eventi gre
 
 ## Modello
 
+Affinamento, verifiche e scheda paese: [docs/refinement.md](docs/refinement.md).
+Per ricalcolare localmente senza creare un'edizione nel registro: `python3 pipeline/run.py --boot 30 --no-archive`.
+Per confrontare le alternative senza cambiare il modello pubblicato: `python3 pipeline/experiment_refinement.py`.
+
 - **Campione**: paese-mesi dal 1950 a oggi (circa 160.000), non solo il periodo coperto da ACLED.
 - **Target**: almeno un tentativo di golpe nei successivi N mesi, tra gli eventi confermati da almeno due
   fonti accademiche o presenti in Powell & Thyne.
 - **Variabili** (`pipeline/panel.py`): storia golpista, contagio regionale e globale, regime, leader ed
   elezioni, economia, mobilitazione annuale, segnali mensili ACLED relativi alla norma del paese. Ogni
-  variabile entra solo quando la fonte l'aveva già pubblicata.
+  variabile annuale rispetta un ritardo di pubblicazione assunto; non sono disponibili tutte le versioni storiche delle fonti.
 - **Insieme** (`pipeline/model.py`): media di regressione logistica regolarizzata, gradient boosting e
-  foresta casuale, poi calibrazione di Platt stimata solo sul passato.
+  foresta casuale (dall'edizione 2026-12 anche LightGBM, `pipeline/lgbm.py`), poi calibrazione di Platt
+  stimata solo sul passato. Le edizioni gia' archiviate nel registro non cambiano.
 - **Validazione**: finestra espandibile anno per anno dal 1975; AUC-ROC, AUC-PR, Brier, calibrazione per
   fasce, confronti per sottrazione con intervalli da ricampionamento dei paesi.
 - **Incertezza**: intervallo all'80% per ogni paese, da riaddestramenti su paesi ricampionati.
+
+## Ticker, mercati, dossier per lettore e database dei golpe
+
+- **Ticker** (`components/Ticker.js`, `lib/ticker.js`, `/api/ticker`): una riga sottile in fondo a ogni pagina con titoli su golpe, giunte e instabilita'
+  dalle testate controllate di `lib/outlets.js` (Google News RSS, una ricerca per testata, ultimi 14 giorni) mescolati a righe dei nostri dati (maggiori
+  variazioni di rischio, violenza prevista, registro, mercati). Ogni titolo e' legato a un paese e mostra la nostra stima. Si ferma con il mouse, il fuoco
+  o il pulsante; con `prefers-reduced-motion` non scorre.
+- **Mercati di previsione** (`lib/markets.js`): per ogni paese si guida con un solo mercato, quello con piu' volume tra Polymarket e Kalshi (soglia 5.000 $);
+  Manifold, che usa denaro finto, solo se nessuno dei due ne ha uno. Compaiono nella console (blocco *Market check*), in testa alla pagina paese, nella pagina
+  `/markets`, nel ticker e nel dossier. Polymarket e Kalshi senza link in uscita. Kalshi si scorre in due passate (titoli, poi i mercati degli eventi pertinenti)
+  e lo stato dell'API riporta `scan` (pagine, eventi, se il tempo e' finito).
+- **Dossier per lettore** (`lib/dossier-profile.js`): un profilo calcolato con regole sui nostri dati (archetipo del paese, segnali con livello d'allarme,
+  casi storici piu' simili) fa da cornice al testo; `?lens=analyst|investor|policy|newsroom|aid` cambia l'enfasi per il lettore. La console ha un selettore.
+- **Database dei golpe** (`pipeline/build_coupdb.py`): l'HRD di V-Dem (fine di regime) e PIPE (conteggio annuale) confermano ma non fondano un evento; un evento
+  con la sola fonte HRD non entra (`data/coupdb/excluded_hrd_only.csv`). Una voce di Wikipedia che chiama l'evento golpe o tentativo basta per il livello A.
+  Il bersaglio del registro e' versionato (`target_version`); per correggere la sola storia sul sito senza toccare le previsioni:
+  `python pipeline/export_web.py --refresh-history`.

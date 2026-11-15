@@ -1,18 +1,17 @@
 "use client";
 
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
-import { ATLAS_GEOM, TRACE_GEOM, atlasHeight, createEngine, riskNorm, traceCol } from "@/components/console/engine";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ATLAS_GEOM, atlasHeight, createEngine, riskNorm } from "@/components/console/engine";
+import { GROUP_ORDER, layoutLedger, ledgerModel } from "@/components/console/ledger";
+import TraceLedger from "@/components/console/TraceLedger";
 import { pct } from "@/lib/format";
 
 const RAD = Math.PI / 180;
-export const GROUP_ORDER = ["storia", "contagio", "regime", "leader", "economia", "piazza", "acled"];
 export const GROUP_NAME = { storia: "COUP HISTORY", contagio: "CONTAGION", regime: "REGIME", leader: "LEADER / ELECTIONS", economia: "ECONOMY", piazza: "MOBILIZATION", acled: "ACLED MONTHLY" };
 const REGION_SHORT = { "Western Africa": "W AFRICA", "Middle Africa": "M AFRICA", "Eastern Africa": "E AFRICA", "Southern Africa": "S AFRICA",
   "Northern Africa": "N AFRICA", "Middle East": "MIDEAST", "Caucasus and Central Asia": "C ASIA", "South Asia": "S ASIA",
   "Southeast Asia": "SE ASIA", "East Asia": "E ASIA", Europe: "EUROPE", "South America": "S AMERICA", "Central America": "C AMERICA",
   Caribbean: "CARIB", "North America": "N AMERICA", Oceania: "OCEANIA" };
-const SHORT = { storia: "HISTORY", contagio: "CONTAGION", regime: "REGIME", leader: "LEADERS", economia: "ECONOMY", piazza: "UNREST", acled: "ACLED", rest: "ENSEMBLE" };
-const logit = (p) => Math.log(p / (1 - p)), expit = (z) => 1 / (1 + Math.exp(-z));
 const rnd = (seed) => { let s = seed >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); };
 
 let landPromise;
@@ -26,10 +25,11 @@ const cellKey = (lon, lat, step, dr = 0, dc = 0) => {
   return row * 4096 + ((Math.floor(((lon + 180) / 360) * n) + dc + n) % n);
 };
 
-export default function Stage({ view, list, selected, detail, atlas, plane, live, onSelect, focus, onFocus, apiRef, baseRate }) {
-  const canvasRef = useRef(null), engineRef = useRef(null), labelRefs = useRef(new Map()), overlayRef = useRef(null);
+export default function Stage({ view, list, selected, detail, atlas, plane, live, onSelect, focus, onFocus, apiRef }) {
+  const canvasRef = useRef(null), engineRef = useRef(null), labelRefs = useRef(new Map()), overlayRef = useRef(null), rootRef = useRef(null);
   const [land, setLand] = useState(null), [failed, setFailed] = useState(false), [tip, setTip] = useState(null);
   const [atlasHover, setAtlasHover] = useState(null), [zoomShown, setZoomShown] = useState(1);
+  const [peerData, setPeerData] = useState(null), [size, setSize] = useState({ w: 0, h: 0 });
   const maxRisk = list[0]?.risk || 0.05;
 
   useEffect(() => {
@@ -41,6 +41,7 @@ export default function Stage({ view, list, selected, detail, atlas, plane, live
     loadLand().then(setLand).catch(() => setFailed(true));
     const el = canvasRef.current;
     const wheel = (e) => {                     // native listener: React's onWheel is passive and cannot stop page scroll
+      if (engine.state.view === "trace") return; // the trace does not zoom: let the page scroll
       e.preventDefault();
       const r = el.getBoundingClientRect();
       engine.zoomAt((e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height, Math.exp(-e.deltaY * (e.ctrlKey ? 0.012 : 0.0016)));
@@ -85,25 +86,29 @@ export default function Stage({ view, list, selected, detail, atlas, plane, live
     engine.select(idx ?? -1, g?.c[0], g?.c[1]);
   }, [geo, land, selected]);
 
-  // ---- TRACE: from the recent base rate to this country's forecast, one step per variable group.
-  // Steps are log-odds contributions of the interpretable component; the last step is everything else
-  // (long-run trend, tree models, calibration), so the river always ends exactly on the published forecast.
-  const cascade = useMemo(() => {
-    if (!selected || detail?.slug !== selected.slug || !baseRate) return null;
-    const by = new Map((detail.groups || []).map((g) => [g.key, g.contrib]));
-    const steps = GROUP_ORDER.map((key) => ({ key, d: by.get(key) ?? 0 }));
-    const l0 = logit(baseRate), lf = logit(Math.min(0.999, Math.max(1e-5, selected.risk)));
-    steps.push({ key: "rest", d: lf - (l0 + steps.reduce((t, x) => t + x.d, 0)) });
-    const levels = [l0]; steps.forEach((x) => levels.push(levels.at(-1) + x.d));
-    const lo = Math.min(...levels), hi = Math.max(...levels), span = Math.max(hi - lo, 2.2) * 1.15, mid = (hi + lo) / 2;
-    const { yTop, yBot } = TRACE_GEOM, y = (l) => ((l - mid) / span) * (yTop - yBot);
-    const ticks = [0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.4].filter((p) => Math.abs(y(logit(p))) < 0.58).map((p) => ({ p, y: y(logit(p)) }));
-    return { steps, ys: levels.map(y), ps: levels.map(expit), ticks, sg: steps.map((x) => (Math.abs(x.d) < 0.02 ? 0 : Math.sign(x.d))), mag: steps.map((x) => Math.abs(x.d)) };
-  }, [selected, detail, baseRate]);
+  // ---- TRACE: a ledger. From a reference country (the logistic model's intercept) to this country's forecast, one row per variable
+  // group (largest push first), then the logistic model, the average of the models and the published figure. Each group row also
+  // places this country among all the others. The rows are crisp SVG (TraceLedger); the swarm only streams inside the bars.
   useEffect(() => {
-    const engine = engineRef.current; if (!engine || !cascade) return;
-    engine.setCascade({ ys: cascade.ys, sg: cascade.sg, mag: cascade.mag, x0: TRACE_GEOM.x0, x1: TRACE_GEOM.x1 }, Math.max(0, riskNorm(selected.risk, maxRisk)));
-  }, [cascade, selected, maxRisk]);
+    if (view === "trace" && !peerData) fetch("/api/trace").then((r) => (r.ok ? r.json() : null)).then((d) => d && setPeerData(d)).catch(() => {});
+  }, [view, peerData]);
+  useEffect(() => {
+    const el = rootRef.current; if (!el) return;
+    const read = () => setSize((s) => { const w = Math.round(el.clientWidth), h = Math.round(el.clientHeight); return s.w === w && s.h === h ? s : { w, h }; });
+    read();
+    const ro = new ResizeObserver(read); ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const ledger = useMemo(() => {
+    if (!selected || detail?.slug !== selected.slug || !peerData?.ref || size.w < 240 || size.h < 240) return null;
+    const m = ledgerModel({ groups: detail.groups, components: detail.diagnostics?.components, risk: selected.risk, lo: selected.risk_lo, hi: selected.risk_hi,
+      ref: peerData.ref, peers: peerData.peers, imputed: selected.structural === false });
+    return m ? layoutLedger(m, size.w, size.h) : { none: true };
+  }, [selected, detail, peerData, size]);
+  useEffect(() => {
+    const engine = engineRef.current; if (!engine || !ledger || ledger.none) return;
+    engine.setLedger({ boxes: ledger.boxes, core: ledger.core }, Math.max(0, riskNorm(selected.risk, maxRisk)));
+  }, [ledger, selected, maxRisk]);
   useEffect(() => { engineRef.current?.focus(focus ? GROUP_ORDER.indexOf(focus) : null); }, [focus]);
 
   // ---- ATLAS: every country's forecast history as a ridge; regions are separated by a gap
@@ -255,7 +260,7 @@ export default function Stage({ view, list, selected, detail, atlas, plane, live
   const zoomBtn = (f) => engineRef.current?.zoomAt(0.5, 0.5, f);
 
   return (
-    <div className={`cx-stage v-${view}`}>
+    <div ref={rootRef} className={`cx-stage v-${view}`}>
       <canvas ref={canvasRef} className={view === "field" && !plane ? "grab" : "pan"} onPointerMove={onMove} onPointerDown={onDown} onPointerUp={onUp}
         onPointerCancel={onUp} onPointerLeave={onLeave} aria-hidden="true" />
       {failed && <p className="cx-fail">WebGL2 is unavailable in this browser. The watchlist, readout and timeline remain fully usable.</p>}
@@ -294,30 +299,9 @@ export default function Stage({ view, list, selected, detail, atlas, plane, live
         )}
         {view === "atlas" && !atlas && <p className="cx-wait">LOADING 51 YEARS OF FORECASTS<i>_</i></p>}
 
-        {view === "trace" && cascade && (
-          <>
-            {cascade.ticks.map((t) => (
-              <Fragment key={t.p}>
-                <span className="cx-guide" data-cx={TRACE_GEOM.x0} data-cx2={TRACE_GEOM.x1} data-cy={t.y} />
-                <span className="cx-ytick" data-cx={TRACE_GEOM.x0 - 0.012} data-cy={t.y}>{pct(t.p, t.p < 0.01 ? 1 : 0)}</span>
-              </Fragment>
-            ))}
-            <span className="cx-endcap" data-cx={TRACE_GEOM.x0} data-cy={cascade.ys[0]}>BASE RATE {pct(baseRate, 2)}</span>
-            {cascade.steps.map((x, i) => {
-              const g = x.key !== "rest";
-              return (
-                <button key={x.key} className={`cx-step${x.d > 0.02 ? " up" : x.d < -0.02 ? " down" : ""}${focus === x.key ? " on" : ""}`}
-                  data-cx={traceCol(i).x} data-cy={TRACE_GEOM.labelY + (i % 2 ? -0.17 : 0)} disabled={!g}
-                  onClick={() => onFocus(focus === x.key ? null : x.key)} aria-pressed={focus === x.key}
-                  title={g ? `${GROUP_NAME[x.key]}: odds ×${Math.exp(x.d).toFixed(2)} (log-odds ${x.d > 0 ? "+" : ""}${x.d.toFixed(2)}). Click to list its drivers.` : `Ensemble step: long-run trend, tree models and calibration pull the interpretable component back to the published forecast (log-odds ${x.d > 0 ? "+" : ""}${x.d.toFixed(2)}).`}>
-                  <span>{SHORT[x.key]}</span><b>×{Math.exp(x.d).toFixed(2)}</b>
-                </button>
-              );
-            })}
-            <div className="cx-core" data-cx={TRACE_GEOM.x1} data-cy={cascade.ys[8]}><b>{pct(selected?.risk)}</b><span>FORECAST · 6 MO</span></div>
-          </>
-        )}
-        {view === "trace" && !cascade && <p className="cx-wait">COMPUTING CASCADE<i>_</i></p>}
+        {view === "trace" && ledger && !ledger.none && <TraceLedger ledger={ledger} focus={focus} onFocus={onFocus} name={selected.name} />}
+        {view === "trace" && ledger?.none && <p className="cx-wait">NO DRIVER DECOMPOSITION EXPORTED FOR THIS COUNTRY</p>}
+        {view === "trace" && !ledger && <p className="cx-wait">COMPUTING THE LEDGER<i>_</i></p>}
       </div>
 
       {view === "atlas" && traj && (

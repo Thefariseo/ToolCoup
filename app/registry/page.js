@@ -32,6 +32,7 @@ export default function RegistryPage() {
           <div><dt>ARCHIVE INTEGRITY</dt><dd className={r.integrity.ok ? "ok" : "bad"}>{r.integrity.ok ? "SHA-256 OK" : "ALTERED"}</dd></div>
         </dl>
         <p className="rg-note">Target: {r.target} Events confirmed only by weaker sources are listed but not counted until the database upgrades them.</p>
+        {r.issues.some((i) => i.target_version === 1) && <p className="rg-note">Issues {r.issues.filter((i) => i.target_version === 1).map((i) => i.issue).join(", ")} were filed under the first target definition and stay scored against it: {r.target_v1}</p>}
       </header>
 
       <section>

@@ -7,13 +7,15 @@ import Stage, { GROUP_NAME } from "@/components/console/Stage";
 import Strip from "@/components/console/Strip";
 import Tour, { TOUR_KEY } from "@/components/console/Tour";
 import { labelEn } from "@/lib/english";
-import { fmtEventDate, pct, TYPE_LABEL } from "@/lib/format";
+import { fmtClose, fmtEventDate, marketVerdict, money, pct, TYPE_LABEL } from "@/lib/format";
 
 const VIEWS = [
   { key: "field", n: "1", name: "SIGNAL FIELD", line: "Where. Every country's 6-month probability of a coup attempt. Colour, plume height and pulse rate all encode the same number. Scroll to zoom, drag to rotate." },
   { key: "atlas", n: "2", name: "TEMPORAL ATLAS", line: "When. One ridge per country, 1975 → today: the model's out-of-sample forecast, quarter by quarter. Height = probability. The selected country is lit; the rest recede." },
-  { key: "trace", n: "3", name: "MODEL TRACE", line: "Why. From the recent base rate to this country's forecast: a waterfall of swarm particles, one column per variable group. Amber columns stream up and raise the odds, cyan columns stream down and lower them; a taller column is a bigger push. The last column (ensemble) returns the figure to the published forecast; the vortex is the forecast itself. Click a column to list its drivers." },
+  { key: "trace", n: "3", name: "MODEL TRACE", line: "Why. Each group of variables pushes this country's odds up (amber) or down (cyan), starting from a reference country. Click a row for its drivers." },
 ];
+// who the brief is written for: same evidence, different emphasis (see lib/dossier-profile.js)
+const LENSES = [["analyst", "Analyst"], ["investor", "Investor or risk manager"], ["policy", "Diplomat or policy analyst"], ["newsroom", "Journalist or researcher"], ["aid", "Humanitarian or development team"]];
 const cache = new Map();
 
 export default function Console({ list, meta, auc, featureGroup, registry }) {
@@ -21,7 +23,7 @@ export default function Console({ list, meta, auc, featureGroup, registry }) {
   const [slug, setSlug] = useState(list[0]?.slug), [view, setView] = useState("field");
   const [plane, setPlane] = useState(false), [live, setLive] = useState(true), [q, setQ] = useState(""), [focus, setFocus] = useState(null);
   const [detail, setDetail] = useState(null), [atlas, setAtlas] = useState(null), [ready, setReady] = useState(false);
-  const [dossier, setDossier] = useState({ state: "idle" }), [tour, setTour] = useState(false);
+  const [dossier, setDossier] = useState({ state: "idle" }), [tour, setTour] = useState(false), [lens, setLens] = useState("analyst");
   const filterRef = useRef(null), listRef = useRef(null), stageApi = useRef(null);
   const selected = bySlug.get(slug) || list[0];
 
@@ -31,6 +33,7 @@ export default function Console({ list, meta, auc, featureGroup, registry }) {
     if (VIEWS.some((v) => v.key === p.get("v"))) setView(p.get("v"));
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) setLive(false);
     try { if (p.get("tour") === "1" || !localStorage.getItem(TOUR_KEY)) setTour(true); } catch { /* storage blocked: skip the tour */ }
+    try { const l = localStorage.getItem("toolcoup-lens"); if (LENSES.some((x) => x[0] === l)) setLens(l); } catch { /* storage blocked: default lens */ }
     setReady(true);
   }, [bySlug]);
   useEffect(() => { if (ready) window.history.replaceState(null, "", `?c=${slug}&v=${view}`); }, [ready, slug, view]);
@@ -43,6 +46,8 @@ export default function Console({ list, meta, auc, featureGroup, registry }) {
     return () => { on = false; };
   }, [slug]);
   useEffect(() => { if (view === "atlas" && !atlas) fetch("/api/atlas").then((r) => r.json()).then(setAtlas).catch(() => {}); }, [view, atlas]);
+  const [markets, setMarkets] = useState(null);
+  useEffect(() => { fetch("/api/markets").then((r) => (r.ok ? r.json() : null)).then((d) => setMarkets(d?.primary || {})).catch(() => setMarkets({})); }, []);
 
   const shown = useMemo(() => { const n = q.trim().toLowerCase(); return n ? list.filter((c) => c.name.toLowerCase().includes(n) || c.region.toLowerCase().includes(n)) : list; }, [list, q]);
   const step = useCallback((k) => {
@@ -78,7 +83,7 @@ export default function Console({ list, meta, auc, featureGroup, registry }) {
     const target = selected.slug;
     setDossier({ state: "busy", slug: target });
     try {
-      const res = await fetch(`/api/dossier/${target}?issue=${issue}`);
+      const res = await fetch(`/api/dossier/${target}?issue=${issue}&lens=${lens}`);
       if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `HTTP ${res.status}`);
       const url = URL.createObjectURL(await res.blob()), a = document.createElement("a");
       a.href = url; a.download = `toolcoup-dossier-${target}-${issue}.pdf`; document.body.appendChild(a); a.click(); a.remove();
@@ -127,12 +132,11 @@ export default function Console({ list, meta, auc, featureGroup, registry }) {
           <button onClick={() => setTour(true)} aria-label="Open the guide"><kbd>?</kbd>GUIDE</button>
         </nav>
         <div className="cx-stage-wrap">
-          <Stage view={view} list={list} selected={selected} detail={detail} atlas={atlas} plane={plane} live={live} onSelect={setSlug} focus={focus} onFocus={setFocus} apiRef={stageApi} baseRate={meta.base_rate} />
+          <Stage view={view} list={list} selected={selected} detail={detail} atlas={atlas} plane={plane} live={live} onSelect={setSlug} focus={focus} onFocus={setFocus} apiRef={stageApi} />
           <p className="cx-caption">{v.line}</p>
           {view !== "trace" && (
             <div className="cx-legend" aria-hidden="true"><span>0</span><i /><span>{pct(view === "field" ? list[0].risk : 0.3, 0)}{view === "field" ? "" : "+"}</span></div>
           )}
-          {view === "trace" && <div className="cx-legend txt" aria-hidden="true"><b className="up">■ RAISES</b><b className="down">■ LOWERS</b></div>}
         </div>
         <Strip country={selected} detail={detail} />
       </section>
@@ -157,6 +161,16 @@ export default function Console({ list, meta, auc, featureGroup, registry }) {
           <div><dt>ATTEMPTS 1900→</dt><dd>{selected.attempts} <small>({selected.successes} ok)</small></dd></div>
           <div><dt>LAST</dt><dd>{selected.last ? <>{fmtEventDate({ date: selected.last.date, prec: "day" })} <small>{TYPE_LABEL[selected.last.type]?.toLowerCase()}</small></> : "none recorded"}</dd></div>
         </dl>
+        {markets?.[selected.slug] && (() => {
+          const mk = markets[selected.slug], verdict = marketVerdict(mk.p, mk.model), f = (v) => pct(v, v < 0.1 ? 1 : 0);
+          return (
+            <section className={`cx-market ${verdict?.kind || ""}`} aria-label="Prediction market">
+              <header><h3>MARKET CHECK <em>{mk.source}</em></h3><Link href={`/paese/${selected.slug}#crowd`}>DETAIL →</Link></header>
+              <div className="cx-mk"><b>{f(mk.p)}</b><span>{mk.model != null ? <>market · our model <b>{f(mk.model)}</b> at the same horizon</> : "market"}</span></div>
+              <p className="cx-note">“{mk.question}” · closes {fmtClose(mk.closes)} · {money(mk.volume)} traded.{verdict && ` ${verdict.text}`}</p>
+            </section>
+          );
+        })()}
         <section className="cx-drivers">
           <header><h3>DRIVERS {focus && <em>{GROUP_NAME[focus]}</em>}</h3>{focus ? <button onClick={() => setFocus(null)}>CLEAR ×</button> : <span>log-odds</span>}</header>
           {!detail && <p className="cx-wait">RETRIEVING<i>_</i></p>}
@@ -183,6 +197,11 @@ export default function Console({ list, meta, auc, featureGroup, registry }) {
           <Link href={`/paese/${selected.slug}#assessment`}>EXPLORE THE FULL ASSESSMENT →</Link>
         </section>}
         <div className="cx-dossier">
+          <label className="cx-lens"><span>BRIEF FOR</span>
+            <select value={lens} onChange={(e) => { setLens(e.target.value); try { localStorage.setItem("toolcoup-lens", e.target.value); } catch { /* ignore */ } }}>
+              {LENSES.map(([k, name]) => <option key={k} value={k}>{name}</option>)}
+            </select>
+          </label>
           <button onClick={downloadDossier} disabled={dossier.state === "busy"}>
             {dossier.state === "busy" ? <>COMPILING BRIEF<i>…</i> <small>≈ 30 s</small></> : <>COUNTRY BRIEF · PDF <span>↓</span></>}
           </button>

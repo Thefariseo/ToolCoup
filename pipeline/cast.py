@@ -4,20 +4,22 @@ Previsione, per ogni paese e provincia (admin1), del numero di eventi di violenz
 quattro settimane (Battles, Explosions/remote violence, Violence against civilians e il loro totale).
 
   1. Unita' di tempo: periodi di 28 giorni che finiscono l'ultimo venerdi' completo; dati dal 2018.
-  2. Gerarchia: globale > paese > admin1, e tipo di evento > totale. Previsioni di base a ogni livello.
-  3. Modello: LightGBM con obiettivo Tweedie (conteggi con molti zeri), un modello per livello, tipo e orizzonte.
-  4. Riconciliazione: le previsioni di base vengono rese coerenti (le province sommano al paese, i tipi al totale) con
-     minimi quadrati ponderati (pesi strutturali, risolti con gradienti coniugati). E' la variante WLS di MinT, piu' semplice di
-     MinTraceSparse; dopo di essa i valori negativi sono portati a zero e le somme ricalcolate dal basso.
-  5. Incertezza: residui di un backtest a finestra mobile, scalati con sqrt(previsione + 1), quantili per livello, tipo e orizzonte,
-     per classe di dimensione della previsione e lisciati sull'orizzonte. E' una versione semplificata dell'approccio conforme; la copertura e' misurata
-     leave-one-origin-out (le bande di un'origine usano quantili stimati sulle altre).
-  6. Combinazione: la previsione pubblicata e' la media semplice di modello, media a 6 periodi e ultimo periodo. Alle distanze lunghe il modello da solo non batte
-     i riferimenti semplici; pesi stimati sul backtest erano instabili con cinque origini, quindi i pesi sono uguali e non stimati.
-  7. Confronto con la media mobile (6 e 13 periodi), per dare un termine di paragone.
+  2. Livello paese (quello che il sito pubblica con le bande): per ciascun tipo di evento e per il totale, UN modello LightGBM per tutti e sei
+     gli orizzonti (l'orizzonte e' una variabile), addestrato a prevedere il logaritmo del rapporto tra i conteggi futuri e la media mobile a 6
+     periodi, con errore assoluto (L1). Ragioni, misurate in experiment_cast.py su 24 origini: la metrica pubblicata (WAPE, errore relativo) e' un
+     errore assoluto, che si minimizza con la mediana e non con la media (Tweedie); sei volte piu' righe per modello riducono la varianza ai
+     lunghi orizzonti; il peso delle osservazioni recenti segue il cambio di regime (Ucraina, Sudan, Sahel). Variabili: ritardi fino a sei periodi,
+     medie a 3/6/13/26, pendenza, massimo, EWMA, quota degli attori, paesi vicini, totale mondiale, eta' della copertura, V-Dem e dati nazionali.
+  3. Combinazione: la previsione pubblicata e' una media pesata di modello, media a 6 periodi e ultimo periodo, con pesi per orizzonte stimati
+     (WAPE + errore relativo) sulle origini del backtest il cui esito era gia' noto, con riduzione verso i pesi uguali. Niente informazione dal futuro.
+  4. Province: un modello analogo per il totale di ogni provincia, poi ridimensionato perche' le province sommino al paese (e i tipi al totale).
+     E' piu' semplice della riconciliazione MinT di CAST: il totale paese e' piu' preciso della somma delle province.
+  5. Incertezza: residui del backtest a finestra mobile (24 origini a passo di due periodi), scalati con sqrt(previsione + 1), quantili per tipo,
+     orizzonte e classe di dimensione della previsione; la copertura e' misurata leave-one-origin-out.
+  6. Confronto con la media mobile (6 e 13 periodi) e con l'ultimo periodo, per dare un termine di paragone.
 
 Non si usano WorldPop ne' la mortalita' infantile subnazionale CIESIN: restano V-Dem e popolazione/mortalita' infantile nazionali.
-Uso:  python pipeline/cast.py [--origins 5] [--quick]
+Uso:  python pipeline/cast.py [--origins 24] [--stride 2] [--quick] [--reuse] [--out file]
 """
 from __future__ import annotations
 
@@ -30,8 +32,6 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import scipy.sparse as sp
-from scipy.sparse.linalg import cg
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from countries import code_from_name  # noqa: E402
@@ -45,6 +45,7 @@ NAMES = {"b": "Battles", "e": "Explosions/remote violence", "v": "Violence again
 ETYPE = {"Battles": "b", "Explosions/Remote violence": "e", "Violence against civilians": "v"}
 PERIOD, HORIZONS, START_YEAR = 28, 6, 2018
 ALPHA = 0.2                                    # intervalli all'80%
+BURN = 6                                       # periodi iniziali senza media a 6 periodi
 
 
 # ------------------------------------------------------------------ dati
@@ -113,6 +114,21 @@ def roll(m: np.ndarray, w: int, fn) -> np.ndarray:
     return out
 
 
+def ewma(x: np.ndarray, a: float) -> np.ndarray:
+    out = np.full_like(x, np.nan)
+    out[:, 0] = x[:, 0]
+    for p in range(1, x.shape[1]):
+        out[:, p] = a * x[:, p] + (1 - a) * out[:, p - 1]
+    return out
+
+
+def slope(x: np.ndarray, w: int = 6) -> np.ndarray:
+    out = np.full_like(x, np.nan)
+    t = np.arange(w) - (w - 1) / 2
+    out[:, w - 1:] = np.lib.stride_tricks.sliding_window_view(x, w, axis=1) @ t / (t @ t)
+    return out
+
+
 # ------------------------------------------------------------------ variabili
 def features(A: dict, units: pd.DataFrame, geo: pd.DataFrame, ends: list[date], cy: pd.DataFrame, level: str) -> tuple[np.ndarray, list[str]]:
     """Matrice (U*P, F) per il livello 'admin1' o 'country'. A contiene gia' le matrici del livello."""
@@ -153,171 +169,207 @@ def features(A: dict, units: pd.DataFrame, geo: pd.DataFrame, ends: list[date], 
     return np.column_stack(cols).astype(np.float32), names
 
 
+def rich_features(Ac: dict, names: list[str], geo: pd.DataFrame, ends: list[date], cy: pd.DataFrame):
+    """Variabili per il livello paese, (n, P, nf): ritardi, medie, pendenza, massimo, EWMA, attori, paesi vicini, mondo, eta' della copertura."""
+    n, P = Ac["o"].shape
+    F, fn = [], []
+    def add(name, m):
+        F.append(np.asarray(m, dtype=np.float32)); fn.append(name)
+    for k in ("o", "b", "e", "v", "fat", "prot", "riot"):
+        lk = np.log1p(Ac[k])
+        for j in range(6):
+            add(f"{k}_l{j}", lag(lk, j))
+        for w in (3, 6, 13, 26):
+            add(f"{k}_m{w}", roll(lk, w, np.mean))
+        add(f"{k}_sd6", roll(lk, 6, np.std)); add(f"{k}_max6", roll(lk, 6, np.max))
+        add(f"{k}_slope6", slope(lk)); add(f"{k}_ew3", ewma(lk, 0.3)); add(f"{k}_ew6", ewma(lk, 0.6))
+    lo = np.log1p(Ac["o"])
+    add("o_last_vs_m6", lag(lo, 0) - roll(lo, 6, np.mean))
+    add("o_m3_vs_m13", roll(lo, 3, np.mean) - roll(lo, 13, np.mean))
+    for k in range(1, 9):
+        add(f"inter{k}", np.log1p(lag(Ac[f"i{k}"], 0)))
+    for k in ("excess", "strat", "agree"):
+        add(k, np.log1p(lag(Ac[k], 0)))
+    from scipy.spatial import cKDTree
+    lat, lon = np.radians(geo["latitude"].fillna(0).to_numpy()), np.radians(geo["longitude"].fillna(0).to_numpy())
+    xyz = np.c_[np.cos(lat) * np.cos(lon), np.cos(lat) * np.sin(lon), np.sin(lat)]
+    nb = cKDTree(xyz).query(xyz, k=min(7, n))[1][:, 1:]
+    add("nb_o_l0", lo[nb].mean(axis=1)); add("nb_o_m6", roll(lo[nb].mean(axis=1), 6, np.mean))
+    tot = np.log1p(Ac["o"].sum(axis=0, keepdims=True)).repeat(n, axis=0)
+    add("glob_o", tot); add("glob_o_m6", roll(tot, 6, np.mean))
+    first = np.array([np.argmax(r > 0) if (r > 0).any() else P for r in Ac["o"]])
+    add("age", np.arange(P)[None, :] - first[:, None])
+    add("period_idx", np.tile(np.array([d.toordinal() for d in ends], dtype=np.float32), (n, 1)))
+    mo = np.array([d.month for d in ends], dtype=np.float32)
+    add("month_sin", np.tile(np.sin(2 * np.pi * mo / 12), (n, 1))); add("month_cos", np.tile(np.cos(2 * np.pi * mo / 12), (n, 1)))
+    cc = pd.Series(names).map(lambda s: code_from_name(s)).to_numpy()
+    have = set(cy.index.get_level_values(0))
+    for v in ("v2x_polyarchy", "v2x_libdem", "v2x_civlib", "e_log_infmort", "e_log_pop"):
+        m = np.full((n, P), np.nan, dtype=np.float32)
+        for i, c in enumerate(cc):
+            if c is not None and c == c and int(c) in have and v in cy:
+                m[i] = cy.loc[int(c), v].reindex(np.array([d.year - 1 for d in ends])).to_numpy(dtype=np.float32)
+        add(v, m)
+    return np.stack(F, axis=2), fn
+
+
 def target(A: np.ndarray, h: int) -> np.ndarray:
     out = np.full_like(A, np.nan); out[:, :-h] = A[:, h:]
     return out.reshape(-1)
 
 
-# ------------------------------------------------------------------ aggregazione e riconciliazione
-def hierarchy(units: pd.DataFrame):
-    """Matrice di aggregazione sparsa (righe aggregate, colonne = nodi di base admin1 x tipo)."""
-    U = len(units); cty = units["country"].astype("category"); C = len(cty.cat.categories); ci = cty.cat.codes.to_numpy()
-    nb = 3 * U
-    rows, cols = [], []
-    def col(u, k): return k * U + u
-    r = 0
-    admin_total = r                                    # U righe
-    for u in range(U):
-        for k in range(3):
-            rows.append(r + u); cols.append(col(u, k))
-    r += U
-    country_type = r                                    # 3C
-    for u in range(U):
-        for k in range(3):
-            rows.append(r + k * C + ci[u]); cols.append(col(u, k))
-    r += 3 * C
-    country_total = r                                   # C
-    for u in range(U):
-        for k in range(3):
-            rows.append(r + ci[u]); cols.append(col(u, k))
-    r += C
-    global_type = r                                     # 3
-    for u in range(U):
-        for k in range(3):
-            rows.append(r + k); cols.append(col(u, k))
-    r += 3
-    for u in range(U):                                  # globale totale
-        for k in range(3):
-            rows.append(r); cols.append(col(u, k))
-    r += 1
-    S = sp.csr_matrix((np.ones(len(rows)), (rows, cols)), shape=(r, nb))
-    return S, {"admin_total": admin_total, "country_type": country_type, "country_total": country_total, "global_type": global_type, "global_total": r - 1, "C": C, "ci": ci}
-
-
-def reconcile(base_bottom: np.ndarray, base_agg: np.ndarray, S: sp.csr_matrix) -> np.ndarray:
-    """WLS con pesi strutturali: min sum_i (yhat_i - (S b)_i)^2 / w_i, w_i = numero di nodi di base sotto i. Risolto con CG."""
-    w = np.asarray(S.sum(axis=1)).ravel(); Wi = sp.diags(1.0 / w)
-    A = sp.identity(S.shape[1]) + S.T @ Wi @ S
-    rhs = base_bottom + S.T @ (Wi @ base_agg)
-    b, info = cg(A, rhs, rtol=1e-6, maxiter=400, M=sp.diags(1.0 / A.diagonal()))
-    return np.maximum(b, 0)
-
-
 # ------------------------------------------------------------------ modelli
 def lgbm(n_trees: int):
+    """Tweedie con un modello per orizzonte: il modello delle prime versioni, tenuto come riferimento negli esperimenti."""
     import lightgbm as lgb
     return lgb.LGBMRegressor(objective="tweedie", tweedie_variance_power=1.4, n_estimators=n_trees, learning_rate=0.05, num_leaves=31, min_child_samples=40,
                              subsample=0.8, subsample_freq=1, colsample_bytree=0.7, reg_lambda=2.0, verbose=-1, n_jobs=-1, random_state=0)
 
 
-def fit_predict(Xa, Ya, Xc, Yc, origin: int, n_trees: int, P: int):
-    # il modello impara la correzione rispetto alla media mobile a 6 periodi (offset nel log): non puo' fare peggio di quella per costruzione
-    offset = {(lv, t): roll(Y[t], 6, np.mean).reshape(-1) for lv, Y in (('admin1', Ya), ('country', Yc)) for t in TYPES + ['o']}
-    """Addestra con le sole righe il cui bersaglio (periodo p+h) e' noto a 'origin' e prevede da 'origin'.
-    Restituisce {(livello, tipo, h): array(unita')} per admin1 e paese."""
+def lgb_l1(n_trees: int, **kw):
+    import lightgbm as lgb
+    p = dict(objective="l1", n_estimators=n_trees, learning_rate=0.05, num_leaves=31, min_child_samples=60, subsample=0.8, subsample_freq=1,
+             colsample_bytree=0.6, reg_lambda=3.0, verbose=-1, n_jobs=-1, random_state=0, deterministic=True, force_row_wise=True)
+    p.update(kw)
+    return lgb.LGBMRegressor(**p)
+
+
+def pooled_country(F: np.ndarray, Y: np.ndarray, ma6: np.ndarray, T: int, trees: int, halflife: float = 40.0) -> dict[int, np.ndarray]:
+    """Un solo modello per tutti gli orizzonti, alla data T. Bersaglio: log1p(y[p+h]) - log1p(ma6[p]); errore assoluto; peso che decade con l'eta'."""
+    n, P, nf = F.shape
+    Xs, ys, ws = [], [], []
+    for h in range(1, HORIZONS + 1):
+        p0, p1 = BURN, T - h
+        if p1 < p0:
+            continue
+        X = F[:, p0:p1 + 1, :].reshape(-1, nf)
+        z = (np.log1p(Y[:, p0 + h:p1 + h + 1]) - np.log1p(ma6[:, p0:p1 + 1])).reshape(-1)
+        ok = np.isfinite(z)
+        Xs.append(np.column_stack([X[ok], np.full(ok.sum(), h, dtype=np.float32)])); ys.append(z[ok])
+        age = np.broadcast_to(np.arange(p0, p1 + 1)[None, :], (n, p1 - p0 + 1)).reshape(-1)[ok]
+        ws.append(0.5 ** ((T - h - age) / halflife))
+    m = lgb_l1(trees).fit(np.vstack(Xs), np.concatenate(ys), sample_weight=np.concatenate(ws))
+    return {h: np.maximum(np.expm1(np.log1p(ma6[:, T]) + m.predict(np.column_stack([F[:, T, :], np.full(n, h, dtype=np.float32)]))), 0) for h in range(1, HORIZONS + 1)}
+
+
+def pooled_admin1(X3: np.ndarray, fnames: list[str], Yo: np.ndarray, ma6: np.ndarray, T: int, trees: int, halflife: float = 40.0) -> dict[int, np.ndarray]:
+    """Come pooled_country, per il totale di ogni provincia. Solo le province con eventi nelle ultime 13 periodi entrano nell'addestramento; le altre prevedono zero."""
+    U, P, nf = X3.shape
+    i13 = fnames.index("o_mean13")
+    Xs, ys, ws = [], [], []
+    for h in range(1, HORIZONS + 1):
+        p0, p1 = BURN, T - h
+        if p1 < p0:
+            continue
+        X = X3[:, p0:p1 + 1, :]
+        z = np.log1p(Yo[:, p0 + h:p1 + h + 1]) - np.log1p(ma6[:, p0:p1 + 1])
+        sel = np.isfinite(z) & (X[..., i13] > 0)
+        Xh = X[sel]
+        Xs.append(np.column_stack([Xh, np.full(len(Xh), h, dtype=np.float32)])); ys.append(z[sel])
+        age = np.broadcast_to(np.arange(p0, p1 + 1)[None, :], z.shape)[sel]
+        ws.append(0.5 ** ((T - h - age) / halflife))
+    m = lgb_l1(trees, subsample=0.5).fit(np.vstack(Xs), np.concatenate(ys), sample_weight=np.concatenate(ws))
+    live = X3[:, T, i13] > 0
     out = {}
-    for level, X, Y in (("admin1", Xa, Ya), ("country", Xc, Yc)):
-        U = Y["o"].shape[0]
-        pidx = np.tile(np.arange(P), U)
-        for t in TYPES + ["o"]:
-            for h in range(1, HORIZONS + 1):
-                y = target(Y[t], h)
-                off = np.log(offset[(level, t)] + 0.5)
-                tr = (pidx + h <= origin) & ~np.isnan(y) & ~np.isnan(X[:, 0]) & np.isfinite(off)
-                m = lgbm(n_trees).fit(X[tr], y[tr], init_score=off[tr])
-                now = (pidx == origin)
-                out[(level, t, h)] = np.exp(m.predict(X[now], raw_score=True) + off[now]) - 0.5
-                out[(level, t, h)] = np.maximum(out[(level, t, h)], 0)
+    for h in range(1, HORIZONS + 1):
+        v = np.zeros(U)
+        xt = np.column_stack([X3[live, T, :], np.full(live.sum(), h, dtype=np.float32)])
+        v[live] = np.maximum(np.expm1(np.log1p(ma6[live, T]) + m.predict(xt)), 0)
+        out[h] = v
     return out
+
+
+def blend_weights(model: np.ndarray, ma6: np.ndarray, last: np.ndarray, truth: np.ndarray) -> np.ndarray:
+    """Pesi (modello, media a 6 periodi, ultimo periodo) che minimizzano WAPE + errore relativo, ridotti verso i pesi uguali."""
+    from scipy.optimize import minimize
+    X = np.stack([model, ma6, last], axis=1)
+    def loss(w):
+        w = np.abs(w) / np.abs(w).sum()
+        f = X @ w
+        return np.abs(f - truth).sum() / max(truth.sum(), 1) + np.mean(np.abs(f - truth) / (ma6 + 1)) + 0.02 * np.sum((w - 1 / 3) ** 2)
+    w = minimize(loss, np.ones(3) / 3, method="Nelder-Mead", options={"xatol": 1e-3, "fatol": 1e-6, "maxiter": 400}).x
+    return np.abs(w) / np.abs(w).sum()
 
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--origins", type=int, default=5, help="origini del backtest per gli intervalli")
+    ap.add_argument("--origins", type=int, default=24, help="origini del backtest per i pesi e gli intervalli")
+    ap.add_argument("--stride", type=int, default=2, help="periodi tra due origini")
     ap.add_argument("--quick", action="store_true", help="meno alberi, per provare")
     ap.add_argument("--reuse", action="store_true", help="riusa il backtest salvato se i dati non sono cambiati")
+    ap.add_argument("--out", default=str(OUT), help="file di uscita (default: webdata/violence.json)")
     args = ap.parse_args()
     warnings.simplefilter("ignore")
-    n_trees = 60 if args.quick else 160
+    trees = 80 if args.quick else 250
     ev, end = load()
     ends, P = periods(end)
     D = build_arrays(ev, end, P)
     units, A, geo = D["units"], D["A"], D["geo"]
-    print(f"{len(units)} unita' admin1 in {units['country'].nunique()} paesi, {P} periodi di {PERIOD} giorni fino al {end}")
+    U = len(units)
+    cty = units["country"].astype("category"); names = list(cty.cat.categories); C = len(names); ci = cty.cat.codes.to_numpy()
+    print(f"{U} unita' admin1 in {C} paesi, {P} periodi di {PERIOD} giorni fino al {end}", flush=True)
     from panel import load_country_years
     cy = load_country_years().set_index(["ccode", "year"])
-    # livello paese
-    cty = units["country"].astype("category"); C = len(cty.cat.categories); ci = cty.cat.codes.to_numpy()
     Acty = {}
     for k, m in A.items():
         g = np.zeros((C, P), dtype=np.float32); np.add.at(g, ci, m); Acty[k] = g
-    cunits = pd.DataFrame({"country": list(cty.cat.categories)}); cunits["admin1"] = ""
-    Xa, na = features(A, units, geo, ends, cy, "admin1")
-    Xc, nc = features(Acty, cunits, geo, ends, cy, "country")
-    S, meta = hierarchy(units)
-    U = len(units)
+    geoc = geo.groupby(ci)[["latitude", "longitude"]].mean().reindex(range(C))
+    F, _ = rich_features(Acty, names, geoc, ends, cy)
+    KINDS = ["o"] + TYPES
+    Y = {t: Acty[t] for t in KINDS}
+    MA = {t: roll(Y[t], 6, np.mean) for t in KINDS}
+    origins = [P - 1 - HORIZONS - args.stride * k for k in range(args.origins)][::-1]
 
-    def forecast_from(origin: int, trees: int):
-        """Previsioni riconciliate a ogni livello per h=1..6, a partire dal periodo 'origin'."""
-        base = fit_predict(Xa, A, Xc, Acty, origin, trees, P)
-        res = {}
-        for h in range(1, HORIZONS + 1):
-            bb = np.concatenate([base[("admin1", t, h)] for t in TYPES])
-            agg = np.zeros(S.shape[0])
-            r0 = meta
-            agg[r0["admin_total"]:r0["admin_total"] + U] = base[("admin1", "o", h)]
-            for k, t in enumerate(TYPES):
-                agg[r0["country_type"] + k * meta["C"]:r0["country_type"] + (k + 1) * meta["C"]] = base[("country", t, h)]
-            agg[r0["country_total"]:r0["country_total"] + meta["C"]] = base[("country", "o", h)]
-            for k, t in enumerate(TYPES):
-                agg[r0["global_type"] + k] = base[("country", t, h)].sum()
-            agg[r0["global_total"]] = base[("country", "o", h)].sum()
-            b = reconcile(bb, agg, S)
-            res[h] = (b, S @ b)
-        return res
-
-    # --- backtest: origini a ritroso di 4 periodi (salvato, cosi' cambiare pesi e intervalli non lo rifa)
-    nb = S.shape[1]
-    ct = slice(nb + meta["country_total"], nb + meta["country_total"] + meta["C"])
-
-    def naive(origin: int):
-        """Riferimenti coerenti a ogni livello: media dei 6 periodi fino a 'origin' e ultimo periodo."""
-        ma6_b = np.concatenate([A[t][:, origin - 5:origin + 1].mean(axis=1) for t in TYPES]); last_b = np.concatenate([A[t][:, origin] for t in TYPES])
-        return np.concatenate([ma6_b, S @ ma6_b]), np.concatenate([last_b, S @ last_b])
-
+    # --- backtest: il modello alle origini passate (salvato: cambiare pesi e intervalli non lo rifa)
     cache = ROOT / "data" / "raw" / "cast_backtest.pkl"
-    key = (P, end.isoformat(), args.origins, n_trees)
+    key = (P, end.isoformat(), args.origins, args.stride, trees, "pooled-l1-v2")
     bt = {}
     if args.reuse and cache.exists():
         saved = pd.read_pickle(cache)
         if saved["key"] == key:
             bt = saved["bt"]; print("riuso il backtest salvato")
     if not bt:
-        for k in range(args.origins):
-            origin = P - 1 - HORIZONS - 4 * k
-            print(f"backtest origine {origin} ({ends[origin]})...", flush=True)
-            fc_o = forecast_from(origin, n_trees)
-            ma6_f, last_f = naive(origin)
-            for h, (b, aggv) in fc_o.items():
-                truth_b = np.concatenate([A[t][:, origin + h] for t in TYPES])
-                bt[(origin, h)] = tuple(x.astype(np.float32) for x in (np.concatenate([b, aggv]), np.concatenate([truth_b, S @ truth_b]), ma6_f, last_f))
+        for i, T in enumerate(origins):
+            for t in KINDS:
+                fc_t = pooled_country(F, Y[t], MA[t], T, trees)
+                for h in range(1, HORIZONS + 1):
+                    bt[(T, h, t)] = fc_t[h].astype(np.float32)
+            print(f"backtest origine {i + 1}/{len(origins)} (periodo {T}, {ends[T]})", flush=True)
         pd.to_pickle({"key": key, "bt": bt}, cache)
-    origins = sorted({o for o, _ in bt})
 
-    # Combinazione di previsioni: media semplice di modello, media a 6 periodi e ultimo periodo. I pesi sono uguali e non stimati: con cinque origini
-    # i pesi stimati sul backtest sono instabili (valutati leave-one-origin-out erano peggiori dell'ultimo periodo oltre i 2 periodi), mentre la media
-    # semplice non e' mai molto peggiore della migliore delle tre previsioni e quasi sempre migliore della peggiore. Le tre sono coerenti, quindi lo e' la miscela.
-    W = (1 / 3, 1 / 3, 1 / 3)
-    cty_slices = [ct, slice(nb + meta["country_type"], nb + meta["country_type"] + 3 * meta["C"])]      # totali per paese e paese x tipo
-    store = {h: [] for h in range(1, HORIZONS + 1)}                                                    # per orizzonte: (miscela, residuo scalato) per origine
-    pooled = {h: [] for h in range(1, HORIZONS + 1)}
-    for o in origins:
+    def parts(T, h, t):
+        return bt[(T, h, t)], MA[t][:, T], Y[t][:, T], Y[t][:, T + h]
+
+    def weights_at(T, h):
+        """Pesi stimati con le sole origini il cui esito era noto in T."""
+        past = [o for o in origins if o + h <= T]
+        if len(past) < 4:
+            return np.ones(3) / 3
+        cols = [np.concatenate([parts(o, h, "o")[k] for o in past]) for k in range(4)]
+        return blend_weights(*cols)
+
+    def blended(T, h, w):
+        """Totale, poi tipi ridimensionati perche' sommino al totale."""
+        out = {}
+        for t in KINDS:
+            m, a, l, _ = parts(T, h, t)
+            out[t] = w[0] * m + w[1] * a + w[2] * l
+        s = sum(out[t] for t in TYPES)
+        scale = np.where(s > 0, out["o"] / np.maximum(s, 1e-9), 0)
+        for t in TYPES:
+            out[t] = np.where(s > 0, out[t] * scale, out["o"] / 3)
+        return out
+
+    W_at = {(T, h): weights_at(T, h) for T in origins for h in range(1, HORIZONS + 1)}
+    store = {h: [] for h in range(1, HORIZONS + 1)}                 # per orizzonte: (origine, previsioni, residui scalati) su totali e tipi del paese
+    pooled = {h: [] for h in range(1, HORIZONS + 1)}                # per orizzonte: (pubblicata, modello, media a 6, ultimo, esito) sul totale del paese
+    for T in origins:
         for h in range(1, HORIZONS + 1):
-            full, truth, ma6f, lastf = bt[(o, h)]
-            bl = W[0] * full + W[1] * ma6f + W[2] * lastf
-            sl_all = np.concatenate([np.arange(nb)[:0]] + [np.arange(sl.start, sl.stop) for sl in cty_slices])
-            store[h].append((o, bl[sl_all], (truth[sl_all] - bl[sl_all]) / np.sqrt(bl[sl_all] + 1)))
-            pooled[h].append((bl[ct], full[ct], ma6f[ct], lastf[ct], truth[ct]))
+            b = blended(T, h, W_at[(T, h)])
+            vec = np.concatenate([b[t] for t in KINDS]); truth = np.concatenate([Y[t][:, T + h] for t in KINDS])
+            store[h].append((T, vec, (truth - vec) / np.sqrt(vec + 1)))
+            m, a, l, tr = parts(T, h, "o")
+            pooled[h].append((b["o"], m, a, l, tr))
 
     # Intervalli: quantili dei residui scalati, separati per classe di dimensione della previsione (la dispersione dei conteggi cresce piu' di sqrt(media):
     # mescolare paesi quasi senza eventi e grandi conflitti rende le bande troppo strette per i secondi) e lisciati sull'orizzonte.
@@ -352,9 +404,9 @@ def main() -> None:
     # usano quantili stimati sulle altre), sui paesi con previsione di almeno un evento e su tutti.
     acc = []
     for h in range(1, HORIZONS + 1):
-        parts = [(o, pooled[h][i]) for i, o in enumerate(origins)]
-        bl, mo, m6, la, tr = (np.concatenate([p_[i] for _, p_ in parts]) for i in range(5))
-        lo_, hi_ = (np.concatenate(x) for x in zip(*[band(p_[0], h, Q_loo[o]) for o, p_ in parts]))
+        rows = pooled[h]
+        bl, mo, m6, la, tr = (np.concatenate([r[i] for r in rows]) for i in range(5))
+        lo_, hi_ = (np.concatenate(x) for x in zip(*[band(r[0], h, Q_loo[o]) for o, r in zip(origins, rows)]))
         keep = (m6 + la + tr) > 0
         met = lambda f: {"wape": round(float(np.abs(f[keep] - tr[keep]).sum() / max(tr[keep].sum(), 1)), 3), "rel": round(float(np.mean(np.abs(f[keep] - tr[keep]) / (m6[keep] + 1))), 3),
                          "rmsle": round(float(np.sqrt(np.mean((np.log1p(f[keep]) - np.log1p(tr[keep])) ** 2))), 3)}
@@ -362,66 +414,68 @@ def main() -> None:
         acc.append({"h": h, "n": int(keep.sum()), "mix": met(bl), "model": met(mo), "ma6": met(m6), "last": met(la),
                     "coverage": round(float(inside[live].mean()), 3), "coverage_all": round(float(inside.mean()), 3), "n_live": int(live.sum())})
         print("  accuratezza paese h=%d:" % h, acc[-1], flush=True)
-    q = {"country": Q_all}
 
-    # --- previsione finale dall'ultimo periodo
-    print("previsione finale...")
-    fc_raw = forecast_from(P - 1, n_trees)
-    ma6_now, last_now = np.concatenate([A[t][:, -6:].mean(axis=1) for t in TYPES]), np.concatenate([A[t][:, -1] for t in TYPES])
-    fc = {}
-    for h, (b, _) in fc_raw.items():
-        bb = W[0] * b + W[1] * ma6_now + W[2] * last_now
-        fc[h] = (bb, S @ bb)
+    # --- previsione dall'ultimo periodo
+    print("previsione finale...", flush=True)
+    T0 = P - 1
+    W_live = {h: blend_weights(*[np.concatenate([parts(o, h, "o")[k] for o in origins if o + h <= T0]) for k in range(4)]) for h in range(1, HORIZONS + 1)}
+    live_fc = {t: pooled_country(F, Y[t], MA[t], T0, trees) for t in KINDS}
+    fc = {}                                                                 # h -> {tipo: previsioni dei paesi}
+    for h in range(1, HORIZONS + 1):
+        w = W_live[h]
+        out = {t: w[0] * live_fc[t][h] + w[1] * MA[t][:, T0] + w[2] * Y[t][:, T0] for t in KINDS}
+        s = sum(out[t] for t in TYPES)
+        for t in TYPES:
+            out[t] = np.where(s > 0, out[t] * out["o"] / np.maximum(s, 1e-9), out["o"] / 3)
+        fc[h] = out
+
+    # province: stesso metodo sul totale della provincia, poi ridimensionato perche' le province sommino al paese
+    Xa, na = features(A, units, geo, ends, cy, "admin1")
+    ma6_a = roll(A["o"], 6, np.mean)
+    adm = pooled_admin1(Xa.reshape(U, P, -1), na, A["o"], ma6_a, T0, trees)
+    for h in range(1, HORIZONS + 1):
+        for c in range(C):
+            idx = np.flatnonzero(ci == c)
+            s = adm[h][idx].sum()
+            if s > 0:
+                adm[h][idx] *= fc[h]["o"][c] / s
+            else:
+                share = ma6_a[idx, T0]; share = share / share.sum() if share.sum() > 0 else np.ones(len(idx)) / len(idx)
+                adm[h][idx] = fc[h]["o"][c] * share
+
     next_ends = [end + timedelta(days=PERIOD * h) for h in range(1, HORIZONS + 1)]
-    ct0 = S.shape[1] + meta["country_total"]
-    names = list(cty.cat.categories)
-    out_c, out_a = {}, {}
-    cnames = {}
-    import json as _json
-    cm = _json.loads((ROOT / "webdata" / "countries.json").read_text())
+    cm = json.loads((ROOT / "webdata" / "countries.json").read_text())
     slug_by_name = {c["name"]: c["slug"] for c in cm}
+    out_c, out_a = {}, {}
     for i, nm in enumerate(names):
         slug = slug_by_name.get(nm) or slugify(nm)
-        rec = {"name": nm, "hist": {"o": [int(v) for v in Acty["o"][i, -26:]], **{t: [int(v) for v in Acty[t][i, -26:]] for t in TYPES}},
+        rec = {"name": nm, "hist": {t: [int(v) for v in Acty[t][i, -26:]] for t in KINDS},
                "ma6": round(float(Acty["o"][i, -6:].mean()), 1), "ma13": round(float(Acty["o"][i, -13:].mean()), 1), "fc": {}}
-        for k, t in enumerate(["o"] + TYPES):
+        for t in KINDS:
             seq = []
             for h in range(1, HORIZONS + 1):
-                b, aggv = fc[h]
-                if t == "o":
-                    v = aggv[meta["country_total"] + i]
-                else:
-                    v = aggv[meta["country_type"] + (TYPES.index(t)) * meta["C"] + i]
-                lo, hi = band(np.array([v]), h, Q_all)
-                seq.append([round(float(v), 1), round(float(lo[0]), 1), round(float(hi[0]), 1)])
+                v = fc[h][t][i:i + 1]
+                lo, hi = band(v, h, Q_all)
+                seq.append([round(float(v[0]), 1), round(float(lo[0]), 1), round(float(hi[0]), 1)])
             rec["fc"][t] = seq
         out_c[slug] = rec
     # admin1: i 12 piu' violenti previsti per paese
-    for i, row in units.iterrows():
-        pass
-    tot_adm = {h: fc[h][1][meta["admin_total"]:meta["admin_total"] + U] for h in fc}
     for ci_, nm in enumerate(names):
         idx = np.flatnonzero(ci == ci_)
-        idx = idx[np.argsort(-np.sum([tot_adm[h][idx] for h in fc], axis=0))][:12]
+        idx = idx[np.argsort(-np.sum([adm[h][idx] for h in adm], axis=0))][:12]
         out_a[slug_by_name.get(nm) or slugify(nm)] = [{"name": units.loc[j, "admin1"], "lat": None if np.isnan(geo.loc[j, "latitude"]) else round(float(geo.loc[j, "latitude"]), 2),
                                                         "lon": None if np.isnan(geo.loc[j, "longitude"]) else round(float(geo.loc[j, "longitude"]), 2),
-                                                        "ma6": round(float(A["o"][j, -6:].mean()), 1), "fc": [round(float(tot_adm[h][j]), 1) for h in fc]} for j in idx]
-    gl = {"hist": {t: [int(v) for v in A[t].sum(axis=0)[-26:]] for t in ["o"] + TYPES}, "fc": {}}
-    for t in ["o"] + TYPES:
-        seq = []
-        for h in range(1, HORIZONS + 1):
-            b, aggv = fc[h]
-            v = aggv[meta["global_total"]] if t == "o" else aggv[meta["global_type"] + TYPES.index(t)]
-            seq.append([round(float(v), 1)])
-        gl["fc"][t] = seq
+                                                        "ma6": round(float(A["o"][j, -6:].mean()), 1), "fc": [round(float(adm[h][j]), 1) for h in adm]} for j in idx]
+    gl = {"hist": {t: [int(v) for v in A[t].sum(axis=0)[-26:]] for t in KINDS}, "fc": {t: [[round(float(fc[h][t].sum()), 1)] for h in range(1, HORIZONS + 1)] for t in KINDS}}
     result = {"meta": {"generated": date.today().isoformat(), "last_period_end": end.isoformat(), "period_days": PERIOD, "horizons": [e.isoformat() for e in next_ends],
                        "history_ends": [e.isoformat() for e in ends[-26:]], "interval": f"{int((1 - ALPHA) * 100)}%", "types": NAMES, "accuracy_country_total": acc,
-                       "units": int(U), "countries": len(names), "backtest_origins": args.origins,
-                       "method": "equal-weight mix of a LightGBM Tweedie model (reconciled with weighted least squares), the 6-period average and the last period; scaled-residual intervals from a rolling backtest",
-                       "mix_weights": {"model": round(W[0], 3), "avg6": round(W[1], 3), "last": round(W[2], 3)}},
+                       "units": int(U), "countries": len(names), "backtest_origins": len(origins), "backtest_stride": args.stride,
+                       "method": "one LightGBM model for all six horizons, trained with absolute error on the log ratio to the 6-period average, blended with the 6-period average and the last period (weights fitted on past backtest origins); provinces scaled to the country total; scaled-residual intervals from a rolling backtest",
+                       "mix_weights": {f"h{h}": {"model": round(float(W_live[h][0]), 3), "avg6": round(float(W_live[h][1]), 3), "last": round(float(W_live[h][2]), 3)} for h in range(1, HORIZONS + 1)}},
               "global": gl, "countries": out_c, "admin1": out_a}
-    OUT.write_text(json.dumps(result, separators=(",", ":"), ensure_ascii=False))
-    print(f"Scritto {OUT.relative_to(ROOT)} ({OUT.stat().st_size / 1e6:.2f} MB)")
+    dest = Path(args.out)
+    dest.write_text(json.dumps(result, separators=(",", ":"), ensure_ascii=False))
+    print(f"Scritto {dest} ({dest.stat().st_size / 1e6:.2f} MB)")
 
 
 if __name__ == "__main__":

@@ -21,7 +21,7 @@ export default function ViolenceOutlook({ country, meta, admin1 }) {
     <section id="violence" className="card violence">
       <p className="eyebrow">VIOLENCE OUTLOOK / ACLED EVENTS</p>
       <h2>Political violence in the next six four-week periods</h2>
-      <p className="note">Forecast event counts per four-week period: a light gradient boosted machine with a Tweedie objective, reconciled so that provinces sum to the country and event types to the total, averaged with the 6-period average and the last period (the model alone does not beat them at longer horizons), with {meta.interval} intervals from a backtest. Method adapted from ACLED&rsquo;s published CAST methodology; this is our own model, not ACLED&rsquo;s forecast.</p>
+      <p className="note">Forecast event counts per four-week period: a light gradient boosted machine (one model for all six horizons, trained with absolute error), blended with the 6-period average and the last period, with provinces scaled to the country total and {meta.interval} intervals from a 24-origin backtest. Method adapted from ACLED&rsquo;s published CAST methodology; this is our own model, not ACLED&rsquo;s forecast.</p>
       <div className="vo-tabs" role="tablist" aria-label="Event type">
         {TYPES.map(([k, label]) => <button key={k} role="tab" aria-selected={type === k} className={type === k ? "on" : ""} onClick={() => setType(k)}>{label}</button>)}
       </div>

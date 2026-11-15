@@ -30,8 +30,12 @@ ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / "webdata"
 REG = ROOT / "registry"
 ISSUES = REG / "issues"
-TARGET = ("At least one coup attempt (successful or failed) in the window, confirmed by two or more "
-          "academic sources or listed by Powell & Thyne.")
+# Il bersaglio e' versionato: ogni edizione si valuta con la definizione con cui e' stata emessa, mai con una successiva.
+TARGET_VERSION = 2
+TARGET = ("At least one coup attempt (successful or failed), dated to the month, in the window: listed by Powell & Thyne, "
+          "coded by two or more academic sources, or described as a coup or attempt by Wikipedia or Wikidata.")
+TARGET_V1 = ("At least one coup attempt (successful or failed) in the window, confirmed by two or more "
+             "academic sources or listed by Powell & Thyne.")
 
 
 def ym(s: str) -> int:
@@ -51,13 +55,20 @@ def load(name: str):
 
 
 def is_target(e: dict) -> bool:
+    """Definizione corrente (edizioni dal 2026-12): evento confermato, livello A o Powell & Thyne. La data al mese si controlla in events_in."""
     return (e["type"] in ("riuscito", "fallito") and e["colpus"] not in ("not exist", "combined") and not e["dup"]
             and (e["conf"] == "A" or "Powell & Thyne" in e["sources"]))
 
 
-def is_candidate(e: dict) -> bool:
+def is_target_v1(e: dict) -> bool:
+    """Prima definizione (edizioni fino al 2026-11): almeno due fonti accademiche, oppure Powell & Thyne."""
+    return (e["type"] in ("riuscito", "fallito") and e["colpus"] not in ("not exist", "combined") and not e["dup"]
+            and (e["nsch"] >= 2 or "Powell & Thyne" in e["sources"]))
+
+
+def is_candidate(e: dict, counts=is_target) -> bool:
     """Evento registrato ma non (ancora) confermato quanto basta per contare."""
-    return e["type"] in ("riuscito", "fallito") and not e["dup"] and e["conf"] in ("B", "C") and not is_target(e)
+    return e["type"] in ("riuscito", "fallito") and not e["dup"] and e["conf"] in ("B", "C") and not counts(e)
 
 
 # ------------------------------------------------------------------ archivio
@@ -73,9 +84,11 @@ def archive() -> str | None:
     doc = {
         "issue": issue, "published": meta["generated"], "data_end": meta["data_end"],
         "window": [meta["forecast_from"], meta["forecast_to"]], "horizon": meta["horizon"], "target": TARGET,
+        "target_version": TARGET_VERSION,
         "base_rate": meta["base_rate"],
         "model": {"n_features": meta["n_features"], "oos_auc": ens["all"]["auc"], "oos_from": meta["first_test_year"],
-                  "calibration": meta["calibration"]},
+                  "calibration": meta["calibration"], "version": meta.get("model_version"),
+                  "components": list(meta.get("ensemble_weights") or [])},
         "forecasts": [{"slug": c["slug"], "name": c["name"], "iso": c["iso"], "p": c["risk"], "lo": c["risk_lo"],
                        "hi": c["risk_hi"], "rank": c["rank"]}
                       for c in sorted((c for c in countries if c["risk"] is not None), key=lambda c: c["rank"])],
@@ -155,14 +168,16 @@ def build() -> dict:
         fc = doc["forecasts"]
         rank = {f["slug"]: f for f in fc}
         closed = data_end >= hi
-        hits = events_in(by_slug, set(rank), lo, min(hi, data_end), is_target)
-        pending = events_in(by_slug, set(rank), lo, min(hi, data_end), is_candidate)
+        version = doc.get("target_version", 1)            # le edizioni senza il campo usano la prima definizione
+        counts = is_target if version >= 2 else is_target_v1
+        hits = events_in(by_slug, set(rank), lo, min(hi, data_end), counts)
+        pending = events_in(by_slug, set(rank), lo, min(hi, data_end), lambda e: is_candidate(e, counts))
         hit_slugs = {e["slug"] for e in hits}
         ev = lambda e, ok: {"slug": e["slug"], "name": e["name"], "date": e["date"], "type": e["type"], "conf": e["conf"],
                             "p": rank[e["slug"]]["p"], "rank": rank[e["slug"]]["rank"], "counted": ok}
         issues.append({
             "issue": doc["issue"], "published": doc["published"], "data_end": doc["data_end"], "window": doc["window"],
-            "status": "closed" if closed else "open", "n": len(fc), "base_rate": doc["base_rate"],
+            "status": "closed" if closed else "open", "n": len(fc), "base_rate": doc["base_rate"], "target_version": version,
             "observed_through": label(min(hi, data_end)) if data_end >= lo else None,
             "months_observed": max(0, min(hi, data_end) - lo + 1), "expected": round(sum(f["p"] for f in fc), 2),
             "events": [ev(e, True) for e in hits] + [ev(e, False) for e in pending],
@@ -182,7 +197,8 @@ def build() -> dict:
                 p.append(f["p"]); y.append(int(f["slug"] in hit)); base.append(doc["base_rate"])
         pooled = score(p, y, sum(base) / len(base))
 
-    return {"generated": summary["meta"]["generated"], "target": TARGET, "horizon": summary["meta"]["horizon"],
+    return {"generated": summary["meta"]["generated"], "target": TARGET, "target_v1": TARGET_V1,
+            "horizon": summary["meta"]["horizon"],
             "data_end": summary["meta"]["data_end"], "issues": issues[::-1], "pooled": pooled,
             "integrity": {"ok": not check(), "altered": check()}, "hindcast": hindcast(summary, by_slug, data_end)}
 

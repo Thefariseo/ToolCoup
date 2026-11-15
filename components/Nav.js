@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const ITEMS = [["/", "CONSOLE"], ["/registry", "REGISTRY"], ["/violence", "VIOLENCE"], ["/world", "ARCHIVE"], ["/metodo", "METHOD"]];
+const ITEMS = [["/", "CONSOLE"], ["/registry", "REGISTRY"], ["/violence", "VIOLENCE"], ["/markets", "MARKETS"], ["/world", "ARCHIVE"], ["/metodo", "METHOD"]];
 
 export default function Nav() {
   const path = usePathname();

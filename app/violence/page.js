@@ -24,6 +24,8 @@ export default function ViolencePage() {
   const byRise = rows.filter((r) => r.change != null && r.ma6 >= 10).sort((a, b) => b.change - a.change).slice(0, 12);
   const gf = g.global.fc.o, gh = g.global.hist.o;
   const m = g.meta, acc = m.accuracy_country_total || [];
+  const gain = (k, h) => { const a = acc.find((x) => x.h === h); return a ? Math.round((1 - a.mix[k] / a.ma6[k]) * 100) : null; };
+  const cov = acc.map((a) => a.coverage).filter((v) => v != null);
   const Row = ({ r }) => (
     <tr><th scope="row"><Link href={`/paese/${r.slug}#violence`} className="vo-link"><Flag iso={iso.get(r.slug)} height={12} /> {r.name}</Link></th>
       <td className="tnum">{r.ma6.toFixed(0)}</td><td className="tnum">{Math.round(r.next)} <small>({Math.round(r.lo)}–{Math.round(r.hi)})</small></td>
@@ -54,19 +56,19 @@ export default function ViolencePage() {
         </section>
         <section className="card prose">
           <h2>How accurate has it been?</h2>
-          <p>Backtest on {m.backtest_origins} past forecast origins (about four months apart), organized violence, country level. The published forecast is the plain average of three forecasts: a light gradient boosted machine (reconciled across provinces, countries and event types), the average of the last six periods, and the last observed period carried forward. Weights are equal and not fitted: with five origins, fitted weights were unstable, and at longer horizons the model alone did not beat the two simple references.</p>
+          <p>Backtest on {m.backtest_origins} past forecast origins ({m.backtest_stride || 4} periods apart), organized violence, country level. The published forecast is a weighted average of three forecasts: a light gradient boosted machine (one model for all six horizons, trained to get the size of the change from the last six periods right), the average of the last six periods, and the last observed period carried forward. The weights differ by horizon and are fitted only on past origins whose outcome was already known, so nothing in the table looks ahead.</p>
           <p>Two measures. <strong>WAPE</strong> is total absolute error divided by total events, so large conflicts dominate. <strong>Relative error</strong> is the absolute error divided by the country&rsquo;s own six-period average plus one, averaged over countries, so every country counts equally. Lower is better in both.</p>
           <div className="table-scroll" tabIndex={0} role="region" aria-label="Accuracy"><table>
-            <caption>Country level, organized violence: forecast mix against its ingredients</caption>
+            <caption>Country level, organized violence: the published forecast against its ingredients</caption>
             <thead><tr><th scope="col" rowSpan="2">Periods ahead</th><th scope="colgroup" colSpan="4">WAPE</th><th scope="colgroup" colSpan="4">Relative error</th><th scope="col" rowSpan="2">Interval coverage</th></tr>
-              <tr><th scope="col">Mix</th><th scope="col">Model</th><th scope="col">6-period avg</th><th scope="col">Last</th><th scope="col">Mix</th><th scope="col">Model</th><th scope="col">6-period avg</th><th scope="col">Last</th></tr></thead>
+              <tr><th scope="col">Published</th><th scope="col">Model alone</th><th scope="col">6-period avg</th><th scope="col">Last</th><th scope="col">Published</th><th scope="col">Model alone</th><th scope="col">6-period avg</th><th scope="col">Last</th></tr></thead>
             <tbody>{acc.map((a) => <tr key={a.h}><th scope="row">{a.h}</th>
               <td className="tnum"><b>{a.mix?.wape}</b></td><td className="tnum">{a.model?.wape}</td><td className="tnum">{a.ma6?.wape}</td><td className="tnum">{a.last?.wape}</td>
               <td className="tnum"><b>{a.mix?.rel}</b></td><td className="tnum">{a.model?.rel}</td><td className="tnum">{a.ma6?.rel}</td><td className="tnum">{a.last?.rel}</td>
               <td className="tnum">{a.coverage != null ? `${(a.coverage * 100).toFixed(0)}%` : "–"}</td></tr>)}</tbody>
           </table></div>
-          <p>In short: the model adds a little at one to three periods ahead; further out the forecast is close to persistence, and what the page adds there is the interval and the province breakdown. Interval coverage is the share of backtest outcomes inside the {m.interval} band, for countries forecast at one event or more, with each origin&rsquo;s band built from the other origins; it should be near {m.interval.replace("%", "")}%. Five origins is a short backtest: treat these numbers as indicative.</p>
-          <p>Method: {m.method}. Adapted from the methodology ACLED publishes for its Conflict Alert System (CAST); this is our own model, built on ACLED event data, and is not ACLED&rsquo;s forecast. Differences from CAST: weighted least squares instead of MinTraceSparse reconciliation, a mix with simple references, simpler scaled-residual intervals, national rather than subnational population and infant-mortality inputs.</p>
+          {acc.length > 0 && <p>Against the six-period average, the published forecast has {gain("wape", 1)}% lower WAPE one period ahead and {gain("wape", 6)}% lower six periods ahead; on relative error the gains are {gain("rel", 1)}% and {gain("rel", 6)}%. Most of the remaining error is not predictable from past counts: sudden escalations and de-escalations, and the way events are reported, set the floor. Interval coverage is the share of backtest outcomes inside the {m.interval} band, for countries forecast at one event or more, with each origin&rsquo;s band built from the other origins; it should be near {m.interval.replace("%", "")}%{cov.length ? ` (here ${Math.round(Math.min(...cov) * 100)}% to ${Math.round(Math.max(...cov) * 100)}%)` : ""}.</p>}
+          <p>Method: {m.method}. Adapted from the methodology ACLED publishes for its Conflict Alert System (CAST); this is our own model, built on ACLED event data, and is not ACLED&rsquo;s forecast. Differences from CAST: one model for all horizons instead of one per horizon, absolute-error training, provinces scaled to the country total instead of MinTraceSparse reconciliation, a weighted mix with simple references, simpler scaled-residual intervals, national rather than subnational population and infant-mortality inputs.</p>
         </section>
       </main>
       <SiteFooter generated={m.generated} />
