@@ -1,5 +1,6 @@
 # Praevex
-<img width="1448" height="1086" alt="praevex full logo" src="https://github.com/user-attachments/assets/e85e4eb6-0bd3-4c7e-a13a-8be7cc7e6dfd" />
+<img width="1810" height="869" alt="praevexfinallogo" src="https://github.com/user-attachments/assets/5b3a1941-dd06-45dc-8548-7b82eacb849d" />
+
 
 
 Praevex is an open-source political instability intelligence instrument combining historical coup data, conflict signals, probabilistic forecasting, and interactive generative visualizations to explore how political risk evolves over time.
