@@ -8709,8 +8709,8 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 369-19181106,Wikipedia,"1918:Ukrainian coup in Bukovina: On November 6, Ukrainian revolut",failed,1918-01-01,year,"Ukrainian coup in Bukovina: On November 6, Ukrainian revolutionaries seize power in the Duchy of Bukovina and declare loyalty to the West Ukrainian People's Rep"
 369-19190429,Wikidata,Q125834535,failed,1919-04-29,day,Otaman Oskilko Affair
 369-19190429,Wikipedia,"369:April 29, 1919: A failed attempt by Otaman Volodymyr Oskilko",failed,1919-04-29,day,"April 29, 1919: A failed attempt by Otaman Volodymyr Oskilko to overthrow Borys Martos and the Directorate of Ukraine took place."
-369-20100101,Wikidata,Q15224558,success,2010-01-01,year,Euromaidan
-369-20100101-2,Wikidata,Q15733401,success,2010-01-01,year,Revolution of Dignity
+369-20100101,Wikidata,Q15733401,success,2010-01-01,year,Revolution of Dignity
+369-20100101-2,Wikidata,Q15224558,success,2010-01-01,year,Euromaidan
 369-20220201,Wikidata,Q112146572,failed,2022-02-01,month,2022 Ukrainian coup d'état attempt
 369-20220201,Wikipedia,369:February 2022: A failed coup was attempted in Ukraine to tak,failed,2022-02-01,month,"February 2022: A failed coup was attempted in Ukraine to take control of various Ukrainian cities by pro-Russian rebels, install pro-Russian rule in them and tr"
 369-20220201,Wikipedia,2022:2022 Ukrainian coup d'état attempt: The Russian Federal Secu,failed,2022-01-01,year,"2022 Ukrainian coup d'état attempt: The Russian Federal Security Service and recruited ATO veterans were set to take control of various Ukrainian cities, instal"
