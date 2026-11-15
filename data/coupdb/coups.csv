@@ -347,8 +347,8 @@ event_id,ccode,country,date,date_precision,year,type,confidence,scope,n_scholarl
 360-19450306,360,Romania,1945-03-06,day,1945,riuscito,A,national,0,1,Wikipedia (FR),False,,False,False,False,Andreï Vychinski et Petru Groza Nicolae Rădescu Coup d'État réussi,
 740-19450309,740,Japan,1945-03-09,day,1945,riuscito,A,national,0,2,Wikidata; Wikipedia,False,,False,False,False,Japanese coup d'état in French Indochina,
 816-19450515,816,Vietnam,1945-05-15,day,1945,riuscito,D,national,0,1,Wikipedia,False,,False,False,False,"March 9 to May 15, 1945: With Japanese forces losing the war and the threat of an Allied invasion of Indochina imminent, the Japanese took control from the Fren",
-740-19450815,740,Japan,1945-08-15,day,1945,fallito,A,national,0,4,Wikipedia (FR); Wikidata; Wikipedia; Wikipedia (DE),True,,False,True,True,Mount Atago incident,
-740-19450815-2,740,Japan,1945-08-15,day,1945,fallito,D,national,0,1,Wikidata,False,,False,False,False,Kyūjō Incident,740-19450824
+740-19450815,740,Japan,1945-08-15,day,1945,fallito,A,national,0,4,Wikipedia (FR); Wikidata; Wikipedia; Wikipedia (DE),True,,False,True,True,Kyūjō Incident,
+740-19450815-2,740,Japan,1945-08-15,day,1945,fallito,D,national,0,1,Wikidata,False,,False,False,False,Mount Atago incident,740-19450824
 740-19450824,740,Japan,1945-08-24,day,1945,fallito,A,national,0,2,Wikidata; Wikipedia,False,,False,False,False,Matsue Incident,
 101-19451018,101,Venezuela,1945-10-18,day,1945,riuscito,A,national,3,3,Archigos; V-Dem historical regimes; Wikidata; Wikipedia; Wikipedia (ES); PIPE (Przeworski),False,,False,False,False,1945 Venezuelan coup d'état,
 140-19451030,140,Brazil,1945-10-30,day,1945,riuscito,A,national,3,3,Archigos; V-Dem historical regimes; Wikidata; Wikipedia; Wikipedia (ES); PIPE (Przeworski),False,,False,False,False,1945 Brazilian coup d'état,
@@ -1799,8 +1799,8 @@ event_id,ccode,country,date,date_precision,year,type,confidence,scope,n_scholarl
 91-20090628,91,Honduras,2009-06-28,day,2009,riuscito,A,national,7,5,Powell & Thyne; Colpus; Cline Center; Luttwak; Bjornskov & Rode; Archigos; V-Dem historical regimes; Wikipedia (FR); Wikidata; Wikipedia; Wikipedia (DE); Wikipedia (ES),False,,False,False,False,2009 Honduran coup d'état,
 420-20091121,420,Gambia,2009-11-21,day,2009,complotto,D,national,0,0,Center for Systemic Peace; Wikipedia,False,,False,False,False,2009: coup plot against Yahya Jammeh foiled.,
 438-20091205,438,Guinea,2009-12-05,day,2009,fallito,A,national,2,0,Cline Center; Archigos,True,assassination,False,True,False,,
-369-20100101,369,Ukraine,2010-01-01,year,2010,riuscito,D,national,0,1,Wikidata,False,,False,False,False,Euromaidan,
-369-20100101-2,369,Ukraine,2010-01-01,year,2010,riuscito,D,national,0,1,Wikidata,False,,False,False,False,Revolution of Dignity,369-20100101
+369-20100101,369,Ukraine,2010-01-01,year,2010,riuscito,D,national,0,1,Wikidata,False,,False,False,False,Revolution of Dignity,
+369-20100101-2,369,Ukraine,2010-01-01,year,2010,riuscito,D,national,0,1,Wikidata,False,,False,False,False,Euromaidan,369-20100101
 516-20100129,516,Burundi,2010-01-29,day,2010,complotto,D,national,0,0,Center for Systemic Peace,False,,False,False,False,,
 780-20100129,780,Sri Lanka,2010-01-29,day,2010,complotto,D,national,0,0,Center for Systemic Peace,False,,False,False,False,,
 436-20100218,436,Niger,2010-02-18,day,2010,riuscito,A,national,8,4,Powell & Thyne; Colpus; Center for Systemic Peace; Cline Center; Luttwak; Bjornskov & Rode; Archigos; V-Dem historical regimes; Wikipedia (FR); Wikidata; Wikipedia; Wikipedia (ES),False,,False,False,False,2010 Nigerien coup d'état,

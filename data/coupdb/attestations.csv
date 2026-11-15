@@ -8651,8 +8651,8 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 369-19181106,Wikipedia,"1918:Ukrainian coup in Bukovina: On November 6, Ukrainian revolut",failed,1918-01-01,year,"Ukrainian coup in Bukovina: On November 6, Ukrainian revolutionaries seize power in the Duchy of Bukovina and declare loyalty to the West Ukrainian People's Rep"
 369-19190429,Wikidata,Q125834535,failed,1919-04-29,day,Otaman Oskilko Affair
 369-19190429,Wikipedia,"369:April 29, 1919: A failed attempt by Otaman Volodymyr Oskilko",failed,1919-04-29,day,"April 29, 1919: A failed attempt by Otaman Volodymyr Oskilko to overthrow Borys Martos and the Directorate of Ukraine took place."
-369-20100101,Wikidata,Q15224558,success,2010-01-01,year,Euromaidan
-369-20100101-2,Wikidata,Q15733401,success,2010-01-01,year,Revolution of Dignity
+369-20100101,Wikidata,Q15733401,success,2010-01-01,year,Revolution of Dignity
+369-20100101-2,Wikidata,Q15224558,success,2010-01-01,year,Euromaidan
 369-20220201,Wikidata,Q112146572,failed,2022-02-01,month,2022 Ukrainian coup d'état attempt
 369-20220201,Wikipedia,369:February 2022: A failed coup was attempted in Ukraine to tak,failed,2022-02-01,month,"February 2022: A failed coup was attempted in Ukraine to take control of various Ukrainian cities by pro-Russian rebels, install pro-Russian rule in them and tr"
 369-20220201,Wikipedia,2022:2022 Ukrainian coup d'état attempt: The Russian Federal Secu,failed,2022-01-01,year,"2022 Ukrainian coup d'état attempt: The Russian Federal Security Service and recruited ATO veterans were set to take control of various Ukrainian cities, instal"
@@ -9564,7 +9564,7 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 740-19360226,Wikipedia,1936:February 26 Incident in Japan: A coup attempt by junior mili,failed,1936-02-26,day,February 26 Incident in Japan: A coup attempt by junior military officers failed in installing a militarist government.
 740-19360226,Wikipedia (ES),es63,success,1936-01-01,year,Incidente del 26 de febrero
 740-19450815,Wikipedia (FR),fr60,failed,1945-08-15,day,Kenji Hatanaka Hirohito Coup d'État raté : incident de Kyūjō
-740-19450815,Wikidata,Q11493837,failed,1945-08-15,day,Mount Atago incident
+740-19450815,Wikidata,Q713163,failed,1945-08-15,day,Kyūjō Incident
 740-19450815,Wikipedia,"740:August 14–15, 1945: A coup against Emperor Hirohito by membe",failed,1945-08-14,day,"August 14–15, 1945: A coup against Emperor Hirohito by members of the Ministry of the Army and the Imperial Guard opposed to surrendering to the Allied Powers a"
 740-19450815,Wikipedia (DE),de15,success,1945-08-14,day,In der Nacht vom 14. auf den 15. August 1945 besetzte eine Gruppe von Militärs den Palast in Tokio. Dies war der Vorabend der Ausstrahlung der Radioansprache de
 740-19450815,Wikipedia,1945:Kyūjō incident in Japan: Attempt by elements of the Ministry,failed,1945-01-01,year,Kyūjō incident in Japan: Attempt by elements of the Ministry of War to prevent Japan's surrender.
@@ -9582,7 +9582,7 @@ event_id,source,source_id,source_outcome,source_date,source_date_precision,sourc
 740-19341101,Wikipedia,740:November 1934: A coup by members of the Imperial Japanese Ar,failed,1934-11-01,month,November 1934: A coup by members of the Imperial Japanese Army failed to achieve a Shōwa Restoration.
 740-19450309,Wikidata,Q2633177,success,1945-03-09,day,Japanese coup d'état in French Indochina
 740-19450309,Wikipedia,1945:Japanese coup d'état in French Indochina,success,1945-01-01,year,Japanese coup d'état in French Indochina
-740-19450815-2,Wikidata,Q713163,failed,1945-08-15,day,Kyūjō Incident
+740-19450815-2,Wikidata,Q11493837,failed,1945-08-15,day,Mount Atago incident
 740-19450824,Wikidata,Q1048684,failed,1945-08-24,day,Matsue Incident
 740-19450824,Wikipedia,"740:August 24, 1945: A failed coup by dissidents opposed to surr",failed,1945-08-24,day,"August 24, 1945: A failed coup by dissidents opposed to surrender was led by Isao Okazaki in Matsue."
 740-19611212,Wikidata,Q11356646,failed,1961-12-12,day,Sanmu Incident
