@@ -108,6 +108,18 @@ pagina sta nei limiti. In sviluppo, `?mock=1` genera il PDF con un testo finto, 
 La copertina (`lib/dossier-cover.js`) e' bianca: logo verticale al centro, poi bandiera e sagoma del paese affiancate (solo il bordo nero, senza
 vicini; da `world-atlas`, proiezione azimutale equivalente centrata sul paese), il nome e una riga di identificativi in basso. Nessun numero.
 
+**Il testo del brief** e' scritto per il lettore scelto (analista, investitore, diplomatico, giornalista, operatore umanitario): `lib/dossier.js` da' a
+`gpt-6-luna` una voce diversa per ciascuno (`PERSONAS`) e uno schema in cui ogni riga e' un'osservazione, non un'etichetta. Le testate non sono
+"le notizie sul paese": `lib/press-plan.js` decide dai dati quali linee cercare (golpe e transizione, forze armate, elezioni e successione, piazza se le
+proteste superano la media dei tre anni, violenza organizzata, economia, pressione regionale), con il motivo di ciascuna, e `lib/dossier-press.js` le
+cerca solo nelle testate vagliate; un titolo conta solo se contiene una parola della sua linea e nessuna parola di sport o spettacolo. La pagina 3 ha la
+tabella "cosa dicono i dati / cosa si riporta / cosa significa" e la sezione *Prediction markets* (Polymarket e Kalshi, ogni mercato su scala logaritmica
+contro la nostra stima riportata allo stesso orizzonte, piu' una lettura scritta). La generazione usa un passaggio di ragionamento medio (circa due minuti,
+rotta con `maxDuration` 300) e, se scade, uno rapido. In sviluppo: `?mock=1&json=facts|press` mostra cosa riceve lo scrittore, `?json=narrative` il testo senza PDF.
+
+I conteggi dei golpe passano da `lib/coup-fix.js` (regola in `lib/coup-dedupe.js`): se un paese ha due voci nello stesso giorno, resta quella meglio attestata e l'altra
+diventa doppione (Brasilia, 8 gennaio 2023, era sia "fallito" sia "riuscito"). Va tolto quando la pipeline li marchia da sola.
+
 Il PDF e' composto di grafici disegnati direttamente (nessuna immagine): scheda di sintesi con un micro-grafico per cifra, posizione del paese tra tutti gli altri su scala
 logaritmica, storia del rischio dal 1975 con ogni tentativo su un binario, registro dei tentativi dal 1900, il Model Trace in forma di ledger (dal paese di riferimento alla
 previsione pubblicata, con la posizione del paese su ciascun gruppo), mercato di previsione contro modello, attivita' ACLED e previsione della violenza con fascia, e i segnali di

@@ -10,7 +10,7 @@ import { registrySummary } from "@/lib/registry";
 // Each call spends OpenAI credit, so: only the known country slugs are accepted, the response is cached at
 // the CDN for the whole issue (the `issue` query parameter is the cache key), cross-site requests are
 // refused, and there is a best-effort per-IP and per-day limit on top. DOSSIER_DISABLED=1 switches it off.
-export const maxDuration = 200;
+export const maxDuration = 300;
 
 const hits = new Map();           // ip -> timestamps (per server instance: a brake, not a guarantee)
 let day = { start: Date.now(), n: 0 };
@@ -35,13 +35,19 @@ export async function GET(request, { params }) {
   try {
     const facts = buildFacts(slug, new URL(request.url).searchParams.get("lens") || "analyst"), chart = buildChart(slug);
     const mock = process.env.NODE_ENV !== "production" && new URL(request.url).searchParams.get("mock") === "1";   // layout work without spending credit
-    if (mock && new URL(request.url).searchParams.get("json") === "1") return Response.json(facts.profile);   // development: inspect the reading frame
-    const press = mock ? { items: [], note: "mock" } : await fetchPress(slug, facts.country.name);
+    const peek = new URL(request.url).searchParams.get("json");
+    if (mock && peek === "1") return Response.json(facts.profile);            // development: inspect the reading frame
+    if (mock && peek === "facts") return Response.json(facts);                // development: everything the writer is given
+    if (mock && peek === "press") return Response.json(await fetchPress(facts));   // development: the planned angles and the headlines each found
+    const press = mock ? { items: [], note: "mock" } : await fetchPress(facts);
     try {                                                    // markets are an extra reading: their absence never blocks the brief
-      const m = (await allMarkets()).by[slug]?.filter((x) => x.kind === "coup").slice(0, 3) || [];
-      facts.prediction_markets = m.map((x) => ({ source: x.source, question: x.question, crowd_probability: +x.p.toFixed(3), months_to_close: x.months == null ? null : +x.months.toFixed(1), our_model_same_horizon: x.months == null ? null : +(modelAtHorizon(facts.forecast.probability_of_at_least_one_coup_attempt, x.months) ?? 0).toFixed(3) }));
-    } catch { /* ignore */ }
+      const m = (await allMarkets()).by[slug] || [], pick = [...m.filter((x) => x.kind === "coup").slice(0, 2), ...m.filter((x) => x.kind === "exit").slice(0, 1)];
+      facts.prediction_markets = pick.map((x) => ({ source: x.source, kind: x.kind === "coup" ? "coup" : "leader exit", question: x.question, crowd_probability: +x.p.toFixed(3),
+        months_to_close: x.months == null ? null : +x.months.toFixed(1), closes: x.closes ? String(x.closes).slice(0, 10) : null, volume: x.volume ? Math.round(x.volume) : null,
+        our_model_same_horizon: x.kind === "coup" && x.months != null ? +(modelAtHorizon(facts.forecast.probability_of_at_least_one_coup_attempt, x.months) ?? 0).toFixed(3) : null }));
+    } catch { facts.prediction_markets = []; }
     const narrative = mock ? (await import("@/lib/dossier-mock")).mockNarrative(facts) : await narrate(facts, press);
+    if (process.env.NODE_ENV !== "production" && peek === "narrative") return Response.json({ plan: press.plan, press: press.items, markets: facts.prediction_markets, narrative });   // development: read the text without the PDF
     const generated = new Date().toISOString().slice(0, 10);
     const code = FLAG[facts.country.iso];
     const flag = code ? await fs.readFile(path.join(process.cwd(), "public", "flags", "png", `${code}.png`)).catch(() => null) : null;

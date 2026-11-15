@@ -219,10 +219,10 @@ export default function Console({ list, meta, auc, featureGroup, registry }) {
             </select>
           </label>
           <button onClick={downloadDossier} disabled={dossier.state === "busy"}>
-            {dossier.state === "busy" ? <>Writing the brief… <small>about 30 s</small></> : <Roll>Download country brief (PDF)</Roll>}
+            {dossier.state === "busy" ? <>Writing the brief… <small>about 2 min</small></> : <Roll>Download country brief (PDF)</Roll>}
           </button>
           {dossier.state === "error" && dossier.slug === selected.slug && <p role="alert">{dossier.msg}</p>}
-          <p>Four A4 pages with a cover, ready in about half a minute.</p>
+          <p>Four A4 pages with a cover, written for the reader you pick. It takes about two minutes.</p>
         </div>
       </aside>
 
