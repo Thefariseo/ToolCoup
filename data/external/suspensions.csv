@@ -1,0 +1,29 @@
+# Suspensions from the African Union (AU) and the Economic Community of West African States (ECOWAS), one row per spell.
+# Extracted by hand from the dated statements in the two Wikipedia articles below (which cite the bodies' communiques), at the stated revisions.
+# start / end: YYYY-MM; end empty = suspension still in force in the article. Only spells whose start AND end (or "currently suspended") are stated are listed.
+# Not listed because the article gives no end date: Mauritania 2005 and 2008, Togo 2005, Burkina Faso 2015, Cote d'Ivoire 2010-11 (AU); ECOWAS spells before 2021 and Guinea 2021, Guinea-Bissau (no dates).
+# Madagascar 2025-10: the article gives no month; the month of the coup in our coup database (12 Oct 2025) is used.
+# AU source: https://en.wikipedia.org/w/index.php?title=Member_states_of_the_African_Union&oldid=1384120008 and https://en.wikipedia.org/w/index.php?title=African_Union&oldid=1385549611
+# ECOWAS source: https://en.wikipedia.org/w/index.php?title=Economic_Community_of_West_African_States&oldid=1283156524
+country,body,start,end,basis
+Burkina Faso,AU,2022-01,,Suspended 31 January 2022 after the coup; still suspended
+Central African Republic,AU,2013-03,2016-04,Suspended from March 2013 to April 2016
+Egypt,AU,2013-07,2014-06,Suspended from July 2013 until June 2014
+Gabon,AU,2023-08,2025-04,Suspended 31 August 2023 to 30 April 2025
+Guinea,AU,2008-12,2011-01,Suspended from December 2008 to January 2011 (end flagged citation needed in the article)
+Guinea,AU,2021-09,2026-01,Suspended 10 September 2021; readmitted January 2026
+Guinea-Bissau,AU,2012-04,2014-06,Suspended from April 2012 until June 2014
+Guinea-Bissau,AU,2025-11,,Suspended 29 November 2025; still suspended
+Madagascar,AU,2001-12,2003-07,Suspended from December 2001 to 10 July 2003
+Madagascar,AU,2009-03,2014-01,Suspended from 20 March 2009 to 27 January 2014
+Madagascar,AU,2025-10,,Suspended after the 2025 coup; still suspended
+Mali,AU,2012-03,2013-10,Suspended from 23 March 2012 until October 2013
+Mali,AU,2020-08,2020-10,Suspended 19 August to 8 October 2020
+Mali,AU,2021-06,,Suspended since 1 June 2021; still suspended
+Niger,AU,2010-02,2011-03,Suspended from 19 February 2010 until 16 March 2011
+Niger,AU,2023-08,,Suspended 22 August 2023; still suspended
+Sudan,AU,2019-06,2019-09,Suspended 6 June 2019; lifted 6 September 2019
+Sudan,AU,2021-10,,Suspended 25 October 2021; still suspended
+Mali,ECOWAS,2021-05,,Suspended 30 May 2021; announced withdrawal January 2024 and has not returned
+Burkina Faso,ECOWAS,2022-01,,Suspended 28 January 2022; announced withdrawal January 2024 and has not returned
+Niger,ECOWAS,2023-07,,Suspended after the July 2023 coup; announced withdrawal January 2024 and has not returned

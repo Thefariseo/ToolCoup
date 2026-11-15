@@ -3,6 +3,12 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import Dossier from "@/components/Dossier";
 import CountryAnalysis from "@/components/CountryAnalysis";
+import AnalogsView from "@/components/AnalogsView";
+import CrowdView from "@/components/CrowdView";
+import DiscourseMonitor from "@/components/DiscourseMonitor";
+import StandingView from "@/components/StandingView";
+import ViolenceOutlook from "@/components/ViolenceOutlook";
+import { getAnalogs, getStanding, getViolence } from "@/lib/outlook";
 import Flag from "@/components/Flag";
 import { keyMetrics } from "@/lib/country-metrics";
 import SiteFooter from "@/components/SiteFooter";
@@ -78,6 +84,11 @@ async function CountryContent({ params }) {
         </div>
       </section>
       <CountryAnalysis country={country} meta={meta} />
+      {!country.historical && <StandingView standing={getStanding(slug)} name={country.name} />}
+      {!country.historical && <CrowdView slug={slug} name={country.name} />}
+      {!country.historical && <DiscourseMonitor slug={slug} name={country.name} />}
+      {!country.historical && <AnalogsView analog={getAnalogs(slug)} name={country.name} modelRisk={country.risk} />}
+      {(() => { const v = getViolence(slug); return v ? <ViolenceOutlook country={v.country} meta={v.meta} admin1={v.admin1} /> : null; })()}
       <Dossier key={slug} country={country} others={others} meta={meta} />
     </main>
     <SiteFooter generated={meta.generated} />

@@ -93,6 +93,15 @@ FEATURE_LABELS = {
     "a_repression_share": "Quota di proteste represse",
     "t_trend": "Tendenza di lungo periodo", "t_post_cold_war": "Dopo la guerra fredda",
 }
+# Gruppi di pipeline/extensions.py che hanno superato il test fuori campione (pipeline/experiment_extensions.py, docs/extensions.md):
+# solo questi entrano nel modello pubblicato. Vuoto finche' nessun gruppo supera il test.
+ADOPTED_EXTENSIONS: list[str] = []
+if ADOPTED_EXTENSIONS:
+    from extensions import EXT_GROUP_LABELS, EXT_GROUPS, EXT_LABELS
+    for _g in ADOPTED_EXTENSIONS:
+        GROUPS[_g] = EXT_GROUPS[_g]
+        GROUP_LABELS[_g] = EXT_GROUP_LABELS[_g]
+        FEATURE_LABELS.update({_f: EXT_LABELS[_f] for _f in EXT_GROUPS[_g]})
 ALL_FEATURES = [f for g in GROUPS.values() for f in g]
 
 
@@ -313,4 +322,9 @@ def build_panel(coupdb_csv: Path, acled_monthly: pd.DataFrame, acled_info: pd.Da
     p["region_name"] = p["region"].map(REGION_NAMES)
     info = {"unit_of_acled": unit_of_acled, "n_target": int(len(target)), "n_broad": int(len(broad)),
             "target": target, "broad": broad}
-    return p.sort_values(["unit", "t"]).reset_index(drop=True), info
+    p = p.sort_values(["unit", "t"]).reset_index(drop=True)
+    if ADOPTED_EXTENSIONS:                                   # variabili delle estensioni validate: sempre presenti nel pannello
+        from extensions import ALL_EXT, features as ext_features
+        ext = ext_features(p, t_end)
+        p = pd.concat([p.drop(columns=[c for c in ext.columns if c in p.columns]), ext], axis=1)
+    return p, info

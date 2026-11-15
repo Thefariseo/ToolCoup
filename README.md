@@ -74,6 +74,15 @@ compili e fa il push; Vercel pubblica dal push. Servono due *secrets* del reposi
 `ACLED_PASSWORD`. I dati grezzi ACLED vengono riscaricati a ogni esecuzione e non finiscono né nella
 cache né nel repository.
 
+## Estensioni (documento completo: [docs/extensions.md](docs/extensions.md))
+
+- **Violenza politica** (`pipeline/cast.py`, pagina `/violence`): previsione degli eventi di violenza organizzata per paese e provincia nei prossimi sei periodi di
+  quattro settimane, con LightGBM Tweedie, riconciliazione gerarchica e intervalli. Metodo ripreso da ACLED CAST; non e' la previsione di ACLED.
+- **Mercati di previsione** (`lib/markets.js`): Polymarket, Kalshi e Manifold, in lettura, accanto al modello.
+- **Analogie strutturali** (`pipeline/analogs.py`) e **monitor del discorso pubblico** (`lib/discourse.js`: Wikipedia e GDELT).
+- **Nuove fonti per il modello** (`pipeline/fetch_extensions.py`, `pipeline/extensions.py`, `pipeline/experiment_extensions.py`): forze armate, eta' del leader,
+  stress economico mensile, esclusione etnica. Entrano nel modello pubblicato solo se l'esperimento fuori campione lo giustifica.
+
 ## Country brief PDF (tre pagine)
 
 Il pulsante *Country brief · PDF* nella console chiama `/api/dossier/[paese]`: i numeri e i fatti vengono dal nostro

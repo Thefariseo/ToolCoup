@@ -35,7 +35,7 @@ TOKEN_FILE = ROOT / ".acled_token.json"
 TOKEN_URL = "https://acleddata.com/oauth/token"
 READ_URL = "https://acleddata.com/api/acled/read"
 FIELDS = ["event_id_cnty", "event_date", "year", "event_type", "sub_event_type", "inter1", "inter2",
-          "iso", "region", "country", "fatalities"]
+          "iso", "region", "country", "admin1", "latitude", "longitude", "fatalities"]
 LIMIT = 5000
 UA = "ToolCoup/1.0 (+https://github.com/Thefariseo/ToolCoup)"
 
@@ -147,6 +147,15 @@ def fetch_year(year: int, auth: dict) -> int:
     return n
 
 
+def _has_admin1(path: Path) -> bool:
+    """I file scaricati prima dell'aggiunta di admin1/coordinate vanno riscaricati (servono al sistema di allerta sulla violenza)."""
+    try:
+        with open(path, encoding="utf-8") as fh:
+            return "admin1" in fh.readline()
+    except OSError:
+        return False
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--from", dest="start", type=int, default=1997, help="primo anno (default 1997)")
@@ -158,7 +167,7 @@ def main() -> None:
     total = 0
     for year in range(args.start, this_year + 1):
         out = OUT_DIR / f"acled_{year}.csv"
-        if out.exists() and not args.refresh and year < this_year - 1:
+        if out.exists() and not args.refresh and year < this_year - 1 and _has_admin1(out):
             print(f"  {year}: gia' scaricato, salto")
             continue
         total += fetch_year(year, auth)

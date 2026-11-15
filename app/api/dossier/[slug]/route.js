@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { buildChart, buildFacts, dossierKnown, fetchPress, MODEL, narrate } from "@/lib/dossier";
 import { FLAG } from "@/lib/flags";
+import { allMarkets, modelAtHorizon } from "@/lib/markets";
 import { buildPdf } from "@/lib/dossier-pdf";
 import { registrySummary } from "@/lib/registry";
 
@@ -33,6 +34,10 @@ export async function GET(request, { params }) {
     const facts = buildFacts(slug), chart = buildChart(slug);
     const mock = process.env.NODE_ENV !== "production" && new URL(request.url).searchParams.get("mock") === "1";   // layout work without spending credit
     const press = mock ? { items: [], note: "mock" } : await fetchPress(slug, facts.country.name);
+    try {                                                    // markets are an extra reading: their absence never blocks the brief
+      const m = (await allMarkets()).by[slug]?.filter((x) => x.kind === "coup").slice(0, 3) || [];
+      facts.prediction_markets = m.map((x) => ({ source: x.source, question: x.question, crowd_probability: +x.p.toFixed(3), months_to_close: x.months == null ? null : +x.months.toFixed(1), our_model_same_horizon: x.months == null ? null : +(modelAtHorizon(facts.forecast.probability_of_at_least_one_coup_attempt, x.months) ?? 0).toFixed(3) }));
+    } catch { /* ignore */ }
     const narrative = mock ? (await import("@/lib/dossier-mock")).mockNarrative(facts) : await narrate(facts, press);
     const generated = new Date().toISOString().slice(0, 10);
     const code = FLAG[facts.country.iso];

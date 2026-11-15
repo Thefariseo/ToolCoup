@@ -7,3 +7,4 @@ scipy==1.13.1
 joblib==1.4.2
 xlrd==2.0.2
 openpyxl==3.1.2
+lightgbm==4.7.0
