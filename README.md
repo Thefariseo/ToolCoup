@@ -1,7 +1,6 @@
-# Osservatorio golpe
+# Praevex
 
-Colpi di stato dal 1900 a oggi e stima del rischio per paese.
-Pipeline dati in Python (`pipeline/`), sito in Next.js con API (`app/`, `components/`, `lib/`).
+Praevex is an open-source political instability intelligence instrument combining historical coup data, conflict signals, probabilistic forecasting, and interactive generative visualizations to explore how political risk evolves over time.
 
 ## Struttura
 
