@@ -2,10 +2,11 @@
 
 import { useEffect } from "react";
 
-// Line hover for text, after Codrops' LineTextHoverAnimations: on hover, the letters of a label flicker through
-// random symbols from left to right and settle back on the real ones. One delegated listener serves every element
-// marked data-scramble; the text lives in a child .sx (or the element's single text node). The width is held while it
-// runs so nothing around it moves. Mouse and keyboard focus only; reduced motion leaves the text alone.
+// Line hover for text, after Codrops' LineTextHoverAnimations: on hover, the letters of a label flicker through random symbols from left to
+// right and settle back on the real ones. One delegated listener serves every element marked data-scramble; the label lives in a child .sx.
+// The real text is never edited: the flicker is drawn on an aria-hidden copy laid over it (pointer-events: none), so the link keeps its
+// text node, its size and its hit area, and a click during the effect lands like any other. Mouse and keyboard focus only; reduced motion
+// leaves the text alone.
 const GLYPHS = "abcdefghijklmnopqrstuvwxyz0123456789!@#$%&*+=<>";
 const STEP = 38, FLICKER = 190, STAGGER = 42;
 
@@ -14,21 +15,21 @@ export default function HoverText() {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const running = new WeakMap();
     const rand = (c) => { const g = GLYPHS[Math.floor(Math.random() * GLYPHS.length)]; return c === c.toUpperCase() && c !== c.toLowerCase() ? g.toUpperCase() : g; };
-    const target = (el) => el.querySelector(":scope > .sx") || (el.childNodes.length === 1 && el.firstChild.nodeType === 3 ? el : null);
 
     function start(el) {
-      const t = target(el); if (!t) return;
+      const t = el.querySelector(":scope > .sx"); if (!t || !t.firstChild) return;
       running.get(t)?.();                                              // restart cleanly if it is already running
-      const text = t.dataset.sxText || (t.dataset.sxText = t.textContent), chars = [...text];
-      const box = t.getBoundingClientRect(), saved = { d: t.style.display, w: t.style.width, ws: t.style.whiteSpace };
-      t.style.display = "inline-block"; t.style.width = `${Math.ceil(box.width)}px`; t.style.whiteSpace = "nowrap";
+      const text = t.textContent, chars = [...text];
+      const fx = document.createElement("span");
+      fx.className = "sx-fx"; fx.setAttribute("aria-hidden", "true"); fx.textContent = text; fx.style.color = getComputedStyle(t).color;
+      t.classList.add("sx-run"); t.append(fx);
       const t0 = performance.now(); let timer;
-      const stop = () => { clearInterval(timer); t.textContent = text; t.style.display = saved.d; t.style.width = saved.w; t.style.whiteSpace = saved.ws; running.delete(t); };
+      const stop = () => { clearInterval(timer); fx.remove(); t.classList.remove("sx-run"); running.delete(t); };
       running.set(t, stop);
       timer = setInterval(() => {
         const dt = performance.now() - t0;
         if (dt > chars.length * STAGGER + FLICKER) { stop(); return; }
-        t.textContent = chars.map((c, i) => (c === " " || dt < i * STAGGER || dt > i * STAGGER + FLICKER ? c : rand(c))).join("");
+        fx.textContent = chars.map((c, i) => (c === " " || dt < i * STAGGER || dt > i * STAGGER + FLICKER ? c : rand(c))).join("");
       }, STEP);
     }
     const over = (e) => {

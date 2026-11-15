@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fmtClose, marketVerdict, money, pct } from "@/lib/format";
+import { fmtClose, marketNotice, marketVerdict, money, pct } from "@/lib/format";
 
 const p1 = (v) => pct(v, v != null && v < 0.1 ? 1 : 0);
 
@@ -14,12 +14,12 @@ export default function CrowdView({ slug, name }) {
     return () => { on = false; };
   }, [slug]);
   const coup = (d?.markets || []).filter((m) => m.kind === "coup"), exit = (d?.markets || []).filter((m) => m.kind === "exit");
-  const down = d ? Object.entries(d.status).filter(([, s]) => !s.ok).map(([k]) => k) : [];
+  const notice = d ? marketNotice(d.status) : null;
   const lead = d?.primary, verdict = lead ? marketVerdict(lead.p, lead.model) : null;
   return (
     <section id="crowd" className="card crowd">
       <h2>What the prediction markets say</h2>
-      <p className="note">An independent reading of a similar question. We lead with one market per country: the coup question with the most volume traded on Polymarket or Kalshi. Markets differ from our target in wording, horizon and liquidity, so we restate our probability for the market&rsquo;s horizon (constant hazard). A gap is a prompt to look closer. Both venues trade real money and are blocked in some countries, so they appear without links.</p>
+      <p className="note">A second opinion on a similar question. For each country we show one market: the coup question with the most volume on Polymarket or Kalshi. Markets differ from our target in wording, horizon and liquidity, so we restate our probability for the market&rsquo;s horizon (constant hazard). A gap is a reason to look closer. Both venues trade real money and are blocked in some countries, so we do not link to them.</p>
       {!d && !err && <p className="note">Loading markets…</p>}
       {err && <p className="note" role="alert">Prediction markets are unavailable right now.</p>}
       {d && !d.markets.length && <p className="note">No open market on a coup or leader exit in {name} was found. Few countries have one, so absence says nothing about risk.</p>}
@@ -29,7 +29,7 @@ export default function CrowdView({ slug, name }) {
           <p className="mk-q">{lead.question}</p>
           <div className="mk-vs">
             <div><span>Our model, same horizon</span><b>{lead.model != null ? p1(lead.model) : "–"}</b></div>
-            {verdict && <p>{verdict.text} Definitions differ: the market often counts rumours and looser attempts, our target only confirmed events.</p>}
+            {verdict && <p>{verdict.text} Definitions differ: markets often count rumours and looser attempts, while our target counts only confirmed events.</p>}
           </div>
         </div>
       )}
@@ -47,7 +47,7 @@ export default function CrowdView({ slug, name }) {
             </tr>))}
           </tbody></table></div>
       )}
-      {down.length > 0 && <p className="note">Not reachable at the moment: {down.join(", ")}.</p>}
+      {notice && <p className="note">{notice}</p>}
     </section>
   );
 }

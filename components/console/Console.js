@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Flag from "@/components/Flag";
 import Stage, { GROUP_NAME } from "@/components/console/Stage";
 import Strip from "@/components/console/Strip";
@@ -13,13 +13,28 @@ import { fmtClose, fmtEventDate, marketVerdict, money, MONTHS, pct, TYPE_LABEL }
 
 const ymLabel = (s) => { const [y, m] = s.split("-"); return `${MONTHS[m - 1]} ${y}`; };
 const VIEWS = [
-  { key: "field", n: "1", ask: "Where", name: "Signal field", line: "The chance of a coup attempt in each country over the next six months. Colour, height and pulse all show that one number. Drag to rotate, scroll to zoom." },
-  { key: "atlas", n: "2", ask: "When", name: "Temporal atlas", line: "The model's forecast for every country since 1975, quarter by quarter. Height is the probability; the selected country is lit." },
-  { key: "trace", n: "3", ask: "Why", name: "Model trace", line: "How each group of variables pushes this country's odds up (amber) or down (cyan) from a reference country. Click a row to see its drivers." },
+  { key: "field", n: "1", ask: "Where", name: "Signal field", line: "Every patch of land takes the colour, height and pulse of its country's chance of a coup attempt in the next six months. Drag to turn the globe, scroll to zoom." },
+  { key: "atlas", n: "2", ask: "When", name: "Temporal atlas", line: "One ridge per country, from 1975 to now: what the model would have said each quarter. A taller ridge is a higher chance. The country you picked is lit." },
+  { key: "trace", n: "3", ask: "Why", name: "Model trace", line: "Starting from a reference country, each group of variables moves this country's odds up (amber) or down (cyan). Click a row to see what is inside it." },
 ];
 // who the brief is written for: same evidence, different emphasis (see lib/dossier-profile.js)
 const LENSES = [["analyst", "Analyst"], ["investor", "Investor or risk manager"], ["policy", "Diplomat or policy analyst"], ["newsroom", "Journalist or researcher"], ["aid", "Humanitarian or development team"]];
 const cache = new Map();
+
+// one watchlist row: memoised, so choosing a country redraws two rows instead of all of them
+const Row = memo(function Row({ c, on, top, pick }) {
+  const d = c.risk_3m_ago == null ? 0 : c.risk - c.risk_3m_ago;
+  return (
+    <li>
+      <button className={on ? "on" : ""} onClick={() => pick(c.slug)} aria-current={on}>
+        <span className="n">{String(c.pos).padStart(3, "0")}</span><span className="name">{c.name}</span>
+        <span className={`d ${d > 0.001 ? "up" : d < -0.001 ? "down" : ""}`}>{d > 0.001 ? "▲" : d < -0.001 ? "▼" : "·"}</span>
+        <span className="v">{pct(c.risk)}</span>
+        <i style={{ width: `${Math.sqrt(c.risk / top) * 100}%` }} />
+      </button>
+    </li>
+  );
+});
 
 export default function Console({ list, meta, auc, featureGroup, registry }) {
   const bySlug = useMemo(() => new Map(list.map((c) => [c.slug, c])), [list]);
@@ -104,6 +119,7 @@ export default function Console({ list, meta, auc, featureGroup, registry }) {
 
   return (
     <main className="cx">
+      <h1 className="sr-only">Coup-risk forecast for {list.length} countries</h1>
       <Tour open={tour} onClose={() => setTour(false)} onView={setView} />
       <aside className="cx-list" aria-label="Watchlist">
         <header>
@@ -113,19 +129,7 @@ export default function Console({ list, meta, auc, featureGroup, registry }) {
         </header>
         <input ref={filterRef} className="cx-input" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter by country or region" aria-label="Filter countries" aria-keyshortcuts="/" />
         <ol ref={listRef}>
-          {shown.map((c) => {
-            const d = c.risk_3m_ago == null ? 0 : c.risk - c.risk_3m_ago;
-            return (
-              <li key={c.slug}>
-                <button className={c.slug === slug ? "on" : ""} onClick={() => setSlug(c.slug)} aria-current={c.slug === slug}>
-                  <span className="n">{String(c.pos).padStart(3, "0")}</span><span className="name">{c.name}</span>
-                  <span className={`d ${d > 0.001 ? "up" : d < -0.001 ? "down" : ""}`}>{d > 0.001 ? "▲" : d < -0.001 ? "▼" : "·"}</span>
-                  <span className="v">{pct(c.risk)}</span>
-                  <i style={{ width: `${Math.sqrt(c.risk / list[0].risk) * 100}%` }} />
-                </button>
-              </li>
-            );
-          })}
+          {shown.map((c) => <Row key={c.slug} c={c} on={c.slug === slug} top={list[0].risk} pick={setSlug} />)}
           {!shown.length && <li className="cx-none">No country matches.</li>}
         </ol>
       </aside>
@@ -190,7 +194,7 @@ export default function Console({ list, meta, auc, featureGroup, registry }) {
               </li>
             ))}
           </ul>
-          <p className="cx-note">The six largest terms of the logistic component. They are associations found in the data and carry no causal claim.</p>
+          <p className="cx-note">The six largest terms of the logistic model. They are patterns in past data that go with coups; they do not prove a cause.</p>
         </section>
         {detail?.analysis && <section className="cx-country-context">
           <h3>Country context</h3>
@@ -199,8 +203,8 @@ export default function Console({ list, meta, auc, featureGroup, registry }) {
             <div><dt>Regional median</dt><dd>{pct(detail.analysis.region.median)}</dd></div>
             <div><dt>Regime</dt><dd>{detail.diagnostics?.regime || "unavailable"}</dd></div>
           </dl>
-          <p className="cx-note">The median covers the other countries in the region. Annual regime records can lag current events.</p>
-          <details><summary>Activity in the last 3 months</summary><dl className="cx-kv">{detail.analysis.signals.map((s) => <div key={s.key}><dt>{s.label}</dt><dd>{s.recentTotal ?? "—"}<small>{s.ratio != null ? ` / ${s.ratio.toFixed(1)}× baseline` : s.newActivity ? " / after zero baseline" : ""}</small></dd></div>)}</dl><p className="cx-note">Compared with the 24 months before. Counts depend on how well events are reported.</p></details>
+          <p className="cx-note">The median is for the other countries in the region. Regime records come out once a year, so they can lag.</p>
+          <details><summary>Activity in the last 3 months</summary><dl className="cx-kv">{detail.analysis.signals.map((s) => <div key={s.key}><dt>{s.label}</dt><dd>{s.recentTotal ?? "—"}<small>{s.ratio != null ? ` / ${s.ratio.toFixed(1)}× baseline` : s.newActivity ? " / after zero baseline" : ""}</small></dd></div>)}</dl><p className="cx-note">Compared with the 24 months before. Counts depend on how well events get reported.</p></details>
           <Link href={`/paese/${selected.slug}#assessment`}>Read the full assessment</Link>
         </section>}
         <nav className="cx-links">
@@ -218,7 +222,7 @@ export default function Console({ list, meta, auc, featureGroup, registry }) {
             {dossier.state === "busy" ? <>Writing the brief… <small>about 30 s</small></> : <Roll>Download country brief (PDF)</Roll>}
           </button>
           {dossier.state === "error" && dossier.slug === selected.slug && <p role="alert">{dossier.msg}</p>}
-          <p>Figures and coup records come from our database, headlines from a fixed list of outlets; the text is drafted with OpenAI.</p>
+          <p>Three A4 pages, ready in about half a minute.</p>
         </div>
       </aside>
 

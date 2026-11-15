@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import Flag from "@/components/Flag";
-import { fmtClose, marketVerdict, money, pct } from "@/lib/format";
+import { fmtClose, marketNotice, marketVerdict, money, pct } from "@/lib/format";
 
 const p1 = (v) => pct(v, v != null && v < 0.1 ? 1 : 0);
 const gap = (p, model) => { if (model == null || !(model > 0)) return "–"; const r = p / model; return r >= 1 ? `${r >= 10 ? Math.round(r) : r.toFixed(1)}× higher` : `${1 / r >= 10 ? Math.round(1 / r) : (1 / r).toFixed(1)}× lower`; };
@@ -17,7 +17,7 @@ export default function MarketsTable() {
     return () => { on = false; };
   }, []);
   const rows = Object.entries(d?.primary || {}).map(([slug, m]) => ({ slug, ...m })).sort((a, b) => (b.volume || 0) - (a.volume || 0));
-  const down = d ? Object.entries(d.status).filter(([, s]) => !s.ok).map(([k]) => k) : [];
+  const down = d ? Object.entries(d.status).filter(([, s]) => !s.ok).map(([k]) => k) : [], notice = d ? marketNotice(d.status) : null;
   return (
     <section className="card">
       {!d && !err && <p className="note">Loading markets…</p>}
@@ -39,7 +39,7 @@ export default function MarketsTable() {
               </tr>);
           })}</tbody></table></div>
       )}
-      {down.length > 0 && <p className="note">Could not reach {down.join(" and ")} just now, so some countries may be missing.</p>}
+      {notice && <p className="note">{notice}</p>}
     </section>
   );
 }

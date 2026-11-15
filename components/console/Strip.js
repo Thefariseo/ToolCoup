@@ -43,6 +43,30 @@ export default function Strip({ country, detail }) {
     setHover(f < 0 || f > 1 ? null : d.t0 + Math.round(f * (d.end - d.t0)));
   };
   const t = hover ?? d?.end;
+  // the static drawing (about two thousand nodes) is built once per data set and width; a pointer move only redraws the cursor line and the readout
+  const art = useMemo(() => d && (
+    <>
+            {years.map((yr) => <g key={yr}><line className="grid" x1={x(yr * 12)} x2={x(yr * 12)} y1={top} y2={H - 14} /><text className="axis" x={x(yr * 12) + 3} y={H - 3}>{yr}</text></g>)}
+      <line className="grid" x1={padL} x2={w - padR} y1={top} y2={top} /><line className="base" x1={padL} x2={w - padR} y1={top + riskH} y2={top + riskH} />
+      <text className="axis" x={padL - 5} y={top + 4} textAnchor="end">{pct(d.maxRisk, 1)}</text>
+      <text className="axis" x={padL - 5} y={top + riskH + 3} textAnchor="end">0</text>
+      <path className="risk-fill" d={`${path}L${x(d.end)},${top + riskH}L${x(d.months.find((m) => d.risk(m) != null) ?? d.t0)},${top + riskH}Z`} />
+      <path className="risk" d={path} />
+      {d.coups.map((e) => (
+        <g key={e.id} className={`coup ${e.type === "riuscito" ? "ok" : "ko"}`}>
+          <line x1={x(e.t)} x2={x(e.t)} y1={top - 6} y2={top + riskH} />
+          <path d={`M${x(e.t)},${top - 12}l4,4l-4,4l-4,-4Z`} /><title>{`${e.date} · ${e.type === "riuscito" ? "successful coup" : "failed attempt"} · confidence ${e.conf}`}</title>
+        </g>
+      ))}
+      {CHANNELS.map((c, i) => (
+        <g key={c.key} className={c.cls}>
+          <text className="axis" x={padL - 5} y={rowsTop + i * (rowH + 3) + rowH - 3} textAnchor="end">{c.label.slice(0, 3)}</text>
+          {d.months.map((m) => { const v = d.ch(c.key, m); if (!v) return null; const h = Math.max(1, (Math.log1p(v) / Math.log1p(d.maxOf[c.key])) * rowH); return <rect key={m} x={x(m) - bw / 2} y={rowsTop + i * (rowH + 3) + rowH - h} width={bw} height={h} />; })}
+        </g>
+      ))}
+    </>
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  ), [d, w]);
 
   return (
     <section className="cx-strip" aria-label="Country timeline">
@@ -61,24 +85,7 @@ export default function Strip({ country, detail }) {
       <div ref={ref} className="cx-strip-plot" onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
         {!d ? <p className="cx-wait">{detail ? "NO FORECAST HISTORY FOR THIS COUNTRY" : "RETRIEVING SERIES"}<i>_</i></p> : (
           <svg width={w} height={H} role="img" aria-label={`Monthly coup-attempt probability for ${country.name}, with recorded coups and ACLED counts`}>
-            {years.map((yr) => <g key={yr}><line className="grid" x1={x(yr * 12)} x2={x(yr * 12)} y1={top} y2={H - 14} /><text className="axis" x={x(yr * 12) + 3} y={H - 3}>{yr}</text></g>)}
-            <line className="grid" x1={padL} x2={w - padR} y1={top} y2={top} /><line className="base" x1={padL} x2={w - padR} y1={top + riskH} y2={top + riskH} />
-            <text className="axis" x={padL - 5} y={top + 4} textAnchor="end">{pct(d.maxRisk, 1)}</text>
-            <text className="axis" x={padL - 5} y={top + riskH + 3} textAnchor="end">0</text>
-            <path className="risk-fill" d={`${path}L${x(d.end)},${top + riskH}L${x(d.months.find((m) => d.risk(m) != null) ?? d.t0)},${top + riskH}Z`} />
-            <path className="risk" d={path} />
-            {d.coups.map((e) => (
-              <g key={e.id} className={`coup ${e.type === "riuscito" ? "ok" : "ko"}`}>
-                <line x1={x(e.t)} x2={x(e.t)} y1={top - 6} y2={top + riskH} />
-                <path d={`M${x(e.t)},${top - 12}l4,4l-4,4l-4,-4Z`} /><title>{`${e.date} · ${e.type === "riuscito" ? "successful coup" : "failed attempt"} · confidence ${e.conf}`}</title>
-              </g>
-            ))}
-            {CHANNELS.map((c, i) => (
-              <g key={c.key} className={c.cls}>
-                <text className="axis" x={padL - 5} y={rowsTop + i * (rowH + 3) + rowH - 3} textAnchor="end">{c.label.slice(0, 3)}</text>
-                {d.months.map((m) => { const v = d.ch(c.key, m); if (!v) return null; const h = Math.max(1, (Math.log1p(v) / Math.log1p(d.maxOf[c.key])) * rowH); return <rect key={m} x={x(m) - bw / 2} y={rowsTop + i * (rowH + 3) + rowH - h} width={bw} height={h} />; })}
-              </g>
-            ))}
+            {art}
             {hover != null && <line className="cursor" x1={x(hover)} x2={x(hover)} y1={top - 6} y2={H - 14} />}
             {d.risk(d.end) != null && <circle className="now" cx={x(d.end)} cy={y(d.risk(d.end))} r="3" />}
           </svg>

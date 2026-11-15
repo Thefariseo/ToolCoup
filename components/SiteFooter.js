@@ -7,8 +7,8 @@ export default function SiteFooter({ generated }) {
   return (
     <footer className="site-foot">
       <div className="foot-brand">
-        <Brand variant="tagline" height={64} label="Praevex, political instability intelligence" />
-        <p>A monthly coup-risk forecast for every country, filed in public and scored against what happens.</p>
+        <Brand variant="tagline" height={64} label="Praevex, political instability intelligence" lazy />
+        <p>Each month we publish a coup-risk forecast for every country, keep it unchanged in public, and score it once its window closes.</p>
       </div>
       <nav aria-label="Footer">
         <div>
@@ -21,8 +21,8 @@ export default function SiteFooter({ generated }) {
         </div>
       </nav>
       <p className="foot-note">
-        Sources: ACLED, V-Dem, World Bank, Powell &amp; Thyne and other coup datasets. Updated once a month{generated ? `, last on ${generated}` : ""}.
-        Probabilities are model estimates of risk; even the highest does not mean a coup will happen.
+        Sources: ACLED, V-Dem, World Bank, Powell &amp; Thyne and other coup datasets. The data refreshes once a month{generated ? `, last on ${generated}` : ""}.
+        These are model estimates. Even the highest figure is far from a sure thing.
       </p>
     </footer>
   );

@@ -28,9 +28,8 @@ export default function CountrySearch({ options }) {
     else if (e.key === "Enter" && results[active]) go(results[active]);
     else if (e.key === "Escape") setOpen(false);
   }
-  if (path === "/") return <span className="header-search-gap" />;          // the forecast page filters its own watchlist
   return (
-    <div className="header-search">
+    <div className={`header-search${path === "/" ? " beside-watchlist" : ""}`}>      {/* on the forecast page the desktop watchlist has its own filter; on a phone the list sits at the bottom, so search stays */}
       <input
         className="input" type="search" placeholder="Search a country" aria-label="Search a country" value={q}
         onChange={(e) => { setQ(e.target.value); setOpen(true); setActive(0); }}

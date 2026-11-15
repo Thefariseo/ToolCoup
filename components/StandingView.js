@@ -55,7 +55,7 @@ export default function StandingView({ standing, name }) {
   return (
     <section id="standing" className="card standing">
 <h2>International standing and context for {name}</h2>
-      <p className="note">Open sources, latest value with its date. These facts describe the country; whether each one improves the forecast is tested separately and only those that do are used by the model (see Method). Values older than eight years are not shown.</p>
+      <p className="note">Facts from open sources, each with the date of its latest value. They describe the country. We test separately whether each one improves the forecast, and the model uses only those that do (see Method). Values older than eight years are left out.</p>
       {groups.map(([title, items]) => (
         <div key={title} className="st-group">
           <h3>{title}</h3>

@@ -34,3 +34,17 @@ test("our six-month probability is restated for the market horizon with a consta
 test("only the two real-money venues are read", () => {
   assert.deepEqual(VENUES, ["Polymarket", "Kalshi"]);
 });
+
+import { kalshiQuote } from "../lib/market-pick.js";
+
+test("a tight Kalshi book is priced at its mid, a wide one at the last trade", () => {
+  assert.ok(Math.abs(kalshiQuote({ yes_bid_dollars: "0.06", yes_ask_dollars: "0.08", last_price_dollars: "0.07" }).p - 0.07) < 1e-9);
+  assert.equal(kalshiQuote({ yes_bid_dollars: "0.01", yes_ask_dollars: "1.00", last_price_dollars: "0.20" }).p, 0.2);
+  assert.equal(kalshiQuote({ yes_bid_dollars: "0.01", yes_ask_dollars: "1.00", last_price_dollars: "0" }), null);   // never traded: no price
+});
+
+test("Kalshi volume is read from the fixed-point field and turned into dollars", () => {
+  assert.equal(kalshiQuote({ yes_bid_dollars: "0.10", yes_ask_dollars: "0.12", volume_fp: "20000.00" }).volume, 2200);
+  assert.equal(kalshiQuote({ yes_bid: 10, yes_ask: 12, volume: 1000 }).volume, 110);
+  assert.equal(kalshiQuote({ yes_bid_dollars: "0.10", yes_ask_dollars: "0.12" }).volume, null);
+});

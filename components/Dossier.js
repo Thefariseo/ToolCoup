@@ -94,7 +94,7 @@ export default function Dossier({ country, others, meta }) {
                 <LineChart series={riskSeries} markers={markers} height={240} fmt={(v) => pct(v, v < 0.1 ? 1 : 0)} />
                 {country.structural === false && (
                   <p className="note" style={{ marginTop: 8 }}>
-                    Regime, leadership and economic indicators are unavailable for this territory. The estimate relies on coup history and ACLED signals, with weaker coverage.
+                    We have no regime, leadership or economic indicators for this territory, so its estimate rests on coup history and ACLED signals alone.
                   </p>
                 )}
                 {other && (
@@ -155,7 +155,7 @@ export default function Dossier({ country, others, meta }) {
           Each point represents an event. Larger points indicate stronger source agreement. Failed attempts before 1946 are incompletely recorded.
         </p>
         <label className="check"><input type="checkbox" checked={includeDuplicates} onChange={(e) => setIncludeDuplicates(e.target.checked)} /> Include possible duplicates</label>
-        <p className="note">{shown.length} records shown. Plots are listed separately and do not count as attempts. Disputed records retain their source classification.</p>
+        <p className="note">{shown.length} records shown. Plots are listed separately and do not count as attempts. Disputed records keep the classification their sources give.</p>
         {shown.length ? <CoupTimeline events={shown} endYear={endYear} />
                       : <p className="note">No events at this confidence level.</p>}
         {shown.length > 0 && (

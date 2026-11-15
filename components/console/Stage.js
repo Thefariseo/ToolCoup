@@ -31,12 +31,14 @@ export default function Stage({ view, list, selected, detail, atlas, plane, live
   const [atlasHover, setAtlasHover] = useState(null), [zoomShown, setZoomShown] = useState(1);
   const [peerData, setPeerData] = useState(null), [size, setSize] = useState({ w: 0, h: 0 });
   const maxRisk = list[0]?.risk || 0.05;
+  const sizeRef = useRef({ W: 0, H: 0 }), widths = useRef(new Map());
 
   useEffect(() => {
     let engine;
     try { engine = createEngine(canvasRef.current); } catch (e) { console.error(e.message); }
     if (!engine) { setFailed(true); return; }
     engineRef.current = engine;
+    if (process.env.NODE_ENV !== "production") window.__cx = engine;       // development only: lets the test scripts find a country on screen
     if (apiRef) apiRef.current = { zoom: (f) => engine.zoomAt(0.5, 0.5, f), reset: () => engine.resetCam() };
     loadLand().then(setLand).catch(() => setFailed(true));
     const el = canvasRef.current;
@@ -160,20 +162,32 @@ export default function Stage({ view, list, selected, detail, atlas, plane, live
     const top = list.slice(0, 10), all = selected && !top.some((c) => c.slug === selected.slug) ? [...top, selected] : top;
     return all.map((c) => ({ c, g: land.meta.countries[geo.idxOf.get(c.slug)] })).filter((b) => b.g);
   }, [geo, land, list, selected]);
+  useEffect(() => {                         // the overlay's size and each label's width are read here, once, never per frame
+    const root = overlayRef.current; if (!root) return;
+    const read = () => { sizeRef.current = { W: root.clientWidth, H: root.clientHeight }; for (const [slug, el] of labelRefs.current) widths.current.set(slug, el.offsetWidth); };
+    read();
+    const ro = new ResizeObserver(read); ro.observe(root);
+    document.fonts?.ready.then(read);
+    return () => ro.disconnect();
+  }, [beacons]);
   useEffect(() => {
-    const engine = engineRef.current; if (!engine) return;
-    let last = 1;
+    const engine = engineRef.current, root = overlayRef.current; if (!engine || !root) return;
+    let last = 1, sig = "", dirty = true, nodes = null;
+    const mo = new MutationObserver(() => { dirty = true; nodes = null; });          // new ledger or beacon nodes need placing even if the camera is still
+    mo.observe(root, { childList: true, subtree: true });
     engine.state.onFrame = () => {
-      const zl = engine.zoomLevel();
+      const s = engine.state, c = s.cams[s.view], zl = engine.zoomLevel();
       if (Math.abs(zl - last) > 0.04) { last = zl; setZoomShown(zl); }
-      const root = overlayRef.current; if (!root) return;
-      const W = root.clientWidth, H = root.clientHeight;
-      if (engine.state.view === "field") {
+      const now = `${s.view}|${s.yaw.toFixed(4)}|${s.pitch.toFixed(4)}|${s.morph.toFixed(3)}|${c.z.toFixed(3)}|${c.x.toFixed(4)}|${c.y.toFixed(4)}|${s.fade.field.toFixed(2)}`;
+      if (!dirty && now === sig) return;                                             // nothing moved: no style writes at all
+      sig = now; dirty = false;
+      const { W, H } = sizeRef.current; if (!W || !H) return;
+      if (s.view === "field") {
         const placed = [];
         for (const b of beacons) {
           const el = labelRefs.current.get(b.c.slug); if (!el) continue;
           const p = engine.project(b.g.c[0], b.g.c[1]);
-          const x = p.x * W, w = el.offsetWidth; let y = p.y * H;
+          const x = p.x * W, w = widths.current.get(b.c.slug) ?? 80; let y = p.y * H;
           if (p.front) {                                  // stack labels that would collide; the marker stays on the country
             for (let k = 0; k < 8 && placed.some((q) => x < q.x + q.w + 6 && q.x < x + w + 6 && Math.abs(q.y - y) < 13); k++) y += 13;
             placed.push({ x, y, w });
@@ -185,14 +199,15 @@ export default function Stage({ view, list, selected, detail, atlas, plane, live
         }
         return;
       }
-      for (const el of root.querySelectorAll("[data-cx]")) {
+      nodes ||= [...root.querySelectorAll("[data-cx]")];
+      for (const el of nodes) {
         const a = engine.toStage(+el.dataset.cx, +el.dataset.cy);
         el.style.left = `${(a.x * W).toFixed(1)}px`; el.style.top = `${(a.y * H).toFixed(1)}px`;
         if (el.dataset.cx2) el.style.width = `${Math.max(0, (engine.toStage(+el.dataset.cx2, 0).x - a.x) * W).toFixed(1)}px`;
         el.style.opacity = a.x > -0.02 && a.x < 1.02 && a.y > -0.02 && a.y < 1.02 ? "" : 0;
       }
     };
-    return () => { if (engine.state) engine.state.onFrame = null; };
+    return () => { mo.disconnect(); if (engine.state) engine.state.onFrame = null; };
   }, [beacons, view]);
 
   // ---- pointer: rotate / pan / pinch / inspect / select

@@ -104,6 +104,11 @@ spunti non ovvi). Il PDF è una nota di policy di tre pagine A4 impaginata in `l
 in `assets/fonts`, bandiera da `public/flags/png`); ogni riquadro è misurato e la scala del testo si riduce finché la
 pagina sta nei limiti. In sviluppo, `?mock=1` genera il PDF con un testo finto, senza spendere crediti.
 
+Il PDF e' composto di grafici disegnati direttamente (nessuna immagine): scheda di sintesi con un micro-grafico per cifra, posizione del paese tra tutti gli altri su scala
+logaritmica, storia del rischio dal 1975 con ogni tentativo su un binario, registro dei tentativi dal 1900, il Model Trace in forma di ledger (dal paese di riferimento alla
+previsione pubblicata, con la posizione del paese su ciascun gruppo), mercato di previsione contro modello, attivita' ACLED e previsione della violenza con fascia, e i segnali di
+allerta come indicatori con le soglie. In sviluppo l'intestazione `X-Dossier-Scale` riporta di quanto ha dovuto ridursi il testo per pagina.
+
 Variabili d'ambiente (mai nel repository: `.env*` è ignorato da git):
 
 | Variabile | Uso |

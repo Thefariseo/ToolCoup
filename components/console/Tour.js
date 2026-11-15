@@ -9,24 +9,24 @@ export const TOUR_KEY = "toolcoup-tour-v1";
 
 const STEPS = [
   { title: "Welcome to Praevex", logo: true, body: [
-    "Praevex estimates the chance that each country sees at least one coup attempt, successful or failed, in the next six months.",
-    "A typical country sits near 1%, so read each figure against that base rate and against the other countries. A new issue is filed every month and later scored against what happened.",
+    "Praevex gives each country a chance, in percent, of at least one coup attempt in the next six months. Successful and failed attempts both count.",
+    "A typical country sits near 1%, so judge a figure against that and against its neighbours. We file a new issue every month and score it later against what happened.",
   ], hint: "Five short steps. Arrow keys move, Esc closes." },
   { target: ".cx-list", side: "right", title: "Pick a country", body: [
-    "The watchlist ranks every country by probability. Click one, step with the arrow keys, or press / to filter by name or region.",
-    "The triangle shows the change over three months: amber is up, cyan is down.",
+    "The watchlist runs from the highest chance to the lowest. Click a country, use the arrow keys, or press / to filter by name or region.",
+    "The small triangle shows the move over three months: amber up, cyan down.",
   ] },
   { target: ".cx-tabs", side: "bottom", view: "field", title: "Three ways to read one forecast", body: [
-    "Where: the signal field, a globe of dots coloured by probability. When: the temporal atlas, one ridge per country since 1975. Why: the model trace, how each group of variables pushes this country's odds up or down.",
-    "Switch with the tabs or the keys 1, 2 and 3. The globe takes drag and scroll; G flips it to a flat map.",
+    "Where: a globe coloured by each country's chance. When: one ridge per country since 1975. Why: how each group of variables pushes this country's odds up or down.",
+    "Switch with the tabs or the keys 1, 2 and 3. Drag and scroll move the globe; G turns it into a flat map.",
   ] },
   { target: ".cx-read", side: "left", title: "The readout", body: [
-    "The probability with its 80% range, the rank, the largest drivers and the coup record.",
-    "Download country brief compiles a three-page note that sets the model against recent press. The country page adds every figure and a source link for each coup on record.",
+    "The chance with its 80% range, the rank, the biggest drivers and the coup record.",
+    "Download country brief builds a three-page note that sets our model against recent press. The country page has every figure and a source for each coup.",
   ] },
   { target: ".site-header", side: "bottom", title: "The rest of the site", body: [
-    "The registry archives every forecast with its date and scores it once the outcome is known. The map shows every recorded coup since 1900. Method explains how the model is built and where it fails.",
-    "Press ? at any time to reopen this guide.",
+    "The registry stores each month's forecast with its date and scores it once the outcome is known. The map shows every recorded coup since 1900. Method explains how the model works and where it fails.",
+    "Press ? to open this guide again.",
   ], last: true },
 ];
 

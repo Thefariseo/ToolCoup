@@ -12,9 +12,9 @@ const HIST_BREAKS = [1, 2, 3, 5, 8]; // attempts nel decennio -> classe di color
 const HIST_LABELS = ["1", "2", "3–4", "5–7", "8 or more"];
 
 export default function WorldView({ countries, meta, initialCoups }) {
-  const [mode, setMode] = useState("risk");
+  const [mode, setMode] = useState("history");              // the forecast is the home page; this page opens on what only it shows: every coup since 1900
   const view = "map";
-  const [year, setYear] = useState(1973);
+  const [year, setYear] = useState(() => Number(meta.data_end.slice(0, 4)));
   const [playing, setPlaying] = useState(false);
   const [conf, setConf] = useState("C");
   const [plots, setPlots] = useState(false);
@@ -179,7 +179,7 @@ export default function WorldView({ countries, meta, initialCoups }) {
         {sel && (
           <div className="panel-sec">
             <div className="card-sel">
-              <h3>{sel.name}</h3>
+              <h2>{sel.name}</h2>
               <div className="row">
                 {sel.risk != null && <span>{pct(sel.risk)} chance of an attempt{sel.risk_lo != null && ` (range ${pct(sel.risk_lo)} to ${pct(sel.risk_hi)})`}, rank {sel.rank} of {ranked.length}</span>}
                 <span>{sel.attempts} {sel.attempts === 1 ? "attempt" : "attempts"} since 1900</span>

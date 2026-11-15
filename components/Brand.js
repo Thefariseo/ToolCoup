@@ -6,10 +6,10 @@ const SIZE = {
   lockup: [694, 260], mark: [351, 520], tagline: [824, 300], stacked: [477, 520],
 };
 
-export default function Brand({ variant = "lockup", tone = "dark", height = 36, label, className = "" }) {
+export default function Brand({ variant = "lockup", tone = "dark", height = 36, label, className = "", lazy = false }) {
   const [w, h] = SIZE[variant];
-  const small = height <= 56 && (variant === "lockup" || variant === "mark");
-  const file = `praevex-${variant === "tagline" ? "lockup-tagline" : variant}-${tone}${small ? "-sm" : ""}.png`;
+  const small = height <= 80 && variant !== "stacked";                     // the small files are 132 px tall, WebP: enough for 2x at these sizes
+  const file = `praevex-${variant === "tagline" ? "lockup-tagline" : variant}-${tone}${small ? "-sm.webp" : ".png"}`;
   return (
     <img
       className={`brand-img ${className}`.trim()}
@@ -18,6 +18,7 @@ export default function Brand({ variant = "lockup", tone = "dark", height = 36, 
       height={height}
       alt={label ?? ""}
       decoding="async"
+      loading={lazy ? "lazy" : undefined}
     />
   );
 }

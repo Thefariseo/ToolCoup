@@ -73,10 +73,13 @@ save(to_height(trim(st_l), 520), "praevex-stacked-light.png")
 sl = np.array(st_l)
 save(to_height(trim(Image.fromarray(sl[:885], "RGBA")), 520), "praevex-mark-light.png")
 
-# small files for the page chrome (a 36-48px logo does not need the 260px master)
-for name in ("lockup-dark", "mark-dark", "lockup-light", "mark-light"):
+# small files for the page chrome: a 36-64px logo does not need the 260-300px master. Dark ones also as WebP (a third of the weight)
+for name in ("lockup-dark", "mark-dark", "lockup-tagline-dark", "lockup-light", "mark-light", "lockup-tagline-light"):
     im = Image.open(OUT / f"praevex-{name}.png")
-    save(to_height(im, 132), f"praevex-{name}-sm.png")
+    small = to_height(im, 132)
+    save(small, f"praevex-{name}-sm.png")
+    small.save(OUT / f"praevex-{name}-sm.webp", "WEBP", quality=84, method=6)
+    print(f"brand/praevex-{name}-sm.webp", (OUT / f"praevex-{name}-sm.webp").stat().st_size // 1024, "kB")
 
 # ------------------------------------------------------------------ browser and home-screen icons
 def tile(size, fill_ratio, rounded):

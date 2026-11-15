@@ -19,18 +19,18 @@ export default function RegistryPage() {
   return (
     <><main className="rg wrap">
       <header className="rg-head page-head">
-        <h1><Rise>Filed before the fact. Scored after.</Rise></h1>
+        <h1><Rise>Every forecast we have filed, and how it scored</Rise></h1>
         <p className="lede">
-          Each month the published forecast is frozen into one file, committed to the public repository and never edited. When its
-          {" "}{r.horizon}-month window closes it is compared with the coups recorded in that window. A backtest can be tuned until
-          it looks good; a forecast with a timestamp cannot.
+          Each month we freeze the published forecast into one file, commit it to the public repository and never edit it. When its
+          {" "}{r.horizon}-month window ends, we count the coups recorded in that window and score the forecast against them. The commit
+          history dates every file, so a forecast cannot be tuned after the fact.
         </p>
         <p className="rg-line">
           {r.issues.length} {r.issues.length === 1 ? "issue" : "issues"} filed, {closed.length} {closed.length === 1 ? "window" : "windows"} closed.{" "}
           {closed.length ? `Scored so far: Brier skill ${skill(r.pooled?.skill)} against the base rate.` : next ? `The first verdict comes after ${mon(next)}.` : ""}{" "}
           <span className={`rg-integ ${r.integrity.ok ? "ok" : "bad"}`}>{r.integrity.ok ? "Archive checksums verified." : "Archive altered."}</span>
         </p>
-        <p className="rg-note"><strong>Target.</strong> {r.target} Events confirmed only by weaker sources are listed but not counted until the database upgrades them.</p>
+        <p className="rg-note"><strong>Target.</strong> {r.target} An event backed only by weaker sources is listed but does not count until the database upgrades it.</p>
         {r.issues.some((i) => i.target_version === 1) && <p className="rg-note">Issues {r.issues.filter((i) => i.target_version === 1).map((i) => i.issue).join(", ")} were filed under the first target definition and stay scored against it: {r.target_v1}</p>}
       </header>
 
@@ -78,9 +78,9 @@ export default function RegistryPage() {
         <section className="rg-hind">
           <h2>Reconstruction from past forecasts</h2>
           <p>
-            Until real issues close, this reconstruction is the closest substitute: the model&apos;s out-of-sample forecasts since {h.from}, cut into the
-            same half-yearly issues. Each came from a model trained only on earlier years, but with today&apos;s code and today&apos;s revision of the
-            data, so it flatters the method. It makes the scoring legible and is never mixed into the registry above.
+            Until real issues close, this reconstruction fills the gap. It takes the model&apos;s out-of-sample forecasts since {h.from} and cuts
+            them into the same half-yearly issues. Each came from a model trained on earlier years only, but with today&apos;s code and today&apos;s
+            data revisions, so it looks better than a live forecast would. We show it to explain the scoring, and keep it apart from the registry above.
           </p>
           <p className="rg-line">
             Across {h.pooled.n.toLocaleString("en-GB")} country-windows, {h.pooled.events} had an attempt ({h.pooled.expected.toFixed(0)} expected). The model reached an AUC of {h.pooled.auc},
@@ -109,7 +109,7 @@ export default function RegistryPage() {
           </details>
         </section>
       )}
-      <p className="rg-note">Machine-readable: <a href="/api/registry">/api/registry</a>. Scores are recomputed from the archived files on every monthly run; a file whose hash no longer matches the index fails the build.</p>
+      <p className="rg-note">Machine-readable: <a href="/api/registry">/api/registry</a>. Every monthly run recomputes the scores from the archived files. If a file&rsquo;s hash no longer matches the index, the build fails.</p>
     </main>
     <SiteFooter generated={r.generated} />
     </>

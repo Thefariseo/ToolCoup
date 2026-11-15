@@ -284,12 +284,20 @@ export function createEngine(canvas) {
     sel: -1, hov: -1, selRow: -1, hovRow: -1, cursor: -1, emit: new Float32Array(32), risk: 0, focus: -99,
     cams: { field: cam0(), atlas: cam0(), trace: cam0() },
     live: true, drag: false, idle: 0, t: 0, last: 0, raf: 0, visible: true, onFrame: null, cas: null, focusIdx: -1,
+    // frame budget: drawing is capped (60 fps while the reader acts, 30 when only the idle motion runs, none when the stage is still) and sizes
+    // are read once. The picture never changes with the budget: no lower resolution, no stopped time.
+    box: { w: 0, h: 0 }, dirtySize: true, rawDpr: 0, dprCap: 2, fpsActive: 60, lastInput: 0, lastDraw: 0, cost: 2,
   };
+  const poke = () => { st.lastInput = performance.now(); };
 
   function resize() {
-    const dpr = Math.min(window.devicePixelRatio || 1, 2), r = canvas.getBoundingClientRect();
-    const W = Math.max(2, Math.round(r.width * dpr)), H = Math.max(2, Math.round(r.height * dpr));
-    if (W === st.W && H === st.H) return;
+    const raw = window.devicePixelRatio || 1;
+    if (!st.dirtySize && raw === st.rawDpr) return;                          // no layout read per frame: the observer says when the size changed
+    st.dirtySize = false; st.rawDpr = raw;
+    const dpr = Math.min(raw, st.dprCap);
+    const W = Math.max(2, Math.round(st.box.w * dpr)), H = Math.max(2, Math.round(st.box.h * dpr));
+    if (W === st.W && H === st.H && dpr === st.dpr) return;
+    poke();
     Object.assign(st, { W, H, dpr, cell: dpr >= 1.5 ? 3 : 2 });
     canvas.width = W; canvas.height = H;
     st.tw = Math.ceil(W / st.cell); st.th = Math.ceil(H / st.cell);
@@ -427,9 +435,27 @@ export function createEngine(canvas) {
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   }
 
+  const unsettled = () => st.tYaw != null || Math.abs(st.tMorph - st.morph) > 0.002 || Object.keys(st.fade).some((k) => Math.abs(st.fade[k] - (k === st.view ? 1 : 0)) > 0.01)
+    || Object.values(st.cams).some((c) => Math.abs(c.tz - c.z) > 0.001 || Math.abs(c.tx - c.x) > 0.0005 || Math.abs(c.ty - c.y) > 0.0005);
+  /** How much main-thread time a drawn frame costs, smoothed. If drawing at 60 fps keeps the main thread more than about half busy for
+   *  several seconds, the active rate drops to 30 and comes back when it is cheap again. It only trades frame rate: resolution and
+   *  animation time never change, and the first seconds (shader compilation, data uploads) are not counted. */
+  function meter(ms, now) {
+    st.cost += (ms - st.cost) * 0.05;
+    if (now < 5000) return;
+    if (st.fpsActive === 60 && st.cost > 9) st.fpsActive = 30;
+    else if (st.fpsActive === 30 && st.cost < 3.5) st.fpsActive = 60;
+  }
+
   function frame(now) {
     st.raf = requestAnimationFrame(frame);
     if (!st.visible) return;
+    const t0 = performance.now();
+    const active = st.drag || now - st.lastInput < 1200 || unsettled();
+    const target = active ? 1000 / st.fpsActive : st.live ? 1000 / 30 : Infinity;
+    const gap = now - st.lastDraw;
+    if (gap < target - 3) return;                                             // a 120 Hz screen draws at 60, the idle motion at 30, a still stage not at all
+    st.lastDraw = now;
     resize();
     const dt = Math.min(0.05, (now - st.last) / 1000 || 0); st.last = now;
     if (st.live) st.t += dt;
@@ -516,8 +542,13 @@ export function createEngine(canvas) {
     gl.uniform1f(post.u.uCell, st.cell); gl.uniform1f(post.u.uTime, st.t); gl.uniform1f(post.u.uLive, 1);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     st.onFrame?.();
+    meter(performance.now() - t0, now);
   }
 
+  const ro = new ResizeObserver(([e]) => { st.box.w = e.contentRect.width; st.box.h = e.contentRect.height; st.dirtySize = true; poke(); });
+  ro.observe(canvas);
+  { const r0 = canvas.getBoundingClientRect(); st.box.w = r0.width; st.box.h = r0.height; }
+  poke();
   const upload = (buffer, data) => { gl.bindBuffer(gl.ARRAY_BUFFER, buffer); gl.bufferData(gl.ARRAY_BUFFER, data, gl.DYNAMIC_DRAW); };
   const io = new IntersectionObserver(([e]) => { st.visible = e.isIntersecting && !document.hidden; });
   io.observe(canvas);
@@ -528,17 +559,17 @@ export function createEngine(canvas) {
 
   return {
     state: st, project, unproject, toStage, fromStage,
-    setView(v) { st.view = v; if (!st.viewSet) { st.viewSet = true; for (const k of Object.keys(st.fade)) st.fade[k] = k === v ? 1 : 0; } },
-    setLive(v) { st.live = v; },
-    setPlane(v) { st.tMorph = v ? 1 : 0; },
-    setField(data, emit) { upload(buf.field, data); st.nField = data.length / 6; st.emit.fill(0); st.emit.set(emit.slice(0, 32)); },
+    setView(v) { poke(); st.view = v; if (!st.viewSet) { st.viewSet = true; for (const k of Object.keys(st.fade)) st.fade[k] = k === v ? 1 : 0; } },
+    setLive(v) { st.live = v; poke(); },
+    setPlane(v) { st.tMorph = v ? 1 : 0; poke(); },
+    setField(data, emit) { poke(); upload(buf.field, data); st.nField = data.length / 6; st.emit.fill(0); st.emit.set(emit.slice(0, 32)); },
     /**
      * boxes: the 9 swarm bands in clip units, one per ledger row (0 reference country, 1-7 the groups in GROUP_ORDER, 8 the published range),
      * each {x0, x1, y, h, dir, w}: extent along the row, row centre, half thickness, flow direction (+1 right, -1 left, 0 still), weight.
      * core: {x, y, r, w} the vortex at the published marker; risk: the forecast on the console's 0-1 scale (spin and size of the vortex).
      */
     setLedger({ boxes, core }, risk) {
-      st.risk = risk;
+      poke(); st.risk = risk;
       if (sim === null) sim = makeSim() || false;
       const yc = new Float32Array(10), hh = new Float32Array(10), lo = new Float32Array(10), hi = new Float32Array(10), dir = new Float32Array(10), w = new Float32Array(10);
       boxes.forEach((b, i) => { yc[i] = b.y; hh[i] = b.h; lo[i] = b.x0; hi[i] = b.x1; dir[i] = b.dir; w[i] = b.w; });
@@ -549,15 +580,16 @@ export function createEngine(canvas) {
       cum[10] = 1.01;
       st.cas = { cum, yc, hh, lo, hi, dir, sg: dir, core };
     },
-    setAtlas(data, rows, Q) { upload(buf.atlas, data); st.rows = rows; st.Q = Q; },
-    select(idx, lon, lat) { st.sel = idx; if (lon != null) { st.tYaw = lon * RAD; st.tPitch = Math.max(-0.9, Math.min(0.9, lat * RAD * 0.85)); } },
-    hover(idx) { st.hov = idx; },
-    rows(sel, hov, cursor) { st.selRow = sel; st.hovRow = hov; st.cursor = cursor; },
-    focus(i) { st.focusIdx = i == null ? -1 : i; },
-    drag(dx, dy) { st.tYaw = null; st.idle = 0; st.yaw -= dx * 2.2 / (zoom() * st.cams.field.z); st.pitch = Math.max(-1.3, Math.min(1.3, st.pitch + dy * 2.2 / (zoom() * st.cams.field.z))); },
-    dragging(v) { st.drag = v; st.idle = 0; },
+    setAtlas(data, rows, Q) { poke(); upload(buf.atlas, data); st.rows = rows; st.Q = Q; },
+    select(idx, lon, lat) { poke(); st.sel = idx; if (lon != null) { st.tYaw = lon * RAD; st.tPitch = Math.max(-0.9, Math.min(0.9, lat * RAD * 0.85)); } },
+    hover(idx) { st.hov = idx; poke(); },
+    rows(sel, hov, cursor) { poke(); st.selRow = sel; st.hovRow = hov; st.cursor = cursor; },
+    focus(i) { st.focusIdx = i == null ? -1 : i; poke(); },
+    drag(dx, dy) { poke(); st.tYaw = null; st.idle = 0; st.yaw -= dx * 2.2 / (zoom() * st.cams.field.z); st.pitch = Math.max(-1.3, Math.min(1.3, st.pitch + dy * 2.2 / (zoom() * st.cams.field.z))); },
+    dragging(v) { poke(); st.drag = v; st.idle = 0; },
     /** multiply the zoom of the current view by f, keeping the stage point (fx, fy) under the cursor */
     zoomAt(fx, fy, f) {
+      poke();
       if (st.view === "trace") return;                 // the ledger is laid out in pixels: it does not zoom
       const c = st.cams[st.view], cx = fx * 2 - 1, cy = 1 - fy * 2, z1 = clamp(c.tz * f, 1, MAXZ);
       if (st.view !== "field" || st.tMorph === 1) {
@@ -568,12 +600,13 @@ export function createEngine(canvas) {
     },
     /** pan by a pointer delta given as a fraction of the stage size */
     pan(dfx, dfy) {
+      poke();
       const c = st.cams[st.view];
       if (st.view === "trace" || (st.view === "field" && st.morph < 0.99)) return;
       c.tx -= (dfx * 2) / c.z; c.ty += (dfy * 2) / c.z; clampCam(c); c.x = c.tx; c.y = c.ty;
     },
-    resetCam() { const c = st.cams[st.view]; c.tz = 1; c.tx = 0; c.ty = 0; },
+    resetCam() { poke(); const c = st.cams[st.view]; c.tz = 1; c.tx = 0; c.ty = 0; },
     zoomLevel() { return st.cams[st.view].tz; },
-    destroy() { cancelAnimationFrame(st.raf); io.disconnect(); document.removeEventListener("visibilitychange", vis); },
+    destroy() { cancelAnimationFrame(st.raf); io.disconnect(); ro.disconnect(); document.removeEventListener("visibilitychange", vis); },
   };
 }
