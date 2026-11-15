@@ -118,13 +118,23 @@ Per questo `fetch_acled.py` scarica ora anche `admin1` e le coordinate. Mancano 
 attori in testo ("State forces", "External/Other forces"), non i codici 1-8: i confronti numerici darebbero zero senza avvisare.
 
 ## 4. Mercati di previsione (`lib/markets.js`)
-Polymarket, Kalshi e Manifold, letti da endpoint pubblici (nessuna chiave per leggere). I mercati sono mostrati **accanto** al modello e mai fusi con esso,
+Polymarket e Kalshi, letti da endpoint pubblici (nessuna chiave per leggere). Manifold e' stato tolto: tratta moneta virtuale e i suoi prezzi non sono un segnale affidabile. I mercati sono mostrati **accanto** al modello e mai fusi con esso,
 con la probabilita' del modello riportata sull'orizzonte di ciascun mercato (rischio costante).
 
 Polymarket e Kalshi sono piattaforme a denaro reale e dalla rete italiana risultano **bloccati dall'ADM** (il certificato restituito e' quello della pagina di blocco
-`sito-inibito-giochi.adm.gov.it`): per questo il codice non e' stato provato contro di loro, ma solo contro Manifold. Le richieste partono dal server su Vercel, che non
+`sito-inibito-giochi.adm.gov.it`): per questo il codice non si puo' provare in locale contro di loro. Le richieste partono dal server su Vercel, che non
 e' dietro quel blocco; la risposta di `/api/markets/<paese>` riporta per ogni fonte `ok` o l'errore, ed e' li' che va verificato dopo il deploy. Per prudenza i loro
-mercati compaiono come dato con attribuzione e senza link (la promozione del gioco e' limitata in Italia); Manifold, a moneta virtuale, e' linkato.
+mercati compaiono come dato con attribuzione e senza link (la promozione del gioco e' limitata in Italia).
+Correzioni di questa versione. Kalshi: il prezzo e' il punto medio di bid e ask solo quando lo spread e' stretto (entro 15 centesimi), altrimenti l'ultimo scambio
+(prima un libro con bid 0,01 e ask 1,00 dava un falso 50,5%); il volume si legge da `volume_fp` e si porta in dollari al prezzo corrente (prima arrivava sempre vuoto, quindi
+Kalshi non poteva mai essere il mercato principale); la scansione degli eventi ha ora 38 secondi invece di 20 (si fermava a 92 pagine). Polymarket: tre pagine per termine di ricerca.
+Se una fonte non risponde (blocco ADM in locale, errore, limite di richieste) il sito mostra l'ultima lettura buona, datata, da `webdata/markets-snapshot.json`; la risposta
+dell'API riporta `fallback: "snapshot"` e `blocked: true` per quella fonte. Per rigenerare la copia: `node scripts/snapshot-markets.mjs https://<indirizzo del sito>`.
+
+Dietro un blocco di rete (in Italia l'ADM serve la propria pagina al posto di Polymarket e Kalshi, anche se si interrogano resolver pubblici su UDP) il server, dopo il primo
+errore col certificato del blocco, risolve gli indirizzi con DNS cifrato (Cloudflare, DoH) e contatta direttamente i server veri; dove la rete non blocca (Vercel) questo non scatta mai.
+`MARKETS_NO_DOH=1` lo spegne. Kalshi limita le richieste: pausa tra le pagine e nuovi tentativi su 429.
+
 ## 5. Analogie strutturali (`pipeline/analogs.py`)
 Per ogni paese, i 30 mesi storici piu' simili (distanza su variabili standardizzate di storia golpista, regime, leader, economia, contagio) e la quota seguita da un tentativo.
 

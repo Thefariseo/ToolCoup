@@ -11,6 +11,8 @@ import StandingView from "@/components/StandingView";
 import ViolenceOutlook from "@/components/ViolenceOutlook";
 import { getAnalogs, getStanding, getViolence } from "@/lib/outlook";
 import Flag from "@/components/Flag";
+import CountUp from "@/components/motion/CountUp";
+import Rise from "@/components/motion/Rise";
 import { keyMetrics } from "@/lib/country-metrics";
 import SiteFooter from "@/components/SiteFooter";
 import { allSlugs, getCountry, getSummary, listCountries } from "@/lib/data";
@@ -28,7 +30,7 @@ export async function generateMetadata({ params }) {
 
 export default function CountryPage({ params }) {
   return (
-    <Suspense fallback={<main className="wrap"><div className="page-head"><p className="lede">Loading country dossier…</p></div></main>}>
+    <Suspense fallback={<main className="wrap"><div className="page-head"><p className="lede">Loading the country page…</p></div></main>}>
       <CountryContent params={params} />
     </Suspense>
   );
@@ -49,8 +51,8 @@ async function CountryContent({ params }) {
     <>
     <main className="wrap">
       <div className="page-head">
-        <Link className="crumb" href={`/?c=${slug}`}>← Open in console</Link>
-        <h1 className="with-flag"><Flag iso={country.iso} height={34} />{country.name}</h1>
+        <Link className="crumb" href={`/?c=${slug}`} data-scramble><span className="sx">Open in the forecast</span></Link>
+        <h1 className="with-flag"><Flag iso={country.iso} height={34} /><Rise>{country.name}</Rise></h1>
         <p className="lede">
           {country.historical
             ? "Historical state: only coup records are available."
@@ -60,10 +62,10 @@ async function CountryContent({ params }) {
           {!country.historical && (
             <>
               <div className="fact">
-                <b>{pct(country.risk)}</b>
+                <b><CountUp value={country.risk} start={0} fmt="pct" duration={900} /></b>
                 <span>
-                  probability of an attempt in the next {meta.horizon} months
-                  {country.risk_lo != null && `, plausible range ${pct(country.risk_lo)} – ${pct(country.risk_hi)}`}
+                  chance of an attempt in the next {meta.horizon} months
+                  {country.risk_lo != null && `, plausible range ${pct(country.risk_lo)} to ${pct(country.risk_hi)}`}
                 </span>
               </div>
               <div className="fact"><b>#{country.rank}</b><span>of {ranked.length} countries{ratio >= 1 ? `, ${ratio.toFixed(1)} times the base rate` : ", below the base rate"}</span></div>
@@ -78,9 +80,9 @@ async function CountryContent({ params }) {
         </div>
       </div>
       <section className="km" aria-label="Key figures">
-        <h2 className="km-title">Key figures</h2>
+        <h2 className="km-title">More figures</h2>
         <div className="km-grid">
-          {keyMetrics({ ...country, rankOf: ranked.length }, meta).map((m) => (
+          {keyMetrics({ ...country, rankOf: ranked.length }, meta).filter((m) => !["risk", "mult", "att"].includes(m.k)).map((m) => (
             <div key={m.k} className={`km-tile ${m.tone}`}><span>{m.label}</span><b>{m.value}</b><small>{m.sub}</small></div>
           ))}
         </div>

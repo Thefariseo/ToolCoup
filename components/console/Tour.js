@@ -1,42 +1,32 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import Brand from "@/components/Brand";
 
-// First-visit induction. Eight short steps that light up the real interface (and switch the views so each one is seen
+// First-visit induction. Five short steps that light up the real interface (and switch the views so each one is seen
 // working). Shown once per browser (localStorage); reopened with the GUIDE button or the ? key.
 export const TOUR_KEY = "toolcoup-tour-v1";
 
 const STEPS = [
-  { title: "WELCOME", body: [
-    "This console estimates, for every country, the probability of at least one coup attempt (successful or failed) in the next 6 months.",
-    "Absolute numbers are small: a typical country sits near 1%. Read them against that base rate, and against each other. A new edition is filed in public every month and later scored against what actually happens.",
-  ], hint: "Eight steps, about a minute. Use ← → or the buttons; Esc leaves." },
-  { target: ".cx-list", side: "right", title: "THE WATCHLIST", body: [
-    "Every country, ranked by probability. Click one, or step through with ↑ ↓ (or J K). Press / to filter by name or region.",
-    "The triangle shows the 3-month change: amber up, cyan down.",
+  { title: "Welcome to Praevex", logo: true, body: [
+    "Praevex gives each country a chance, in percent, of at least one coup attempt in the next six months. Successful and failed attempts both count.",
+    "A typical country sits near 1%, so judge a figure against that and against its neighbours. We file a new issue every month and score it later against what happened.",
+  ], hint: "Five short steps. Arrow keys move, Esc closes." },
+  { target: ".cx-list", side: "right", title: "Pick a country", body: [
+    "The watchlist runs from the highest chance to the lowest. Click a country, use the arrow keys, or press / to filter by name or region.",
+    "The small triangle shows the move over three months: amber up, cyan down.",
   ] },
-  { target: ".cx-stage-wrap", side: "inside", view: "field", title: "1 · SIGNAL FIELD — WHERE", body: [
-    "The world as a field of dots. Colour, plume height and pulse rate all encode the same number: the country's probability. Dark and still means low.",
-    "Drag to rotate, scroll or pinch to zoom, G flips globe and plane. Click any country to read it.",
+  { target: ".cx-tabs", side: "bottom", view: "field", title: "Three ways to read one forecast", body: [
+    "Where: a globe coloured by each country's chance. When: one ridge per country since 1975. Why: how each group of variables pushes this country's odds up or down.",
+    "Switch with the tabs or the keys 1, 2 and 3. Drag and scroll move the globe; G turns it into a flat map.",
   ] },
-  { target: ".cx-stage-wrap", side: "inside", view: "atlas", title: "2 · TEMPORAL ATLAS — WHEN", body: [
-    "One ridge per country, 1975 to today: what the model would have said, quarter by quarter. Taller means riskier.",
-    "The selected country is lit and its trajectory is marked: peak, now, and the coups that were recorded.",
+  { target: ".cx-read", side: "left", title: "The readout", body: [
+    "The chance with its 80% range, the rank, the biggest drivers and the coup record.",
+    "Download country brief builds a four-page note, cover included, that sets our model against recent press. The country page has every figure and a source for each coup.",
   ] },
-  { target: ".cx-stage-wrap", side: "inside", view: "trace", title: "3 · MODEL TRACE — WHY", body: [
-    "A ledger from a reference country to this country's forecast. Each row is one family of variables: amber bars raise the odds, cyan bars lower them. The strip on the right shows where every other country stands on the same group.",
-    "Click a row to filter the drivers on the right. These are associations in the data, not causes.",
-  ] },
-  { target: ".cx-read", side: "left", title: "THE READOUT", body: [
-    "The probability with its 80% interval, rank, multiple of the base rate, the largest drivers and the recorded coup history.",
-    "COUNTRY BRIEF · PDF compiles a three-page policy note that sets the model against recent press. The country page adds key figures, the full assessment and a source link for every coup on record.",
-  ] },
-  { target: ".cx-strip", side: "top", title: "THE TIMELINE", body: [
-    "The country's forecast through time, recorded coups as red markers, and monthly ACLED activity underneath. Hover to read any month, and read the spikes with the markers in mind: activity alone does not predict a coup.",
-  ] },
-  { target: ".site-header", side: "bottom", title: "THE REST OF THE SITE", body: [
-    "REGISTRY: every monthly forecast, archived with its date and scored once the outcome is known. It is the only honest test of a tool like this.",
-    "ARCHIVE: every country's coup record with its sources. METHOD: how it is built and where it fails. Press ? at any time to reopen this guide.",
+  { target: ".site-header", side: "bottom", title: "The rest of the site", body: [
+    "The logo sits in the middle of every page. Menu, top left, opens the registry (each month's forecast, dated and scored once the outcome is known), violence, markets, the map of every recorded coup since 1900, and the method.",
+    "Press ? to open this guide again.",
   ], last: true },
 ];
 
@@ -109,15 +99,16 @@ export default function Tour({ open, onClose, onView }) {
       {box && !narrow && <div className="tour-spot" style={{ left: box.x - PAD, top: box.y - PAD, width: box.w + PAD * 2, height: box.h + PAD * 2 }} />}
       {(!box || narrow) && <div className="tour-dim" />}
       <div className="tour-card" ref={cardRef} style={{ ...pos, width: narrow ? undefined : W }}>
-        <header><span>GUIDE · {String(i + 1).padStart(2, "0")} / {String(STEPS.length).padStart(2, "0")}</span><button onClick={finish} aria-label="Close guide">SKIP ✕</button></header>
+        <header><span>Step {i + 1} of {STEPS.length}</span><button onClick={finish} aria-label="Close the guide">Skip guide</button></header>
+        {step.logo && <Brand variant="lockup" height={84} className="tour-logo" />}
         <h2 id="tour-title">{step.title}</h2>
         {step.body.map((t) => <p key={t}>{t}</p>)}
         {step.hint && <p className="tour-hint">{step.hint}</p>}
         <footer>
           <div className="tour-dots" aria-hidden="true">{STEPS.map((_, k) => <i key={k} className={k === i ? "on" : k < i ? "done" : ""} />)}</div>
           <div>
-            {i > 0 && <button onClick={() => go(-1)}>← BACK</button>}
-            <button ref={nextRef} className="primary" onClick={() => (lastStep ? finish() : go(1))}>{lastStep ? "START EXPLORING" : i === 0 ? "BEGIN →" : "NEXT →"}</button>
+            {i > 0 && <button onClick={() => go(-1)}>Back</button>}
+            <button ref={nextRef} className="primary" onClick={() => (lastStep ? finish() : go(1))}>{lastStep ? "Start exploring" : i === 0 ? "Start the guide" : "Next"}</button>
           </div>
         </footer>
       </div>

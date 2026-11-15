@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
 /** Ricerca paese nella testata: porta al dossier. */
@@ -9,7 +9,7 @@ export default function CountrySearch({ options }) {
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
-  const router = useRouter();
+  const router = useRouter(), path = usePathname();
   const results = useMemo(() => {
     const n = q.trim().toLowerCase();
     if (!n) return [];
@@ -29,9 +29,9 @@ export default function CountrySearch({ options }) {
     else if (e.key === "Escape") setOpen(false);
   }
   return (
-    <div className="header-search">
+    <div className={`header-search${path === "/" ? " beside-watchlist" : ""}`}>      {/* on the forecast page the desktop watchlist has its own filter; on a phone the list sits at the bottom, so search stays */}
       <input
-        className="input" type="search" placeholder="Search country / dossier" aria-label="Search country / dossier" value={q}
+        className="input" type="search" placeholder="Search a country" aria-label="Search a country" value={q}
         onChange={(e) => { setQ(e.target.value); setOpen(true); setActive(0); }}
         onFocus={() => setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 150)} onKeyDown={onKey}
       />

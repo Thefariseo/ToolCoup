@@ -1,6 +1,8 @@
 # Praevex
 <img width="1810" height="869" alt="praevexfinallogo" src="https://github.com/user-attachments/assets/5b3a1941-dd06-45dc-8548-7b82eacb849d" />
 
+Political instability intelligence. Previsione mensile del rischio di colpo di stato per ogni paese.
+
 
 
 Praevex is an open-source political instability intelligence instrument combining historical coup data, conflict signals, probabilistic forecasting, and interactive generative visualizations to explore how political risk evolves over time.
@@ -17,6 +19,14 @@ Praevex is an open-source political instability intelligence instrument combinin
 | `.github/workflows/` | aggiornamento mensile automatico |
 | `docs/` | note sulla console (`console.md`) e sui segnali di innesco (`triggers.md`) |
 | `app/`, `components/`, `lib/` | sito e API |
+
+## Marchio
+
+I cinque file originali del logo stanno in `assets/brand/source/`. `python3 scripts/build-brand.py` ricava da quelli tutto
+il resto: le versioni per fondo scuro e per carta in `public/brand/`, le icone del browser (`app/icon.png`,
+`app/apple-icon.png`, `app/favicon.ico`) e l'immagine di anteprima dei link (`app/opengraph-image.png`, `app/twitter-image.png`).
+Il componente `components/Brand.js` e' l'unico punto che disegna il logo nel sito; `lib/dossier-pdf.js` lo mette nell'intestazione
+e a piede di ogni pagina del PDF. Gli originali sono raster: non vanno ridisegnati, solo ritagliati.
 
 ## Aggiornare i dati
 
@@ -80,21 +90,28 @@ cache né nel repository.
 
 - **Violenza politica** (`pipeline/cast.py`, pagina `/violence`): previsione degli eventi di violenza organizzata per paese e provincia nei prossimi sei periodi di
   quattro settimane, con LightGBM Tweedie, riconciliazione gerarchica e intervalli. Metodo ripreso da ACLED CAST; non e' la previsione di ACLED.
-- **Mercati di previsione** (`lib/markets.js`): Polymarket, Kalshi e Manifold, in lettura, accanto al modello.
+- **Mercati di previsione** (`lib/markets.js`): Polymarket e Kalshi, in lettura, accanto al modello. Manifold (moneta virtuale) non viene letto.
 - **Analogie strutturali** (`pipeline/analogs.py`) e **monitor del discorso pubblico** (`lib/discourse.js`: Wikipedia e GDELT).
 - **Nuove fonti per il modello** (`pipeline/fetch_extensions.py`, `pipeline/extensions.py`, `pipeline/experiment_extensions.py`): forze armate, eta' del leader,
   stress economico mensile, esclusione etnica. Entrano nel modello pubblicato solo se l'esperimento fuori campione lo giustifica.
 
-## Country brief PDF (tre pagine)
+## Country brief PDF (copertina e tre pagine)
 
 Il pulsante *Country brief · PDF* nella console chiama `/api/dossier/[paese]`: i numeri e i fatti vengono dal nostro
 database (`lib/dossier.js`), i titoli di stampa da una lista fissa di testate (Reuters, AP, BBC, Al Jazeera,
 Crisis Group, ReliefWeb ecc., ultimi 75 giorni, solo titoli, tre ricerche in parallelo per gruppo di testate), e l'API
 OpenAI (solo il modello `gpt-5.6-luna`, fisso in `lib/dossier.js`) scrive il testo vincolato a quei due ingressi,
 con il compito di incrociare modello e stampa (tabella *Model x media cross-check*, punti ciechi del modello, tre
-spunti non ovvi). Il PDF è una nota di policy di tre pagine A4 impaginata in `lib/dossier-pdf.js` (caratteri IBM Plex
+spunti non ovvi). Il PDF è una nota di policy A4 di quattro pagine (copertina e tre pagine interne) impaginata in `lib/dossier-pdf.js` (caratteri IBM Plex
 in `assets/fonts`, bandiera da `public/flags/png`); ogni riquadro è misurato e la scala del testo si riduce finché la
 pagina sta nei limiti. In sviluppo, `?mock=1` genera il PDF con un testo finto, senza spendere crediti.
+La copertina (`lib/dossier-cover.js`) e' bianca: logo verticale al centro, poi bandiera e sagoma del paese affiancate (solo il bordo nero, senza
+vicini; da `world-atlas`, proiezione azimutale equivalente centrata sul paese), il nome e una riga di identificativi in basso. Nessun numero.
+
+Il PDF e' composto di grafici disegnati direttamente (nessuna immagine): scheda di sintesi con un micro-grafico per cifra, posizione del paese tra tutti gli altri su scala
+logaritmica, storia del rischio dal 1975 con ogni tentativo su un binario, registro dei tentativi dal 1900, il Model Trace in forma di ledger (dal paese di riferimento alla
+previsione pubblicata, con la posizione del paese su ciascun gruppo), mercato di previsione contro modello, attivita' ACLED e previsione della violenza con fascia, e i segnali di
+allerta come indicatori con le soglie. In sviluppo l'intestazione `X-Dossier-Scale` riporta di quanto ha dovuto ridursi il testo per pagina.
 
 Variabili d'ambiente (mai nel repository: `.env*` è ignorato da git):
 
@@ -187,7 +204,7 @@ Per confrontare le alternative senza cambiare il modello pubblicato: `python3 pi
   variazioni di rischio, violenza prevista, registro, mercati). Ogni titolo e' legato a un paese e mostra la nostra stima. Si ferma con il mouse, il fuoco
   o il pulsante; con `prefers-reduced-motion` non scorre.
 - **Mercati di previsione** (`lib/markets.js`): per ogni paese si guida con un solo mercato, quello con piu' volume tra Polymarket e Kalshi (soglia 5.000 $);
-  Manifold, che usa denaro finto, solo se nessuno dei due ne ha uno. Compaiono nella console (blocco *Market check*), in testa alla pagina paese, nella pagina
+  Manifold, che usa denaro finto, non e' una fonte. Compaiono nella console (blocco *Market check*), in testa alla pagina paese, nella pagina
   `/markets`, nel ticker e nel dossier. Polymarket e Kalshi senza link in uscita. Kalshi si scorre in due passate (titoli, poi i mercati degli eventi pertinenti)
   e lo stato dell'API riporta `scan` (pagine, eventi, se il tempo e' finito).
 - **Dossier per lettore** (`lib/dossier-profile.js`): un profilo calcolato con regole sui nostri dati (archetipo del paese, segnali con livello d'allarme,

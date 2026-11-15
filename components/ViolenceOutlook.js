@@ -19,9 +19,8 @@ export default function ViolenceOutlook({ country, meta, admin1 }) {
   const ticks = [0, 0.5, 1].map((k) => Math.round(max * k));
   return (
     <section id="violence" className="card violence">
-      <p className="eyebrow">VIOLENCE OUTLOOK / ACLED EVENTS</p>
-      <h2>Political violence in the next six four-week periods</h2>
-      <p className="note">Forecast event counts per four-week period: a light gradient boosted machine (one model for all six horizons, trained with absolute error), blended with the 6-period average and the last period, with provinces scaled to the country total and {meta.interval} intervals from a 24-origin backtest. Method adapted from ACLED&rsquo;s published CAST methodology; this is our own model, not ACLED&rsquo;s forecast.</p>
+<h2>Political violence in the next six four-week periods</h2>
+      <p className="note">Forecast events per four-week period. One gradient-boosted model covers all six horizons and is trained on absolute error. We blend it with the 6-period average and the last period, scale provinces to the country total, and take {meta.interval} intervals from a 24-date backtest. The method follows ACLED&rsquo;s published CAST approach, but the model is ours and is not ACLED&rsquo;s forecast.</p>
       <div className="vo-tabs" role="tablist" aria-label="Event type">
         {TYPES.map(([k, label]) => <button key={k} role="tab" aria-selected={type === k} className={type === k ? "on" : ""} onClick={() => setType(k)}>{label}</button>)}
       </div>
@@ -31,7 +30,7 @@ export default function ViolenceOutlook({ country, meta, admin1 }) {
         <div><span>Last 6 periods, average</span><b>{ma.toFixed(0)}</b><small>moving average</small></div>
       </div>
       <svg viewBox={`0 0 ${W} ${H}`} className="vo-chart" role="img" aria-label={`Past and forecast ${TYPES.find((t) => t[0] === type)[1]} events per four-week period`}>
-        {ticks.map((t) => <g key={t}><line x1={L} x2={W - 8} y1={y(t)} y2={y(t)} className="grid" /><text x={L - 5} y={y(t) + 3} textAnchor="end">{t}</text></g>)}
+        {[...new Set(ticks)].map((t) => <g key={t}><line x1={L} x2={W - 8} y1={y(t)} y2={y(t)} className="grid" /><text x={L - 5} y={y(t) + 3} textAnchor="end">{t}</text></g>)}
         {hist.map((v, i) => <rect key={i} x={x(i) - bw / 2} y={y(v)} width={bw} height={Math.max(0, y(0) - y(v))} className="past" />)}
         <line x1={L} x2={W - 8} y1={y(ma)} y2={y(ma)} className="ma" />
         <polygon points={band} className="band" />

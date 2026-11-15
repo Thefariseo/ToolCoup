@@ -13,7 +13,7 @@ from pathlib import Path
 
 PAGE = "https://jonathanmpowell.com/coups"
 OUT = Path(__file__).resolve().parents[1] / "data" / "raw" / "coups" / "powell_thyne.csv"
-UA = {"User-Agent": "ToolCoup/1.0 (research pipeline; +https://github.com/Thefariseo/ToolCoup)"}
+UA = {"User-Agent": "Praevex/1.0 (research pipeline; +https://github.com/Thefariseo/ToolCoup)"}
 
 
 def get(url: str) -> bytes:

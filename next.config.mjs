@@ -7,7 +7,7 @@ const nextConfig = {
   outputFileTracingIncludes: {
     "/api/dossier/\\[slug\\]": [
       "./assets/fonts/*.ttf",
-      "./public/flags/png/*.png",
+      "./public/flags/png/*.png", "./public/brand/*.png",
       "./data/coupdb/attestations.csv", "./data/coupdb/wikipedia_articles.json",
     ],
     "/api/countries/\\[slug\\]": ["./data/coupdb/attestations.csv", "./data/coupdb/wikipedia_articles.json"],

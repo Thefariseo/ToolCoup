@@ -1,0 +1,125 @@
+{
+ "asOf": "2026-11-15T20:18:46.076Z",
+ "note": "Last good readings of Polymarket and Kalshi, taken from the deployed site on this date. Used only when a source cannot be reached live. Regenerate with node scripts/snapshot-markets.mjs <site url>.",
+ "rows": [
+  {
+   "source": "Polymarket",
+   "question": "Iran coup attempt by December 31, 2026?",
+   "p": 0.065,
+   "volume": 208577.25304599997,
+   "closes": "2027-01-01T04:59:00Z"
+  },
+  {
+   "source": "Polymarket",
+   "question": "Iran coup attempt by December 31, 2027?",
+   "p": 0.285,
+   "volume": 178030.696547,
+   "closes": "2028-01-01T04:59:00Z"
+  },
+  {
+   "source": "Polymarket",
+   "question": "Ukraine coup attempt by December 31, 2026?",
+   "p": 0.043,
+   "volume": 154863.20642399997,
+   "closes": "2027-01-01T04:59:00Z"
+  },
+  {
+   "source": "Polymarket",
+   "question": "Ukraine coup attempt by December 31, 2027?",
+   "p": 0.225,
+   "volume": 4560.410801,
+   "closes": "2028-01-01T04:59:00Z"
+  },
+  {
+   "source": "Polymarket",
+   "question": "China coup attempt before 2027?",
+   "p": 0.0185,
+   "volume": 169044.197643,
+   "closes": "2027-01-01T04:59:00Z"
+  },
+  {
+   "source": "Polymarket",
+   "question": "China coup attempt before 2028?",
+   "p": 0.105,
+   "volume": 555.827226,
+   "closes": "2028-01-01T04:59:00Z"
+  },
+  {
+   "source": "Polymarket",
+   "question": "Russia coup attempt in 2026?",
+   "p": 0.0205,
+   "volume": 156574.72796999998,
+   "closes": "2027-01-01T04:59:00Z"
+  },
+  {
+   "source": "Polymarket",
+   "question": "Russia coup attempt by December 31, 2027?",
+   "p": 0.15,
+   "volume": 2242.204808,
+   "closes": "2028-01-01T04:59:00Z"
+  },
+  {
+   "source": "Kalshi",
+   "question": "Will Trump be impeached and removed from office?: Before his term ends",
+   "p": 0.215,
+   "volume": 217882,
+   "closes": "2029-01-20T15:00:00Z"
+  },
+  {
+   "source": "Kalshi",
+   "question": "Will Trump resign during his term?: Before his term ends",
+   "p": 0.235,
+   "volume": 188980,
+   "closes": "2029-01-21T15:00:00Z"
+  },
+  {
+   "source": "Kalshi",
+   "question": "Will Trump publicly call for John Thune to step down as Senate Majority Leader?: Before Jan 1, 2027",
+   "p": 0.09,
+   "volume": 2159,
+   "closes": "2027-01-01T04:59:00Z"
+  },
+  {
+   "source": "Kalshi",
+   "question": "Will Trump be impeached and removed from office?: Before Jan 1, 2028",
+   "p": 0.15000000000000002,
+   "volume": 755,
+   "closes": "2028-01-01T15:00:00Z"
+  },
+  {
+   "source": "Kalshi",
+   "question": "Will Trump be impeached and removed from office?: Before Jul 1, 2027",
+   "p": 0.07500000000000001,
+   "volume": 516,
+   "closes": "2027-07-01T14:00:00Z"
+  },
+  {
+   "source": "Kalshi",
+   "question": "Rob Jetten out as Prime Minister of the Netherlands?: Before Dec 1, 2026",
+   "p": 0.01,
+   "volume": 0,
+   "closes": "2026-12-01T04:59:00Z"
+  },
+  {
+   "source": "Kalshi",
+   "question": "Keiko Fujimori out as President of Peru?: Before Jul 1, 2027",
+   "p": 0.05,
+   "volume": 50,
+   "closes": "2027-07-01T03:59:00Z"
+  },
+  {
+   "source": "Kalshi",
+   "question": "Keiko Fujimori out as President of Peru?: Before Jan 1, 2028",
+   "p": 0.08,
+   "volume": 43,
+   "closes": "2028-01-01T04:59:00Z"
+  },
+  {
+   "source": "Kalshi",
+   "question": "Keiko Fujimori out as President of Peru?: Before Jan 1, 2027",
+   "p": 0.030000000000000002,
+   "volume": 20,
+   "closes": "2027-01-01T04:59:00Z"
+  }
+ ]
+}

@@ -28,7 +28,7 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "data" / "raw" / "extensions"
-UA = "ToolCoup/1.0 (research pipeline; +https://github.com/Thefariseo/ToolCoup)"
+UA = "Praevex/1.0 (research pipeline; +https://github.com/Thefariseo/ToolCoup)"
 MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
 WDI = {"MS.MIL.XPND.GD.ZS": "milex_gdp", "MS.MIL.TOTL.P1": "armed_forces", "MS.MIL.MPRT.KD": "arms_imports"}
 WDI_STRESS = {"FI.RES.TOTL.MO": "reserves_months", "DT.TDS.DECT.EX.ZS": "debt_service_exports", "BN.CAB.XOKA.GD.ZS": "current_account_gdp", "GC.DOD.TOTL.GD.ZS": "govt_debt_gdp"}
