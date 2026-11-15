@@ -100,7 +100,7 @@ cache né nel repository.
 Il pulsante *Country brief · PDF* nella console chiama `/api/dossier/[paese]`: i numeri e i fatti vengono dal nostro
 database (`lib/dossier.js`), i titoli di stampa da una lista fissa di testate (Reuters, AP, BBC, Al Jazeera,
 Crisis Group, ReliefWeb ecc., ultimi 75 giorni, solo titoli, tre ricerche in parallelo per gruppo di testate), e l'API
-OpenAI (solo il modello `gpt-5.6-luna`, fisso in `lib/dossier.js`) scrive il testo vincolato a quei due ingressi,
+OpenAI (solo il modello `gpt-6-luna`, fisso in `lib/dossier.js`) scrive il testo vincolato a quei due ingressi,
 con il compito di incrociare modello e stampa (tabella *Model x media cross-check*, punti ciechi del modello, tre
 spunti non ovvi). Il PDF è una nota di policy A4 di quattro pagine (copertina e tre pagine interne) impaginata in `lib/dossier-pdf.js` (caratteri IBM Plex
 in `assets/fonts`, bandiera da `public/flags/png`); ogni riquadro è misurato e la scala del testo si riduce finché la
