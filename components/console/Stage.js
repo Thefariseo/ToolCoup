@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
-import { ATLAS_GEOM, TRACE_GEOM, atlasHeight, createEngine, riskNorm } from "@/components/console/engine";
+import { ATLAS_GEOM, TRACE_GEOM, atlasHeight, createEngine, riskNorm, traceCol } from "@/components/console/engine";
 import { pct } from "@/lib/format";
 
 const RAD = Math.PI / 180;
@@ -98,11 +98,11 @@ export default function Stage({ view, list, selected, detail, atlas, plane, live
     const lo = Math.min(...levels), hi = Math.max(...levels), span = Math.max(hi - lo, 2.2) * 1.15, mid = (hi + lo) / 2;
     const { yTop, yBot } = TRACE_GEOM, y = (l) => ((l - mid) / span) * (yTop - yBot);
     const ticks = [0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.4].filter((p) => Math.abs(y(logit(p))) < 0.58).map((p) => ({ p, y: y(logit(p)) }));
-    return { steps, ys: levels.map(y), ps: levels.map(expit), ticks, sg: steps.map((x) => (Math.abs(x.d) < 0.02 ? 0 : Math.sign(x.d))) };
+    return { steps, ys: levels.map(y), ps: levels.map(expit), ticks, sg: steps.map((x) => (Math.abs(x.d) < 0.02 ? 0 : Math.sign(x.d))), mag: steps.map((x) => Math.abs(x.d)) };
   }, [selected, detail, baseRate]);
   useEffect(() => {
     const engine = engineRef.current; if (!engine || !cascade) return;
-    engine.setCascade({ ys: cascade.ys, ps: cascade.ps, sg: cascade.sg, x0: TRACE_GEOM.x0, x1: TRACE_GEOM.x1 }, Math.max(0, riskNorm(selected.risk, maxRisk)));
+    engine.setCascade({ ys: cascade.ys, sg: cascade.sg, mag: cascade.mag, x0: TRACE_GEOM.x0, x1: TRACE_GEOM.x1 }, Math.max(0, riskNorm(selected.risk, maxRisk)));
   }, [cascade, selected, maxRisk]);
   useEffect(() => { engineRef.current?.focus(focus ? GROUP_ORDER.indexOf(focus) : null); }, [focus]);
 
@@ -304,10 +304,10 @@ export default function Stage({ view, list, selected, detail, atlas, plane, live
             ))}
             <span className="cx-endcap" data-cx={TRACE_GEOM.x0} data-cy={cascade.ys[0]}>BASE RATE {pct(baseRate, 2)}</span>
             {cascade.steps.map((x, i) => {
-              const cw = (TRACE_GEOM.x1 - TRACE_GEOM.x0) / 8, g = x.key !== "rest";
+              const g = x.key !== "rest";
               return (
                 <button key={x.key} className={`cx-step${x.d > 0.02 ? " up" : x.d < -0.02 ? " down" : ""}${focus === x.key ? " on" : ""}`}
-                  data-cx={TRACE_GEOM.x0 + (i + 0.5) * cw} data-cy={TRACE_GEOM.labelY} disabled={!g}
+                  data-cx={traceCol(i).x} data-cy={TRACE_GEOM.labelY + (i % 2 ? -0.17 : 0)} disabled={!g}
                   onClick={() => onFocus(focus === x.key ? null : x.key)} aria-pressed={focus === x.key}
                   title={g ? `${GROUP_NAME[x.key]}: odds ×${Math.exp(x.d).toFixed(2)} (log-odds ${x.d > 0 ? "+" : ""}${x.d.toFixed(2)}). Click to list its drivers.` : `Ensemble step: long-run trend, tree models and calibration pull the interpretable component back to the published forecast (log-odds ${x.d > 0 ? "+" : ""}${x.d.toFixed(2)}).`}>
                   <span>{SHORT[x.key]}</span><b>×{Math.exp(x.d).toFixed(2)}</b>

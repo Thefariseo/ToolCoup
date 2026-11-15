@@ -1,4 +1,7 @@
+import fs from "node:fs/promises";
+import path from "node:path";
 import { buildChart, buildFacts, dossierKnown, fetchPress, MODEL, narrate } from "@/lib/dossier";
+import { FLAG } from "@/lib/flags";
 import { buildPdf } from "@/lib/dossier-pdf";
 import { registrySummary } from "@/lib/registry";
 
@@ -15,7 +18,8 @@ const fail = (status, error, extra = {}) => Response.json({ error }, { status, h
 
 export async function GET(request, { params }) {
   const { slug } = await params;
-  if (process.env.DOSSIER_DISABLED === "1" || !process.env.OPENAI_API_KEY) return fail(503, "Dossier generation is not enabled on this deployment.");
+  const mockRequest = process.env.NODE_ENV !== "production" && new URL(request.url).searchParams.get("mock") === "1";
+  if (!mockRequest && (process.env.DOSSIER_DISABLED === "1" || !process.env.OPENAI_API_KEY)) return fail(503, "Dossier generation is not enabled on this deployment.");
   if (!dossierKnown(slug)) return fail(404, "Unknown country.");
   if (request.headers.get("sec-fetch-site") === "cross-site") return fail(403, "Cross-site requests are not allowed.");
 
@@ -27,10 +31,13 @@ export async function GET(request, { params }) {
 
   try {
     const facts = buildFacts(slug), chart = buildChart(slug);
-    const press = await fetchPress(slug, facts.country.name);
-    const narrative = await narrate(facts, press);
+    const mock = process.env.NODE_ENV !== "production" && new URL(request.url).searchParams.get("mock") === "1";   // layout work without spending credit
+    const press = mock ? { items: [], note: "mock" } : await fetchPress(slug, facts.country.name);
+    const narrative = mock ? (await import("@/lib/dossier-mock")).mockNarrative(facts) : await narrate(facts, press);
     const generated = new Date().toISOString().slice(0, 10);
-    const bytes = await buildPdf({ facts, chart, narrative, press, model: MODEL, generated });
+    const code = FLAG[facts.country.iso];
+    const flag = code ? await fs.readFile(path.join(process.cwd(), "public", "flags", "png", `${code}.png`)).catch(() => null) : null;
+    const bytes = await buildPdf({ facts, chart, narrative, press, model: MODEL, generated, flag });
     const issue = registrySummary().latest || facts.forecast.issue;
     return new Response(bytes, { headers: {
       "Content-Type": "application/pdf",

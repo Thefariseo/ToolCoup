@@ -512,6 +512,10 @@ def main():
     OUT.mkdir(parents=True, exist_ok=True)
     ev.to_csv(OUT / "coups.csv", index=False)
     atts.to_csv(OUT / "attestations.csv", index=False)
+    # Wikipedia article of each Wikidata item that has one (the site links records to it)
+    rows = json.loads((SRC / "wikidata" / "wikidata_coups.json").read_text())["results"]["bindings"]
+    arts = {r["e"]["value"].rsplit("/", 1)[1]: r["article"]["value"] for r in rows if "article" in r}
+    (OUT / "wikipedia_articles.json").write_text(json.dumps(arts, ensure_ascii=False, separators=(",", ":"), sort_keys=True), encoding="utf-8")
     print(f"\n{len(ev)} eventi -> {OUT.relative_to(ROOT)}/coups.csv  ({len(atts)} segnalazioni collegate)")
     ev["decade"] = ev["year"] // 10 * 10
     print(pd.crosstab(ev["decade"], ev["confidence"], margins=True).to_string())

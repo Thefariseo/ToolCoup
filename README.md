@@ -74,12 +74,16 @@ compili e fa il push; Vercel pubblica dal push. Servono due *secrets* del reposi
 `ACLED_PASSWORD`. I dati grezzi ACLED vengono riscaricati a ogni esecuzione e non finiscono né nella
 cache né nel repository.
 
-## Dossier PDF per paese
+## Country brief PDF (tre pagine)
 
-Il pulsante *Dossier · PDF* nella console chiama `/api/dossier/[paese]`: i numeri e i fatti vengono dal nostro
+Il pulsante *Country brief · PDF* nella console chiama `/api/dossier/[paese]`: i numeri e i fatti vengono dal nostro
 database (`lib/dossier.js`), i titoli di stampa da una lista fissa di testate (Reuters, AP, BBC, Al Jazeera,
-Crisis Group, ReliefWeb ecc., ultimi 60 giorni, solo titoli), e l'API OpenAI (solo il modello `gpt-5.6-luna`, fisso in `lib/dossier.js`) scrive il testo vincolato a quei
-due ingressi. Il PDF è impaginato in `lib/dossier-pdf.js`.
+Crisis Group, ReliefWeb ecc., ultimi 75 giorni, solo titoli, tre ricerche in parallelo per gruppo di testate), e l'API
+OpenAI (solo il modello `gpt-5.6-luna`, fisso in `lib/dossier.js`) scrive il testo vincolato a quei due ingressi,
+con il compito di incrociare modello e stampa (tabella *Model x media cross-check*, punti ciechi del modello, tre
+spunti non ovvi). Il PDF è una nota di policy di tre pagine A4 impaginata in `lib/dossier-pdf.js` (caratteri IBM Plex
+in `assets/fonts`, bandiera da `public/flags/png`); ogni riquadro è misurato e la scala del testo si riduce finché la
+pagina sta nei limiti. In sviluppo, `?mock=1` genera il PDF con un testo finto, senza spendere crediti.
 
 Variabili d'ambiente (mai nel repository: `.env*` è ignorato da git):
 

@@ -2,15 +2,17 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Flag from "@/components/Flag";
 import Stage, { GROUP_NAME } from "@/components/console/Stage";
 import Strip from "@/components/console/Strip";
+import Tour, { TOUR_KEY } from "@/components/console/Tour";
 import { labelEn } from "@/lib/english";
 import { fmtEventDate, pct, TYPE_LABEL } from "@/lib/format";
 
 const VIEWS = [
   { key: "field", n: "1", name: "SIGNAL FIELD", line: "Where. Every country's 6-month probability of a coup attempt. Colour, plume height and pulse rate all encode the same number. Scroll to zoom, drag to rotate." },
   { key: "atlas", n: "2", name: "TEMPORAL ATLAS", line: "When. One ridge per country, 1975 → today: the model's out-of-sample forecast, quarter by quarter. Height = probability. The selected country is lit; the rest recede." },
-  { key: "trace", n: "3", name: "MODEL TRACE", line: "Why. From the recent base rate to this country's forecast: each step is one variable group pushing the odds up (amber) or down (cyan); the river widens with the probability reached. The last step (ensemble) is everything that pulls it back to the published forecast: long-run trend, tree models, calibration. Click a step to list its drivers." },
+  { key: "trace", n: "3", name: "MODEL TRACE", line: "Why. From the recent base rate to this country's forecast: a waterfall of swarm particles, one column per variable group. Amber columns stream up and raise the odds, cyan columns stream down and lower them; a taller column is a bigger push. The last column (ensemble) returns the figure to the published forecast; the vortex is the forecast itself. Click a column to list its drivers." },
 ];
 const cache = new Map();
 
@@ -19,7 +21,7 @@ export default function Console({ list, meta, auc, featureGroup, registry }) {
   const [slug, setSlug] = useState(list[0]?.slug), [view, setView] = useState("field");
   const [plane, setPlane] = useState(false), [live, setLive] = useState(true), [q, setQ] = useState(""), [focus, setFocus] = useState(null);
   const [detail, setDetail] = useState(null), [atlas, setAtlas] = useState(null), [ready, setReady] = useState(false);
-  const [dossier, setDossier] = useState({ state: "idle" });
+  const [dossier, setDossier] = useState({ state: "idle" }), [tour, setTour] = useState(false);
   const filterRef = useRef(null), listRef = useRef(null), stageApi = useRef(null);
   const selected = bySlug.get(slug) || list[0];
 
@@ -28,6 +30,7 @@ export default function Console({ list, meta, auc, featureGroup, registry }) {
     if (bySlug.has(p.get("c"))) setSlug(p.get("c"));
     if (VIEWS.some((v) => v.key === p.get("v"))) setView(p.get("v"));
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) setLive(false);
+    try { if (p.get("tour") === "1" || !localStorage.getItem(TOUR_KEY)) setTour(true); } catch { /* storage blocked: skip the tour */ }
     setReady(true);
   }, [bySlug]);
   useEffect(() => { if (ready) window.history.replaceState(null, "", `?c=${slug}&v=${view}`); }, [ready, slug, view]);
@@ -59,6 +62,7 @@ export default function Console({ list, meta, auc, featureGroup, registry }) {
       else if (e.key === "-" || e.key === "_") stageApi.current?.zoom(1 / 1.4);
       else if (e.key === "0") stageApi.current?.reset();
       else if (e.key === "m") setLive((v) => !v);
+      else if (e.key === "?") setTour(true);
       else if (VIEWS.some((v) => v.n === e.key)) setView(VIEWS.find((v) => v.n === e.key).key);
     };
     window.addEventListener("keydown", onKey); return () => window.removeEventListener("keydown", onKey);
@@ -92,6 +96,7 @@ export default function Console({ list, meta, auc, featureGroup, registry }) {
 
   return (
     <main className="cx">
+      <Tour open={tour} onClose={() => setTour(false)} onView={setView} />
       <aside className="cx-list" aria-label="Watchlist">
         <header><h2>WATCHLIST <em>{shown.length}</em></h2><span>P(ATTEMPT) · {meta.horizon} MO</span></header>
         <input ref={filterRef} className="cx-input" value={q} onChange={(e) => setQ(e.target.value)} placeholder="filter country / region    [/]" aria-label="Filter countries" />
@@ -119,6 +124,7 @@ export default function Console({ list, meta, auc, featureGroup, registry }) {
           <span className="cx-tabs-fill" />
           {view === "field" && <button className={plane ? "on" : ""} onClick={() => setPlane(!plane)} aria-pressed={plane}><kbd>G</kbd>{plane ? "PLANE" : "GLOBE"}</button>}
           <button className={live ? "on" : ""} onClick={() => setLive(!live)} aria-pressed={live}><kbd>M</kbd>MOTION {live ? "ON" : "OFF"}</button>
+          <button onClick={() => setTour(true)} aria-label="Open the guide"><kbd>?</kbd>GUIDE</button>
         </nav>
         <div className="cx-stage-wrap">
           <Stage view={view} list={list} selected={selected} detail={detail} atlas={atlas} plane={plane} live={live} onSelect={setSlug} focus={focus} onFocus={setFocus} apiRef={stageApi} baseRate={meta.base_rate} />
@@ -132,7 +138,7 @@ export default function Console({ list, meta, auc, featureGroup, registry }) {
       </section>
 
       <aside className="cx-read" aria-label="Selected country">
-        <header><h2>{selected.name.toUpperCase()}</h2><span>{selected.region}</span></header>
+        <header><h2 className="cx-flagrow"><Flag iso={selected.iso} height={14} />{selected.name.toUpperCase()}</h2><span>{selected.region}</span></header>
         <div className="cx-p">
           <b>{pct(selected.risk)}</b>
           <span>coup attempt · {meta.forecast_from} → {meta.forecast_to}</span>
@@ -165,15 +171,26 @@ export default function Console({ list, meta, auc, featureGroup, registry }) {
           </ul>
           <p className="cx-note">Six largest terms of the logistic component. Associations in the training data, not causes.</p>
         </section>
+        {detail?.analysis && <section className="cx-country-context">
+          <h3>COUNTRY CONTEXT</h3>
+          <dl className="cx-kv">
+            <div><dt>REGIONAL RANK</dt><dd>{detail.analysis.region.rank} / {detail.analysis.region.count}</dd></div>
+            <div><dt>REGIONAL MEDIAN*</dt><dd>{pct(detail.analysis.region.median)}</dd></div>
+            <div><dt>REGIME / LATEST DATA</dt><dd>{detail.diagnostics?.regime || "unavailable"}</dd></div>
+          </dl>
+          <p className="cx-note">*Other countries in the region. Annual regime records may lag current events.</p>
+          <details><summary>Recent activity / 3 months</summary><dl className="cx-kv">{detail.analysis.signals.map((s) => <div key={s.key}><dt>{s.label}</dt><dd>{s.recentTotal ?? "—"}<small>{s.ratio != null ? ` / ${s.ratio.toFixed(1)}× baseline` : s.newActivity ? " / after zero baseline" : ""}</small></dd></div>)}</dl><p className="cx-note">Compared with the preceding 24 months. Counts depend on reporting coverage.</p></details>
+          <Link href={`/paese/${selected.slug}#assessment`}>EXPLORE THE FULL ASSESSMENT →</Link>
+        </section>}
         <div className="cx-dossier">
           <button onClick={downloadDossier} disabled={dossier.state === "busy"}>
-            {dossier.state === "busy" ? <>COMPILING DOSSIER<i>…</i> <small>≈ 30 s</small></> : <>DOSSIER · PDF <span>↓</span></>}
+            {dossier.state === "busy" ? <>COMPILING BRIEF<i>…</i> <small>≈ 30 s</small></> : <>COUNTRY BRIEF · PDF <span>↓</span></>}
           </button>
           {dossier.state === "error" && dossier.slug === selected.slug && <p role="alert">{dossier.msg}</p>}
           <p>Model figures and records from our database, plus headlines from allow-listed outlets, written up with OpenAI.</p>
         </div>
         <nav className="cx-links">
-          <Link href={`/paese/${selected.slug}`}>COUNTRY DOSSIER →</Link>
+          <Link href={`/paese/${selected.slug}`}>COUNTRY PAGE + SOURCES →</Link>
           <Link href="/registry">FORECAST REGISTRY →</Link>
           <Link href="/metodo">METHOD & VALIDATION →</Link>
         </nav>

@@ -24,11 +24,13 @@ Drag to rotate, click to select.
 forecast from 1975, grouped by region. Height is `sqrt(p / 0.30)`. Hover reads a country and quarter;
 click selects. The white ridge is the selected country.
 
-**3 · Model Trace — why.** Seven variable groups feed the logistic component of the ensemble. Stream
-width is the group's absolute log-odds contribution on a fixed scale (full width at 1.8), so streams
-are comparable between countries; amber raises, cyan lowers. Clicking a group
-filters the driver list. The swirl's size and pulse follow the final calibrated probability. Tree
-components are not decomposed and nothing here claims they are.
+**3 · Model Trace — why.** A waterfall from the recent base rate to the published forecast. Seven
+variable groups feed the logistic component of the ensemble; each group is a column whose height is its
+log-odds push (y axis in probability), amber streaming up, cyan down. The eighth column (ensemble) is
+whatever returns the figure to the published value (long-run trend, tree models, calibration). The vortex
+on the right is the forecast; its size and spin follow the calibrated probability. The 65k particles are a
+GPGPU simulation (ping-pong RGBA32F textures, curl-noise advection, soft springs into each column box), so
+the swarm re-flows when the country changes. Tree components are not decomposed and nothing here claims they are.
 
 ## Rendering
 

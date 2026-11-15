@@ -2,6 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import Dossier from "@/components/Dossier";
+import CountryAnalysis from "@/components/CountryAnalysis";
+import Flag from "@/components/Flag";
+import { keyMetrics } from "@/lib/country-metrics";
 import SiteFooter from "@/components/SiteFooter";
 import { allSlugs, getCountry, getSummary, listCountries } from "@/lib/data";
 import { fmtEventDate, pct, TYPE_LABEL } from "@/lib/format";
@@ -40,7 +43,7 @@ async function CountryContent({ params }) {
     <main className="wrap">
       <div className="page-head">
         <Link className="crumb" href={`/?c=${slug}`}>← Open in console</Link>
-        <h1>{country.name}</h1>
+        <h1 className="with-flag"><Flag iso={country.iso} height={34} />{country.name}</h1>
         <p className="lede">
           {country.historical
             ? "Historical state: only coup records are available."
@@ -66,7 +69,16 @@ async function CountryContent({ params }) {
           </div>
         </div>
       </div>
-      <Dossier country={country} others={others} meta={meta} />
+      <section className="km" aria-label="Key figures">
+        <h2 className="km-title">Key figures</h2>
+        <div className="km-grid">
+          {keyMetrics({ ...country, rankOf: ranked.length }, meta).map((m) => (
+            <div key={m.k} className={`km-tile ${m.tone}`}><span>{m.label}</span><b>{m.value}</b><small>{m.sub}</small></div>
+          ))}
+        </div>
+      </section>
+      <CountryAnalysis country={country} meta={meta} />
+      <Dossier key={slug} country={country} others={others} meta={meta} />
     </main>
     <SiteFooter generated={meta.generated} />
     </>
