@@ -203,11 +203,27 @@ Per confrontare le alternative senza cambiare il modello pubblicato: `python3 pi
   elezioni, economia, mobilitazione annuale, segnali mensili ACLED relativi alla norma del paese. Ogni
   variabile annuale rispetta un ritardo di pubblicazione assunto; non sono disponibili tutte le versioni storiche delle fonti.
 - **Insieme** (`pipeline/model.py`): media di regressione logistica regolarizzata, gradient boosting e
-  foresta casuale (dall'edizione 2026-12 anche LightGBM, `pipeline/lgbm.py`), poi calibrazione di Platt
-  stimata solo sul passato. Le edizioni gia' archiviate nel registro non cambiano.
+  foresta casuale (dall'edizione 2026-12 anche LightGBM, `pipeline/lgbm.py`, e una piccola logistica sulla sola storia golpista e il contagio),
+  poi calibrazione di Platt stimata solo sul passato. Le edizioni gia' archiviate nel registro non cambiano.
 - **Validazione**: finestra espandibile anno per anno dal 1975; AUC-ROC, AUC-PR, Brier, calibrazione per
   fasce, confronti per sottrazione con intervalli da ricampionamento dei paesi.
 - **Incertezza**: intervallo all'80% per ogni paese, da riaddestramenti su paesi ricampionati.
+
+## Disordine politico, struttura a termine e strato ibrido
+
+Tre aggiunte al modello dei golpe, ciascuna provata fuori campione prima di entrare (risultati e regole di adozione nei documenti indicati).
+
+- **Disordine politico** (`pipeline/unrest.py`, `pipeline/cast.py --kind unrest`, pagina `/unrest`, sezione nella pagina paese): la probabilita' di un'ondata di proteste e di
+  un'escalation di violenza organizzata nei prossimi tre mesi, per ogni paese, e i conteggi di proteste e disordini per periodo di quattro settimane, per paese e provincia.
+  Gli eventi sono frequenti, quindi si valutano molto meglio dei golpe. `pipeline/experiment_unrest.py` confronta LightGBM con un Temporal Fusion Transformer in casa
+  (`pipeline/tft.py`, richiede `pipeline/requirements-experiments.txt`); il TFT entra nel flusso mensile solo se supera la regola di adozione, e per ora non la supera: migliora l'ondata di proteste (ΔAUC +0,010, Brier skill da 0,088 a 0,101) ma non l'escalation di violenza, e sui conteggi e' peggiore di LightGBM. Vedi `docs/unrest.md`.
+  La lettura del disordine **non** entra nel modello dei golpe: `pipeline/experiment_unrest_coup.py` la prova come variabile aggiuntiva fuori campione e non migliora ne' il Brier ne' la perdita logaritmica (`data/experiments/unrest_coup.json`).
+- **Struttura a termine** (`pipeline/terms.py`, `webdata/terms.json`): come si riporta la stima a sei mesi alla scadenza di un mercato. Rischio costante fino a sei mesi;
+  oltre, una correzione stimata solo sul passato (i golpe si raggruppano). Il numero a sei mesi non cambia. Vedi `docs/extensions.md`, sezione 8.
+- **Strato ibrido** (`lib/hybrid.js`, `lib/analyst.js`, `scripts/hybrid-snapshot.mjs`, `pipeline/hybrid_score.py`, `registry/hybrid/`): modello, mercati e un analista (modello linguistico
+  che legge i titoli senza vedere la nostra stima) combinati in log-odds con pesi che seguono il loro registro, archiviati ogni mese e valutati quando la finestra si chiude. E'
+  sperimentale e senza storia: non sostituisce la previsione. Per l'analista serve il segreto GitHub `OPENAI_API_KEY`. Vedi `docs/hybrid.md`.
+- **Punteggi propri sui conteggi**: il modello della violenza riporta anche il Weighted Interval Score (approssima il CRPS) accanto a WAPE ed errore relativo.
 
 ## Ticker, mercati, dossier per lettore e database dei golpe
 

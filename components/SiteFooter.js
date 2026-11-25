@@ -11,7 +11,7 @@ export default function SiteFooter({ generated }) {
         <p>Each month we publish a coup-risk forecast for every country, keep it unchanged in public, and score it once its window closes.</p>
       </div>
       <nav aria-label="Footer">
-        {link("/", "Forecast")}{link("/registry", "Registry")}{link("/violence", "Violence")}{link("/markets", "Markets")}{link("/world", "Map")}{link("/metodo", "Method")}{link("/api/registry", "Registry API")}
+        {link("/", "Forecast")}{link("/registry", "Registry")}{link("/violence", "Violence")}{link("/unrest", "Unrest")}{link("/markets", "Markets")}{link("/world", "Map")}{link("/metodo", "Method")}{link("/api/registry", "Registry API")}
       </nav>
       <p className="foot-note">
         Sources: ACLED, V-Dem, World Bank, Powell &amp; Thyne and other coup datasets. The data refreshes once a month{generated ? `, last on ${generated}` : ""}.

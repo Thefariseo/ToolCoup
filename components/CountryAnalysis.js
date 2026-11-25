@@ -4,7 +4,7 @@ import { labelEn } from "@/lib/english";
 
 const pp = (v) => v == null ? "Unavailable" : `${v > 0 ? "+" : ""}${(v * 100).toFixed(2)} pp`;
 const value = (v) => v == null ? "Unavailable" : v.toLocaleString("en", { maximumFractionDigits: 2 });
-const MODEL_NAMES = { logit: "Logistic regression", gbm: "Gradient boosting", rf: "Random forest", lgbm: "LightGBM" };
+const MODEL_NAMES = { logit: "Logistic regression", gbm: "Gradient boosting", rf: "Random forest", lgbm: "LightGBM", storia_contagio: "Coup-history model" };
 
 export default function CountryAnalysis({ country: c, meta }) {
   const a = c.analysis, d = c.diagnostics;

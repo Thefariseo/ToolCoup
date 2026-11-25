@@ -1,0 +1,3 @@
+# Only for the experiments that compare deep models (pipeline/tft.py, pipeline/experiment_unrest.py). The monthly job does not install this.
+-r requirements.txt
+torch==2.5.1

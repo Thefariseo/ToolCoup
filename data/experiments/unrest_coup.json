@@ -1,0 +1,237 @@
+{
+ "generated": "2026-11-16",
+ "horizon_months": 6,
+ "ridge_lambda": 5.0,
+ "rows": 18602,
+ "positives": 280,
+ "rule": "adopt only if, in the forward scheme, Brier and log loss improve over the recalibrated model, AUC-PR does not worsen, and P(better) >= 0.9 over country resamples",
+ "forward": {
+  "n": 12381,
+  "positives": 174,
+  "years": [
+   2022,
+   2023,
+   2024,
+   2025,
+   2026
+  ],
+  "scores": {
+   "base": {
+    "n": 12381,
+    "pos": 174,
+    "auc": 0.861,
+    "pr_auc": 0.083,
+    "base_rate": 0.0141,
+    "brier": 0.01335,
+    "brier_skill": 0.036,
+    "log_loss": 0.0603,
+    "top10_recall": 0.557,
+    "top10_precision": 0.0765,
+    "top10_lift": 5.44
+   },
+   "p_recal": {
+    "n": 12381,
+    "pos": 174,
+    "auc": 0.862,
+    "pr_auc": 0.083,
+    "base_rate": 0.0141,
+    "brier": 0.01333,
+    "brier_skill": 0.038,
+    "log_loss": 0.0601,
+    "top10_recall": 0.557,
+    "top10_precision": 0.0765,
+    "top10_lift": 5.44
+   },
+   "p_stack": {
+    "n": 12381,
+    "pos": 174,
+    "auc": 0.849,
+    "pr_auc": 0.085,
+    "base_rate": 0.0141,
+    "brier": 0.01334,
+    "brier_skill": 0.037,
+    "log_loss": 0.0608,
+    "top10_recall": 0.489,
+    "top10_precision": 0.067,
+    "top10_lift": 4.77
+   }
+  },
+  "stack_vs_recal": {
+   "d_logloss": 0.0006601535202147872,
+   "d_logloss_ci": [
+    -0.0006060546197807071,
+    0.002063363455560253
+   ],
+   "p_logloss_better": 0.2225,
+   "d_brier": 1.3110048197186518e-05,
+   "d_brier_ci": [
+    -6.36230791398621e-05,
+    9.05472016700522e-05
+   ],
+   "p_brier_better": 0.46,
+   "d_auc": -0.013,
+   "d_auc_ci": [
+    -0.034,
+    0.006
+   ],
+   "d_pr": 0.002,
+   "d_pr_ci": [
+    -0.008,
+    0.014
+   ],
+   "p_better": 0.15
+  },
+  "mean_weights": {
+   "wave": 0.093,
+   "escalation": 0.252
+  },
+  "weights_by_year": {
+   "2022": [
+    0.21,
+    0.314
+   ],
+   "2023": [
+    0.145,
+    0.334
+   ],
+   "2024": [
+    0.02,
+    0.23
+   ],
+   "2025": [
+    0.067,
+    0.171
+   ],
+   "2026": [
+    0.022,
+    0.214
+   ]
+  },
+  "permutation": {
+   "perms": 100,
+   "observed_d_logloss": 0.0006601535202147872,
+   "null_mean": 0.00011518353419192047,
+   "null_q05": -8.771977266807051e-05,
+   "p_value": 1.0
+  }
+ },
+ "loyo": {
+  "n": 18602,
+  "positives": 280,
+  "years": [
+   2019,
+   2020,
+   2021,
+   2022,
+   2023,
+   2024,
+   2025,
+   2026
+  ],
+  "scores": {
+   "base": {
+    "n": 18602,
+    "pos": 280,
+    "auc": 0.848,
+    "pr_auc": 0.081,
+    "base_rate": 0.0151,
+    "brier": 0.01434,
+    "brier_skill": 0.033,
+    "log_loss": 0.0651,
+    "top10_recall": 0.532,
+    "top10_precision": 0.0782,
+    "top10_lift": 5.2
+   },
+   "p_recal": {
+    "n": 18602,
+    "pos": 280,
+    "auc": 0.845,
+    "pr_auc": 0.079,
+    "base_rate": 0.0151,
+    "brier": 0.01433,
+    "brier_skill": 0.033,
+    "log_loss": 0.0649,
+    "top10_recall": 0.532,
+    "top10_precision": 0.0782,
+    "top10_lift": 5.2
+   },
+   "p_stack": {
+    "n": 18602,
+    "pos": 280,
+    "auc": 0.841,
+    "pr_auc": 0.082,
+    "base_rate": 0.0151,
+    "brier": 0.01432,
+    "brier_skill": 0.034,
+    "log_loss": 0.065,
+    "top10_recall": 0.518,
+    "top10_precision": 0.0761,
+    "top10_lift": 5.06
+   }
+  },
+  "stack_vs_recal": {
+   "d_logloss": 0.00014292808003313123,
+   "d_logloss_ci": [
+    -0.0006698562330000064,
+    0.0010112830997009818
+   ],
+   "p_logloss_better": 0.4125,
+   "d_brier": -1.5355423349024654e-05,
+   "d_brier_ci": [
+    -8.428873854493917e-05,
+    4.711861139524579e-05
+   ],
+   "p_brier_better": 0.645,
+   "d_auc": -0.004,
+   "d_auc_ci": [
+    -0.017,
+    0.008
+   ],
+   "d_pr": 0.002,
+   "d_pr_ci": [
+    -0.004,
+    0.009
+   ],
+   "p_better": 0.31
+  },
+  "mean_weights": {
+   "wave": -0.004,
+   "escalation": 0.246
+  },
+  "weights_by_year": {
+   "2019": [
+    -0.088,
+    0.256
+   ],
+   "2020": [
+    0.022,
+    0.161
+   ],
+   "2021": [
+    -0.03,
+    0.174
+   ],
+   "2022": [
+    -0.049,
+    0.3
+   ],
+   "2023": [
+    0.078,
+    0.378
+   ],
+   "2024": [
+    -0.048,
+    0.294
+   ],
+   "2025": [
+    0.065,
+    0.194
+   ],
+   "2026": [
+    0.022,
+    0.214
+   ]
+  }
+ },
+ "adopt": false
+}

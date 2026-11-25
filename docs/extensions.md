@@ -119,7 +119,7 @@ attori in testo ("State forces", "External/Other forces"), non i codici 1-8: i c
 
 ## 4. Mercati di previsione (`lib/markets.js`)
 Polymarket e Kalshi, letti da endpoint pubblici (nessuna chiave per leggere). Manifold e' stato tolto: tratta moneta virtuale e i suoi prezzi non sono un segnale affidabile. I mercati sono mostrati **accanto** al modello e mai fusi con esso,
-con la probabilita' del modello riportata sull'orizzonte di ciascun mercato (rischio costante).
+con la probabilita' del modello riportata sull'orizzonte di ciascun mercato (rischio costante fino a sei mesi, poi la struttura a termine della sezione 8).
 
 Polymarket e Kalshi sono piattaforme a denaro reale e dalla rete italiana risultano **bloccati dall'ADM** (il certificato restituito e' quello della pagina di blocco
 `sito-inibito-giochi.adm.gov.it`): per questo il codice non si puo' provare in locale contro di loro. Le richieste partono dal server su Vercel, che non
@@ -142,3 +142,43 @@ Per ogni paese, i 30 mesi storici piu' simili (distanza su variabili standardizz
 Letture di Wikipedia (visite giornaliere) e di GDELT (volume e tono delle notizie) rispetto agli ultimi tre mesi. X non offre accesso gratuito al suo discorso,
 quindi non viene letto. Sono allarmi descrittivi, non input del modello. GDELT DOC limita le richieste: a volte non risponde.
 
+
+## 7. Quinto membro dell'insieme: la storia golpista (edizione 2026-12)
+
+Il modello con tutte le variabili non batte in modo chiaro un modello piccolo, una regressione logistica su 14 variabili (storia golpista del paese, contagio, tendenza) che non usa ACLED.
+Nella validazione fuori campione la sola storia ha un AUC di 0,79–0,80 e un Brier skill simile a quello dell'insieme; dal 2015 storia e contagio da soli stanno sopra l'insieme (AUC 0.840 contro 0.833,
+nel 10% piu' alto 50% contro 47% dei tentativi). Le variabili in piu' e gli alberi aggiungono circa 0,02 di AUC e quasi nulla in Brier skill.
+Quindi si e' provato a mettere questo modello come **quinto membro, con lo stesso peso degli altri** (media dei log-odds, calibrazione di Platt come prima). Un solo candidato, definito prima del test, senza pesi da scegliere.
+
+Validazione anno per anno dal 1975 (modelli addestrati sul passato; `model.ENSEMBLE` contro `model.ENSEMBLE_FOUR`). Intervalli al 90% da ricampionamento dei paesi; la differenza e' *quinto membro meno quattro*.
+
+| Finestra | Insieme a 4 | + storia (5) | Solo storia | Differenza AUC [90%] | Differenza AUC-PR [90%] | P(AUC meglio) | Nel 10% piu' alto: 4 → 5 |
+|---|---|---|---|---|---|---|---|
+| dal 1983 (94.825 paese-mesi, 2071 tentativi) | AUC 0.826, Brier skill 0.041 | AUC 0.827, Brier skill 0.042 | AUC 0.801 | +0.001 [-0.001, +0.003] | +0.002 [-0.001, +0.004] | 0.73 | 40% → 42% |
+| dal 2005 (50.068 paese-mesi, 742 tentativi) | AUC 0.836, Brier skill 0.033 | AUC 0.838, Brier skill 0.033 | AUC 0.816 | +0.002 [-0.000, +0.005] | +0.002 [-0.002, +0.007] | 0.92 | 47% → 49% |
+| dal 2015 (29.035 paese-mesi, 365 tentativi) | AUC 0.833, Brier skill 0.027 | AUC 0.839, Brier skill 0.028 | AUC 0.840 | +0.006 [+0.002, +0.010] | +0.005 [-0.000, +0.012] | 0.99 | 48% → 52% |
+
+Il guadagno e' piccolo e coerente: il segno e' favorevole in tutte e tre le finestre per AUC, AUC-PR e quota nel 10% piu' alto, e il Brier skill non peggiora (negli intervalli il Brier include lo zero). Con la regola gia' usata per LightGBM
+(P(meglio) alto in modo coerente, nessuna finestra peggiore) il modello entra. **Non e' una prova di miglioramento nel futuro**: la finestra dal 2015 ha 365 tentativi, e il confronto e' retrospettivo. Il beneficio atteso
+e' una riduzione della varianza, non nuova informazione. `model.ENSEMBLE_NOACLED` ha lo stesso quinto membro, perche' non usa ACLED.
+
+
+## 8. Struttura a termine della probabilita' (`pipeline/terms.py`, `webdata/terms.json`)
+
+I mercati chiudono a date qualsiasi. Finora la stima a sei mesi si riportava con un rischio mensile costante, `P(h) = 1 - (1 - p6)^(h/6)`. Si e' misurato se regge fuori campione: per ogni scadenza h (1, 2, 3, 4, 9, 12, 18, 24 mesi)
+il bersaglio e' "almeno un tentativo nei prossimi h mesi", la stima e' la probabilita' a sei mesi dell'insieme calibrato *fuori campione*, e la correzione candidata e' `logit F_h = a_h + b_h · logit p6` con coefficienti stimati ogni anno sugli esiti noti prima di quell'anno.
+Confronto con il rischio costante sul Brier, dal 1992, intervalli al 90% da ricampionamento dei paesi:
+
+| Scadenza | Paese-mesi | Eventi | Brier, rischio costante | Brier, con correzione | Differenza [90%] | P(meglio) | Primo 2% per rischio: previsto (costante → corretto), osservato |
+|---|---|---|---|---|---|---|---|
+| 3 mesi | 77.956 | 735 | 0.00915 | 0.00915 | +0.004e-3 [+0.002, +0.006] | 0.0 | 8.4% → 8.4%, osservato 6.3% |
+| 4 mesi | 77.711 | 963 | 0.01192 | 0.01192 | +0.004e-3 [+0.000, +0.009] | 0.04 | 11.0% → 10.9%, osservato 8.3% |
+| 9 mesi | 76.486 | 1.987 | 0.02420 | 0.02416 | -0.033e-3 [-0.080, +0.021] | 0.86 | 23.0% → 21.0%, osservato 15.0% |
+| 12 mesi | 75.751 | 2.552 | 0.03087 | 0.03076 | -0.112e-3 [-0.225, +0.004] | 0.94 | 29.3% → 25.6%, osservato 18.8% |
+| 18 mesi | 74.281 | 3.585 | 0.04298 | 0.04260 | -0.404e-3 [-0.634, -0.187] | 1.0 | 40.5% → 32.9%, osservato 25.5% |
+| 24 mesi | 72.816 | 4.522 | 0.05380 | 0.05312 | -0.654e-3 [-1.065, -0.230] | 1.0 | 49.9% → 39.6%, osservato 30.9% |
+
+Fino a sei mesi il rischio costante regge (la correzione non lo migliora; a 3 e 4 mesi lo peggiora di un soffio), oltre sei mesi no: **i golpe si raggruppano**, quindi i paesi piu' a rischio guadagnano meno su un orizzonte lungo di quanto dica un rischio indipendente. A 24 mesi il rischio costante prevedeva
+il 50% per il 2% dei paesi piu' a rischio e se ne verificava il 31%. Per questo si adotta la correzione per le scadenze in cui riduce il Brier con P(meglio) >= 0,8 (qui 9, 12, 18 e 24 mesi); a sei mesi la mappa e' l'identita'
+(il numero pubblicato non cambia), le curve sono cumulative e mai decrescenti, e tra una scadenza e l'altra si interpola il rischio cumulato. `lib/market-pick.js` (`termCurve`, `modelAtHorizon(p6, mesi, terms)`) e `pipeline/terms.py` (`curve`)
+implementano la stessa funzione, con gli stessi vettori di prova (`tests/markets.test.mjs`, `pipeline/test_terms.py`). Si ricalcola ogni mese dopo `run.py`.

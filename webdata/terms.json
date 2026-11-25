@@ -1,0 +1,159 @@
+{
+ "generated": "2026-11-16",
+ "horizon": 6,
+ "grid": [
+  1,
+  2,
+  3,
+  4,
+  6,
+  9,
+  12,
+  18,
+  24
+ ],
+ "long": {
+  "9": {
+   "a": 0.30878,
+   "b": 0.97574,
+   "n": 109642,
+   "events": 4124
+  },
+  "12": {
+   "a": 0.56004,
+   "b": 0.96721,
+   "n": 108898,
+   "events": 5235
+  },
+  "18": {
+   "a": 0.90051,
+   "b": 0.95174,
+   "n": 107410,
+   "events": 7214
+  },
+  "24": {
+   "a": 1.19188,
+   "b": 0.95347,
+   "n": 105927,
+   "events": 9031
+  }
+ },
+ "evidence": {
+  "3": {
+   "n": 77956,
+   "events": 735,
+   "brier_constant": 0.009151,
+   "brier_mapped": 0.009155,
+   "log_loss_constant": 0.04574,
+   "log_loss_mapped": 0.0458,
+   "d_brier": 3.9e-06,
+   "d_brier_ci": [
+    1.7e-06,
+    6.4e-06
+   ],
+   "p_better": 0.0,
+   "top2pct": {
+    "constant": 0.0837,
+    "mapped": 0.0838,
+    "observed": 0.0635
+   }
+  },
+  "4": {
+   "n": 77711,
+   "events": 963,
+   "brier_constant": 0.011918,
+   "brier_mapped": 0.011922,
+   "log_loss_constant": 0.05678,
+   "log_loss_mapped": 0.05687,
+   "d_brier": 4.4e-06,
+   "d_brier_ci": [
+    1e-07,
+    8.9e-06
+   ],
+   "p_better": 0.04,
+   "top2pct": {
+    "constant": 0.1099,
+    "mapped": 0.1087,
+    "observed": 0.083
+   }
+  },
+  "9": {
+   "n": 76486,
+   "events": 1987,
+   "brier_constant": 0.024201,
+   "brier_mapped": 0.024165,
+   "log_loss_constant": 0.10121,
+   "log_loss_mapped": 0.10129,
+   "d_brier": -3.31e-05,
+   "d_brier_ci": [
+    -7.95e-05,
+    2.06e-05
+   ],
+   "p_better": 0.86,
+   "top2pct": {
+    "constant": 0.2297,
+    "mapped": 0.2103,
+    "observed": 0.1497
+   }
+  },
+  "12": {
+   "n": 75751,
+   "events": 2552,
+   "brier_constant": 0.030874,
+   "brier_mapped": 0.030757,
+   "log_loss_constant": 0.12312,
+   "log_loss_mapped": 0.1231,
+   "d_brier": -0.0001124,
+   "d_brier_ci": [
+    -0.0002249,
+    4.3e-06
+   ],
+   "p_better": 0.94,
+   "top2pct": {
+    "constant": 0.2934,
+    "mapped": 0.2558,
+    "observed": 0.188
+   }
+  },
+  "18": {
+   "n": 74281,
+   "events": 3585,
+   "brier_constant": 0.042984,
+   "brier_mapped": 0.042599,
+   "log_loss_constant": 0.16057,
+   "log_loss_mapped": 0.16017,
+   "d_brier": -0.0004043,
+   "d_brier_ci": [
+    -0.0006338,
+    -0.0001874
+   ],
+   "p_better": 1.0,
+   "top2pct": {
+    "constant": 0.4053,
+    "mapped": 0.3287,
+    "observed": 0.255
+   }
+  },
+  "24": {
+   "n": 72816,
+   "events": 4522,
+   "brier_constant": 0.053796,
+   "brier_mapped": 0.053122,
+   "log_loss_constant": 0.1924,
+   "log_loss_mapped": 0.19146,
+   "d_brier": -0.0006544,
+   "d_brier_ci": [
+    -0.0010654,
+    -0.0002299
+   ],
+   "p_better": 1.0,
+   "top2pct": {
+    "constant": 0.4991,
+    "mapped": 0.396,
+    "observed": 0.3095
+   }
+  }
+ },
+ "method": "constant monthly hazard up to six months; beyond, logit F_h = a_h + b_h logit p6 where it beats constant hazard out of sample (country-resampled Brier, P >= 0.8)",
+ "first_test_year": 1992
+}

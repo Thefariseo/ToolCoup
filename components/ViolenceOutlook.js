@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 
-const TYPES = [["o", "Organized violence"], ["b", "Battles"], ["e", "Explosions / remote violence"], ["v", "Violence against civilians"]];
+const VIOLENCE_TYPES = [["o", "Organized violence"], ["b", "Battles"], ["e", "Explosions / remote violence"], ["v", "Violence against civilians"]];
 const fmtDay = (iso) => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 
-/** Political-violence outlook: 26 past four-week periods, six forecast periods with an interval, and the moving average for comparison. */
-export default function ViolenceOutlook({ country, meta, admin1 }) {
+/** Outlook of event counts: 26 past four-week periods, six forecast periods with an interval, and the moving average for comparison.
+ *  Used for organised violence (the default) and, with other `types` and texts, for protests and riots. */
+export default function ViolenceOutlook({ country, meta, admin1, types = VIOLENCE_TYPES, id = "violence", title = "Political violence in the next six four-week periods", what = "organized violence", note }) {
+  const TYPES = types;
   const [type, setType] = useState("o");
   const hist = country.hist[type], fc = country.fc[type], n = hist.length + fc.length;
   const W = 760, H = 220, L = 36, B = 22, T = 10, plotW = W - L - 8, plotH = H - B - T;
@@ -18,9 +20,9 @@ export default function ViolenceOutlook({ country, meta, admin1 }) {
   const next = fc[0][0], six = fc.reduce((a, f) => a + f[0], 0) / fc.length, change = ma > 0 ? six / ma - 1 : null;
   const ticks = [0, 0.5, 1].map((k) => Math.round(max * k));
   return (
-    <section id="violence" className="card violence">
-<h2>Political violence in the next six four-week periods</h2>
-      <p className="note">Forecast events per four-week period. One gradient-boosted model covers all six horizons and is trained on absolute error. We blend it with the 6-period average and the last period, scale provinces to the country total, and take {meta.interval} intervals from a 24-date backtest. The method follows ACLED&rsquo;s published CAST approach, but the model is ours and is not ACLED&rsquo;s forecast.</p>
+    <section id={id} className="card violence">
+<h2>{title}</h2>
+      {note ? <p className="note">{note}</p> : <p className="note">Forecast events per four-week period. One gradient-boosted model covers all six horizons and is trained on absolute error. We blend it with the 6-period average and the last period, scale provinces to the country total, and take {meta.interval} intervals from a 24-date backtest. The method follows ACLED&rsquo;s published CAST approach, but the model is ours and is not ACLED&rsquo;s forecast.</p>}
       <div className="vo-tabs" role="tablist" aria-label="Event type">
         {TYPES.map(([k, label]) => <button key={k} role="tab" aria-selected={type === k} className={type === k ? "on" : ""} onClick={() => setType(k)}>{label}</button>)}
       </div>
@@ -43,8 +45,8 @@ export default function ViolenceOutlook({ country, meta, admin1 }) {
       </svg>
       <p className="note">Bars: events in each past four-week period. Line and band: forecast and {meta.interval} interval. Dashed line: 6-period moving average.</p>
       {admin1.length > 0 && (
-        <div className="table-scroll" tabIndex={0} role="region" aria-label="Provinces with the most violence forecast"><table>
-          <caption>Provinces with the most organized violence forecast over the next six periods</caption>
+        <div className="table-scroll" tabIndex={0} role="region" aria-label={`Provinces with the most ${what} forecast`}><table>
+          <caption>Provinces with the most {what} forecast over the next six periods</caption>
           <thead><tr><th scope="col">Province (admin1)</th><th scope="col">Last 6 periods, avg</th><th scope="col">Next period</th><th scope="col">Next six, avg</th></tr></thead>
           <tbody>{admin1.slice(0, 8).map((a) => <tr key={a.name}><th scope="row">{a.name}</th><td className="tnum">{a.ma6}</td><td className="tnum">{a.fc[0]}</td><td className="tnum">{(a.fc.reduce((s, v) => s + v, 0) / a.fc.length).toFixed(1)}</td></tr>)}</tbody>
         </table></div>

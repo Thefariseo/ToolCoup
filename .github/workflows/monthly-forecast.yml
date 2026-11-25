@@ -65,6 +65,12 @@ jobs:
         run: python pipeline/run.py --boot "${{ inputs.boot || '20' }}"
       - name: Political-violence outlook (one LightGBM for all horizons, blended with persistence; 24-origin backtest)
         run: python pipeline/cast.py
+      - name: Protests and riots outlook (the same model with protests and riots as the target; 12-origin backtest, one origin every 4 periods)
+        run: python pipeline/cast.py --kind unrest --origins 12 --stride 4
+      - name: Unrest probabilities (protest wave and violence escalation, next three months)
+        run: python pipeline/unrest.py
+      - name: Term structure of the coup probability (for markets that close on other dates)
+        run: python pipeline/terms.py
       - name: Structural analogs
         run: python pipeline/analogs.py
       - name: Standing and context (descriptive facts for each country page)
@@ -76,6 +82,22 @@ jobs:
         run: |
           npm ci
           npm run build
+
+      # The hybrid reading: model, prediction markets and an analyst pooled, filed in registry/hybrid/ and scored once windows close. Needs the repository
+      # secret OPENAI_API_KEY for the analyst; without it the snapshot holds the model and the markets only. A failure here never blocks the month.
+      - name: Hybrid snapshot and scoring
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          HYBRID_SNAPSHOT: "1"
+        run: |
+          npx next start -p 3100 > next.log 2>&1 &
+          SERVER=$!
+          for i in $(seq 1 60); do curl -sf http://localhost:3100/metodo > /dev/null && break; sleep 2; done
+          node scripts/hybrid-snapshot.mjs http://localhost:3100 --top 40 || echo "No hybrid snapshot this month"
+          kill "$SERVER" 2>/dev/null || true
+          pkill -f "next start" || true
+          python pipeline/hybrid_score.py
+        continue-on-error: true
 
       - name: Publish
         run: |

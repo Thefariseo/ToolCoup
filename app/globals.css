@@ -10,6 +10,7 @@ a { color: inherit; }
 h1, h2, h3, p { margin: 0; }
 button, input, select { font: inherit; color: inherit; }
 .tnum { font-variant-numeric: tabular-nums; }
+.nw { white-space: nowrap; }
 
 /* ------------------------------------------------------------ testata */
 .site-header {

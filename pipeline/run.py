@@ -42,6 +42,7 @@ MODEL_LABELS = {
     "rf": "Componente: foresta casuale",
     "lgbm": "Componente: LightGBM",
     "ensemble_noacled": "Insieme senza i segnali ACLED",
+    "ensemble_four": "Insieme a quattro componenti, senza il modello della sola storia",
     "ensemble_three": "Insieme a tre componenti, senza LightGBM",
     "storia_contagio": "Solo storia golpista e contagio",
     "storia": "Solo storia golpista del paese",
@@ -60,6 +61,33 @@ def acled_monthly() -> tuple[pd.DataFrame, dict]:
     monthly, meta = monthly_panel(load_acled(ACLED_DIR))
     pd.to_pickle({"stamp": stamp, "monthly": monthly, "meta": meta}, CACHE)
     return monthly, meta
+
+
+def build_inputs(H: int):
+    """ACLED mensile, informazioni sui paesi e panel paese-mese: gli ingressi di ogni passo che usa il modello dei golpe."""
+    am, ameta = acled_monthly()
+    am["unrest"] = am["protests"] + am["riots"]
+    am["violence"] = am["battles"] + am["explosions"] + am["vac"]
+    info = am.groupby("country").agg(iso=("iso", "first"), region=("region", "first"))
+    t_end = int(ameta["t_end"])
+    print("Costruisco il panel...")
+    panel, pinfo = build_panel(COUPDB, am[["country", "t"] + RAW_SERIES], info, t_end, H)
+    print(f"Panel: {len(panel):,} paese-mesi dal {panel['year'].min()}, {panel['unit'].nunique()} unita', "
+          f"{int(panel['onset'].sum())} mesi con un tentativo di golpe, {len(ALL_FEATURES)} variabili")
+    return am, ameta, info, t_end, panel, pinfo
+
+
+def validation(panel: pd.DataFrame, H: int):
+    """Previsioni fuori campione di ogni modello. Costano una ventina di minuti: si riusano finche' panel e modelli non cambiano."""
+    sig = M.validation_signature(panel, H)
+    cached = pd.read_pickle(WF_CACHE) if WF_CACHE.exists() else None
+    if cached is not None and cached["sig"] == sig and cached["preds"].index.equals(panel.index):
+        print("Validazione: riuso i risultati salvati (panel invariato)")
+        return cached["preds"].copy(), sig
+    print("Validazione anno per anno (circa 20 minuti)...")
+    preds = M.walk_forward(panel, H)
+    pd.to_pickle({"sig": sig, "preds": preds}, WF_CACHE)
+    return preds.copy(), sig
 
 
 def event_study(am: pd.DataFrame, events: pd.DataFrame, series, lo=-12, hi=6) -> dict:
@@ -95,34 +123,17 @@ def main():
         sys.exit("Dati mancanti: " + ", ".join(missing) + " (vedi README.md)")
     warnings.simplefilter("ignore")
 
-    am, ameta = acled_monthly()
-    am["unrest"] = am["protests"] + am["riots"]
-    am["violence"] = am["battles"] + am["explosions"] + am["vac"]
-    info = am.groupby("country").agg(iso=("iso", "first"), region=("region", "first"))
-    t_end = int(ameta["t_end"])
-
-    print("Costruisco il panel...")
-    panel, pinfo = build_panel(COUPDB, am[["country", "t"] + RAW_SERIES], info, t_end, H)
+    am, ameta, info, t_end, panel, pinfo = build_inputs(H)
     unit_of = pinfo["unit_of_acled"]
     known = panel["y_known"]
-    print(f"Panel: {len(panel):,} paese-mesi dal {panel['year'].min()}, {panel['unit'].nunique()} unita', "
-          f"{int(panel['onset'].sum())} mesi con un tentativo di golpe, {len(ALL_FEATURES)} variabili")
 
     # ---------------- validazione fuori campione
-    # la validazione costa una ventina di minuti: si riusa finche' panel e modelli non cambiano
-    sig = M.validation_signature(panel, H)
-    cached = pd.read_pickle(WF_CACHE) if WF_CACHE.exists() else None
-    if cached is not None and cached["sig"] == sig and cached["preds"].index.equals(panel.index):
-        print("Validazione: riuso i risultati salvati (panel invariato)")
-        preds = cached["preds"]
-    else:
-        print("Validazione anno per anno (circa 20 minuti)...")
-        preds = M.walk_forward(panel, H)
-        pd.to_pickle({"sig": sig, "preds": preds}, WF_CACHE)
+    preds, sig = validation(panel, H)
     preds["ensemble_raw"] = M.combine(preds, M.ENSEMBLE)
     preds["ensemble_noacled"] = M.combine(preds, M.ENSEMBLE_NOACLED)
     preds["ensemble"], cal = M.calibrate_forward(panel, preds["ensemble_raw"], H)
     # le edizioni fino al 2026-11 usavano tre componenti: tenerle come riferimento mostra cosa aggiunge LightGBM
+    preds["ensemble_four"], _ = M.calibrate_forward(panel, M.combine(preds, M.ENSEMBLE_FOUR), H)
     preds["ensemble_three"], _ = M.calibrate_forward(panel, M.combine(preds, M.ENSEMBLE_THREE), H)
     preds["base_rate"] = M.base_rate_forward(panel, H)
 
@@ -148,8 +159,10 @@ def main():
         diff("ensemble", "storia", windows["all"], "Insieme contro sola storia golpista (dal 1975)"),
         diff("ensemble", "storia", windows["recent"], "Insieme contro sola storia golpista (dal 2000)"),
         diff("ensemble_raw", "ensemble_noacled", windows["acled"], "Con e senza segnali ACLED (periodo ACLED)"),
-        diff("ensemble", "ensemble_three", windows["all"] & preds["ensemble_three"].notna(), "Con e senza LightGBM (dal 1975)"),
-        diff("ensemble", "ensemble_three", windows["recent"] & preds["ensemble_three"].notna(), "Con e senza LightGBM (dal 2000)"),
+        diff("ensemble_four", "ensemble_three", windows["all"] & preds["ensemble_three"].notna(), "Con e senza LightGBM (dal 1975)"),
+        diff("ensemble_four", "ensemble_three", windows["recent"] & preds["ensemble_three"].notna(), "Con e senza LightGBM (dal 2000)"),
+        diff("ensemble", "ensemble_four", windows["all"] & preds["ensemble_four"].notna(), "Con e senza il modello della sola storia (dal 1975)"),
+        diff("ensemble", "ensemble_four", windows["recent"] & preds["ensemble_four"].notna(), "Con e senza il modello della sola storia (dal 2000)"),
     ]
     calibration = M.calibration_table(panel.loc[windows["recent"], "y"], preds.loc[windows["recent"], "ensemble"])
 
@@ -222,7 +235,7 @@ def main():
             "first_test_year": M.FIRST_TEST_YEAR, "n_oos": int(oos.sum()), "n_oos_pos": int(panel.loc[oos, "y"].sum()),
             "coup_source": "db", "history_from": 1900, "n_coups_history": int(pinfo["n_broad"]),
             "boot": args.boot, "calibration": [round(cal[0], 3), round(cal[1], 3)],
-            "model_version": "2.1-lgbm", "validation_signature": sig,
+            "model_version": "2.2-history", "validation_signature": sig,
             "ensemble_weights": {name: 1 / len(M.ENSEMBLE) for name in M.ENSEMBLE},
             "change_basis": "same_model", "interval_method": "country bootstrap; fixed calibration; 80% percentile range",
             "groups": [{"key": k, "label": GROUP_LABELS[k], "n": len(v)} for k, v in GROUPS.items() if k != "tempo"],

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import SiteFooter from "@/components/SiteFooter";
 import { getRegistry, REPO } from "@/lib/registry";
+import hybrid from "@/webdata/hybrid.json";
 import Rise from "@/components/motion/Rise";
 import { fmtEventDate, pct } from "@/lib/format";
 
@@ -12,6 +13,44 @@ export const metadata = {
 const mon = (s) => { const [y, m] = s.split("-"); return `${["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][m - 1]} ${y}`; };
 const skill = (v) => (v == null ? "—" : `${v > 0 ? "+" : ""}${(v * 100).toFixed(1)}%`);
 const Kind = ({ type }) => <span className={`rg-kind ${type === "riuscito" ? "ok" : "ko"}`}>{type === "riuscito" ? "◆ Successful" : "◇ Failed"}</span>;
+
+const w = (v) => `${Math.round(v * 100)}%`;
+const SRC = { model: "Model", market: "Markets", analyst: "Analyst" };
+
+/** The experimental pooled reading: the latest snapshot, the weights, and whether anything has been scored yet. */
+function HybridSection({ hy }) {
+  const L = hy.latest, closed = hy.issues.filter((i) => i.status === "closed");
+  return (
+    <section className="rg-hind" id="hybrid">
+      <h2>The hybrid reading (experimental)</h2>
+      <p>
+        A second reading beside the forecast: the model, the prediction markets and an analyst pooled into one probability. The analyst is a language
+        model that reads the recent headlines found for the country and gives its own number, averaged over three independent answers because one answer
+        to the same question can differ by half again from the next; it is never shown our forecast or any market price, so it adds a view instead of repeating one. The markets are restated as six-month probabilities with our own term structure, because they close
+        on dates of their own. The three are averaged in log-odds with weights that start at {w(hy.priors.model)} model, {w(hy.priors.market)} markets (less when trading is thin)
+        and {w(hy.priors.analyst)} analyst, and move with their record once windows close. When the sources are independent the pool is pushed a little away from the
+        base rate, the way hybrid forecasting tournaments pool crowds.
+      </p>
+      <p className="rg-line">
+        <strong>It has no track record.</strong> {hy.issues.length} {hy.issues.length === 1 ? "snapshot" : "snapshots"} filed, {closed.length} scored. The first window closes after {mon(L.window[1])}; until then
+        the weights are the priors and nothing here should be read as a better forecast than the one above. Each snapshot is filed in <code>registry/hybrid/</code> and checked by hash like the forecasts.
+        {" "}<span className={`rg-integ ${hy.integrity.ok ? "ok" : "bad"}`}>{hy.integrity.ok ? "Checksums verified." : "Ledger altered."}</span>
+      </p>
+      <h3>Snapshot of {L.asof.slice(0, 10)} for issue {L.issue}: countries with more than one source</h3>
+      <div className="rg-scroll">
+        <table className="rg-table">
+          <thead><tr><th>Country</th><th className="num">Model</th><th className="num">Markets, as six months</th><th className="num">Analyst</th><th className="num">Pooled</th><th>Analyst, in short</th></tr></thead>
+          <tbody>{L.countries.slice(0, 20).map((c) => (
+            <tr key={c.slug}><td><Link href={`/paese/${c.slug}`}><span className="sx">{c.name}</span></Link></td>
+              <td className="num">{pct(c.model.p, 2)}</td><td className="num">{c.market ? pct(c.market.p6, 2) : "—"}</td><td className="num">{c.analyst ? pct(c.analyst.calibrated, 2) : "—"}</td>
+              <td className="num"><b>{c.pooled ? pct(c.pooled.p, 2) : "—"}</b></td><td>{c.analyst?.rationale ? c.analyst.rationale.slice(0, 150) + (c.analyst.rationale.length > 150 ? "…" : "") : ""}</td></tr>
+          ))}</tbody>
+        </table>
+      </div>
+      <p className="rg-note">Weights now: {Object.entries(hy.priors).map(([k, v]) => `${SRC[k].toLowerCase()} ${w(v)} × ${Math.exp(hy.logw?.[k] ?? 0).toFixed(2)}`).join(", ")}, then normalised. Machine-readable: <a href={`${REPO}/blob/main/registry/hybrid/${L.issue}.json`}>the ledger file</a>.</p>
+    </section>
+  );
+}
 
 export default function RegistryPage() {
   const r = getRegistry(), h = r.hindcast, closed = r.issues.filter((i) => i.status === "closed");
@@ -73,6 +112,8 @@ export default function RegistryPage() {
           </article>
         ))}
       </section>
+
+      {hybrid.latest && <HybridSection hy={hybrid} />}
 
       {h?.pooled && (
         <section className="rg-hind">

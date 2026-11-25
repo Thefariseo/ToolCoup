@@ -42,6 +42,15 @@ ACLED = ROOT / "data" / "raw" / "acled"
 OUT = ROOT / "webdata" / "violence.json"
 TYPES = ["b", "e", "v"]
 NAMES = {"b": "Battles", "e": "Explosions/remote violence", "v": "Violence against civilians", "o": "Organized violence"}
+# Il disordine (proteste e disordini) si prevede con lo stesso metodo: le variabili restano quelle di sempre (la violenza organizzata e' un buon
+# indizio del disordine), cambiano i bersagli. Le chiavi b, e, v, o dei risultati diventano: protesta pacifica, protesta con intervento delle forze
+# dell'ordine (compreso l'uso eccessivo della forza), disordini (violent demonstration e mob violence), totale.
+KINDS_CFG = {
+    "violence": {"targets": {"b": "b", "e": "e", "v": "v", "o": "o"}, "names": NAMES, "out": "violence.json", "cache": "cast_backtest.pkl"},
+    "unrest": {"targets": {"b": "pp", "e": "pi", "v": "rv", "o": "u"},
+               "names": {"b": "Peaceful protest", "e": "Protest with intervention", "v": "Riots", "o": "Protests and riots"},
+               "out": "unrest_counts.json", "cache": "cast_backtest_unrest.pkl"},
+}
 ETYPE = {"Battles": "b", "Explosions/Remote violence": "e", "Violence against civilians": "v"}
 PERIOD, HORIZONS, START_YEAR = 28, 6, 2018
 ALPHA = 0.2                                    # intervalli all'80%
@@ -92,6 +101,8 @@ def build_arrays(ev: pd.DataFrame, end: date, n: int) -> dict:
     A["fat"] = mat(ev["event_type"].isin(ETYPE), "fatalities")
     A["prot"] = mat(ev["event_type"].eq("Protests")); A["riot"] = mat(ev["event_type"].eq("Riots"))
     A["excess"] = mat(ev["sub_event_type"].eq("Excessive force against protesters"))
+    A["pi"] = mat(ev["sub_event_type"].isin(["Protest with intervention", "Excessive force against protesters"]))
+    A["pp"] = np.maximum(A["prot"] - A["pi"], 0); A["rv"] = A["riot"]; A["u"] = A["prot"] + A["riot"]
     A["strat"] = mat(ev["event_type"].eq("Strategic developments")); A["agree"] = mat(ev["sub_event_type"].eq("Agreement"))
     # l'API restituisce etichette di testo, i vecchi file i codici 1-8 (stesso ordine)
     ACTORS = ["State forces", "Rebel group", "Political militia", "Identity militia", "Rioters", "Protesters", "Civilians", "External/Other forces"]
@@ -130,7 +141,7 @@ def slope(x: np.ndarray, w: int = 6) -> np.ndarray:
 
 
 # ------------------------------------------------------------------ variabili
-def features(A: dict, units: pd.DataFrame, geo: pd.DataFrame, ends: list[date], cy: pd.DataFrame, level: str) -> tuple[np.ndarray, list[str]]:
+def features(A: dict, units: pd.DataFrame, geo: pd.DataFrame, ends: list[date], cy: pd.DataFrame, level: str, extra: dict | None = None) -> tuple[np.ndarray, list[str]]:
     """Matrice (U*P, F) per il livello 'admin1' o 'country'. A contiene gia' le matrici del livello."""
     U, P = A["o"].shape
     cols, names = [], []
@@ -142,6 +153,8 @@ def features(A: dict, units: pd.DataFrame, geo: pd.DataFrame, ends: list[date], 
         add(f"{k}_t1", lag(A[k], 1)); add(f"{k}_t2", lag(A[k], 2))
     add("o_mean6", roll(A["o"], 6, np.mean)); add("o_std6", roll(A["o"], 6, np.std)); add("o_mean13", roll(A["o"], 13, np.mean))
     add("fat_mean6", roll(A["fat"], 6, np.mean))
+    for name, m in (extra or {}).items():
+        add(name, m)
     for k in range(1, 9):
         add(f"inter{k}_t0", lag(A[f"i{k}"], 0))
     if level == "admin1":
@@ -252,10 +265,10 @@ def pooled_country(F: np.ndarray, Y: np.ndarray, ma6: np.ndarray, T: int, trees:
     return {h: np.maximum(np.expm1(np.log1p(ma6[:, T]) + m.predict(np.column_stack([F[:, T, :], np.full(n, h, dtype=np.float32)]))), 0) for h in range(1, HORIZONS + 1)}
 
 
-def pooled_admin1(X3: np.ndarray, fnames: list[str], Yo: np.ndarray, ma6: np.ndarray, T: int, trees: int, halflife: float = 40.0) -> dict[int, np.ndarray]:
+def pooled_admin1(X3: np.ndarray, fnames: list[str], Yo: np.ndarray, ma6: np.ndarray, T: int, trees: int, halflife: float = 40.0, active: str = "o_mean13") -> dict[int, np.ndarray]:
     """Come pooled_country, per il totale di ogni provincia. Solo le province con eventi nelle ultime 13 periodi entrano nell'addestramento; le altre prevedono zero."""
     U, P, nf = X3.shape
-    i13 = fnames.index("o_mean13")
+    i13 = fnames.index(active)
     Xs, ys, ws = [], [], []
     for h in range(1, HORIZONS + 1):
         p0, p1 = BURN, T - h
@@ -291,15 +304,61 @@ def blend_weights(model: np.ndarray, ma6: np.ndarray, last: np.ndarray, truth: n
     return np.abs(w) / np.abs(w).sum()
 
 
+# ------------------------------------------------------------------ punteggio con intervalli
+# Il Weighted Interval Score (Bracher et al. 2021) e' una regola di punteggio propria per previsioni a intervalli: con molti intervalli tende al CRPS,
+# l'errore di una previsione probabilistica di un conteggio. Qui 3 intervalli (50%, 80%, 95%) e la mediana. Vale la stessa disciplina del resto:
+# i quantili dei residui di ogni origine si stimano sulle ALTRE origini (leave-one-origin-out), con la stessa regola per il modello, le medie e l'ultimo periodo.
+WIS_ALPHAS = (0.5, 0.2, 0.05)
+_EDGES = np.array([1, 3, 10, 30, 100, 300])
+
+
+def _residual_quantiles(vecs: list, truths: list, alpha: float) -> np.ndarray:
+    """Quantili (basso, alto) dei residui scalati per classe di dimensione della previsione; (len(_EDGES)+1, 2)."""
+    bl, tr = np.concatenate(vecs), np.concatenate(truths)
+    r = (tr - bl) / np.sqrt(bl + 1)
+    bk, live = np.digitize(bl, _EDGES), bl >= 1
+    pool = (np.quantile(r[live], alpha / 2), np.quantile(r[live], 1 - alpha / 2)) if live.sum() > 50 else (-1.0, 1.0)
+    Q = np.empty((len(_EDGES) + 1, 2))
+    for k in range(len(_EDGES) + 1):
+        m = bk == k
+        Q[k] = (np.quantile(r[m], alpha / 2), np.quantile(r[m], 1 - alpha / 2)) if m.sum() >= 40 else pool
+    return Q
+
+
+def weighted_interval_score(truth: np.ndarray, mid: np.ndarray, Qs: dict, alphas=WIS_ALPHAS) -> np.ndarray:
+    """WIS di ogni previsione: (0.5 |y - mediana| + somma_k (alpha_k / 2) * IS_k) / (K + 0.5)."""
+    k, sd = np.digitize(mid, _EDGES), np.sqrt(mid + 1)
+    total = 0.5 * np.abs(truth - mid)
+    for a in alphas:
+        lo, hi = np.maximum(0.0, mid + Qs[a][k, 0] * sd), mid + Qs[a][k, 1] * sd
+        total = total + (a / 2) * ((hi - lo) + (2 / a) * np.maximum(lo - truth, 0) + (2 / a) * np.maximum(truth - hi, 0))
+    return total / (len(alphas) + 0.5)
+
+
+def wis_by_origin(series: dict, truths: list, keeps: list, alphas=WIS_ALPHAS) -> dict:
+    """WIS medio per previsione, per ciascuna serie ('mix', 'model', 'ma6', 'last'); `series[nome][i]` e' il vettore dell'origine i."""
+    out = {}
+    for name, vecs in series.items():
+        parts = []
+        for j in range(len(truths)):
+            rest = [i for i in range(len(truths)) if i != j]
+            Qs = {a: _residual_quantiles([vecs[i] for i in rest], [truths[i] for i in rest], a) for a in alphas}
+            parts.append(weighted_interval_score(truths[j][keeps[j]], vecs[j][keeps[j]], Qs, alphas))
+        out[name] = round(float(np.concatenate(parts).mean()), 2)
+    return out
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--origins", type=int, default=24, help="origini del backtest per i pesi e gli intervalli")
     ap.add_argument("--stride", type=int, default=2, help="periodi tra due origini")
     ap.add_argument("--quick", action="store_true", help="meno alberi, per provare")
     ap.add_argument("--reuse", action="store_true", help="riusa il backtest salvato se i dati non sono cambiati")
-    ap.add_argument("--out", default=str(OUT), help="file di uscita (default: webdata/violence.json)")
+    ap.add_argument("--out", default=None, help="file di uscita (default: webdata/violence.json, o unrest_counts.json con --kind unrest)")
+    ap.add_argument("--kind", choices=list(KINDS_CFG), default="violence", help="violence: violenza organizzata; unrest: proteste e disordini")
     args = ap.parse_args()
     warnings.simplefilter("ignore")
+    cfg = KINDS_CFG[args.kind]
     trees = 80 if args.quick else 250
     ev, end = load()
     ends, P = periods(end)
@@ -316,12 +375,13 @@ def main() -> None:
     geoc = geo.groupby(ci)[["latitude", "longitude"]].mean().reindex(range(C))
     F, _ = rich_features(Acty, names, geoc, ends, cy)
     KINDS = ["o"] + TYPES
-    Y = {t: Acty[t] for t in KINDS}
+    AT = {t: A[cfg["targets"][t]] for t in KINDS}                              # bersagli a livello admin1
+    Y = {t: Acty[cfg["targets"][t]] for t in KINDS}                            # bersagli a livello paese
     MA = {t: roll(Y[t], 6, np.mean) for t in KINDS}
     origins = [P - 1 - HORIZONS - args.stride * k for k in range(args.origins)][::-1]
 
     # --- backtest: il modello alle origini passate (salvato: cambiare pesi e intervalli non lo rifa)
-    cache = ROOT / "data" / "raw" / "cast_backtest.pkl"
+    cache = ROOT / "data" / "raw" / cfg["cache"]
     key = (P, end.isoformat(), args.origins, args.stride, trees, "pooled-l1-v2")
     bt = {}
     if args.reuse and cache.exists():
@@ -411,7 +471,9 @@ def main() -> None:
         met = lambda f: {"wape": round(float(np.abs(f[keep] - tr[keep]).sum() / max(tr[keep].sum(), 1)), 3), "rel": round(float(np.mean(np.abs(f[keep] - tr[keep]) / (m6[keep] + 1))), 3),
                          "rmsle": round(float(np.sqrt(np.mean((np.log1p(f[keep]) - np.log1p(tr[keep])) ** 2))), 3)}
         inside = (tr >= lo_) & (tr <= hi_); live = bl >= 1
-        acc.append({"h": h, "n": int(keep.sum()), "mix": met(bl), "model": met(mo), "ma6": met(m6), "last": met(la),
+        wis = wis_by_origin({"mix": [r[0] for r in rows], "model": [r[1] for r in rows], "ma6": [r[2] for r in rows], "last": [r[3] for r in rows]},
+                            [r[4] for r in rows], [(r[2] + r[3] + r[4]) > 0 for r in rows])
+        acc.append({"h": h, "n": int(keep.sum()), "mix": met(bl), "model": met(mo), "ma6": met(m6), "last": met(la), "wis": wis,
                     "coverage": round(float(inside[live].mean()), 3), "coverage_all": round(float(inside.mean()), 3), "n_live": int(live.sum())})
         print("  accuratezza paese h=%d:" % h, acc[-1], flush=True)
 
@@ -430,9 +492,10 @@ def main() -> None:
         fc[h] = out
 
     # province: stesso metodo sul totale della provincia, poi ridimensionato perche' le province sommino al paese
-    Xa, na = features(A, units, geo, ends, cy, "admin1")
-    ma6_a = roll(A["o"], 6, np.mean)
-    adm = pooled_admin1(Xa.reshape(U, P, -1), na, A["o"], ma6_a, T0, trees)
+    extra = {"t_mean13": roll(AT["o"], 13, np.mean)} if args.kind != "violence" else None      # le province attive sono quelle con proteste, non con violenza
+    Xa, na = features(A, units, geo, ends, cy, "admin1", extra)
+    ma6_a = roll(AT["o"], 6, np.mean)
+    adm = pooled_admin1(Xa.reshape(U, P, -1), na, AT["o"], ma6_a, T0, trees, active="t_mean13" if extra else "o_mean13")
     for h in range(1, HORIZONS + 1):
         for c in range(C):
             idx = np.flatnonzero(ci == c)
@@ -449,8 +512,8 @@ def main() -> None:
     out_c, out_a = {}, {}
     for i, nm in enumerate(names):
         slug = slug_by_name.get(nm) or slugify(nm)
-        rec = {"name": nm, "hist": {t: [int(v) for v in Acty[t][i, -26:]] for t in KINDS},
-               "ma6": round(float(Acty["o"][i, -6:].mean()), 1), "ma13": round(float(Acty["o"][i, -13:].mean()), 1), "fc": {}}
+        rec = {"name": nm, "hist": {t: [int(v) for v in Y[t][i, -26:]] for t in KINDS},
+               "ma6": round(float(Y["o"][i, -6:].mean()), 1), "ma13": round(float(Y["o"][i, -13:].mean()), 1), "fc": {}}
         for t in KINDS:
             seq = []
             for h in range(1, HORIZONS + 1):
@@ -465,15 +528,15 @@ def main() -> None:
         idx = idx[np.argsort(-np.sum([adm[h][idx] for h in adm], axis=0))][:12]
         out_a[slug_by_name.get(nm) or slugify(nm)] = [{"name": units.loc[j, "admin1"], "lat": None if np.isnan(geo.loc[j, "latitude"]) else round(float(geo.loc[j, "latitude"]), 2),
                                                         "lon": None if np.isnan(geo.loc[j, "longitude"]) else round(float(geo.loc[j, "longitude"]), 2),
-                                                        "ma6": round(float(A["o"][j, -6:].mean()), 1), "fc": [round(float(adm[h][j]), 1) for h in adm]} for j in idx]
-    gl = {"hist": {t: [int(v) for v in A[t].sum(axis=0)[-26:]] for t in KINDS}, "fc": {t: [[round(float(fc[h][t].sum()), 1)] for h in range(1, HORIZONS + 1)] for t in KINDS}}
+                                                        "ma6": round(float(AT["o"][j, -6:].mean()), 1), "fc": [round(float(adm[h][j]), 1) for h in adm]} for j in idx]
+    gl = {"hist": {t: [int(v) for v in AT[t].sum(axis=0)[-26:]] for t in KINDS}, "fc": {t: [[round(float(fc[h][t].sum()), 1)] for h in range(1, HORIZONS + 1)] for t in KINDS}}
     result = {"meta": {"generated": date.today().isoformat(), "last_period_end": end.isoformat(), "period_days": PERIOD, "horizons": [e.isoformat() for e in next_ends],
-                       "history_ends": [e.isoformat() for e in ends[-26:]], "interval": f"{int((1 - ALPHA) * 100)}%", "types": NAMES, "accuracy_country_total": acc,
+                       "history_ends": [e.isoformat() for e in ends[-26:]], "interval": f"{int((1 - ALPHA) * 100)}%", "scoring": "wis: weighted interval score with 50/80/95% intervals and the median (a proper score that approaches CRPS); quantiles of each origin estimated on the other origins", "types": cfg["names"], "kind": args.kind, "accuracy_country_total": acc,
                        "units": int(U), "countries": len(names), "backtest_origins": len(origins), "backtest_stride": args.stride,
-                       "method": "one LightGBM model for all six horizons, trained with absolute error on the log ratio to the 6-period average, blended with the 6-period average and the last period (weights fitted on past backtest origins); provinces scaled to the country total; scaled-residual intervals from a rolling backtest",
+                       "method": ("Targets are protests and riots (ACLED), with the same features as the violence model. " if args.kind == "unrest" else "") + "one LightGBM model for all six horizons, trained with absolute error on the log ratio to the 6-period average, blended with the 6-period average and the last period (weights fitted on past backtest origins); provinces scaled to the country total; scaled-residual intervals from a rolling backtest",
                        "mix_weights": {f"h{h}": {"model": round(float(W_live[h][0]), 3), "avg6": round(float(W_live[h][1]), 3), "last": round(float(W_live[h][2]), 3)} for h in range(1, HORIZONS + 1)}},
               "global": gl, "countries": out_c, "admin1": out_a}
-    dest = Path(args.out)
+    dest = Path(args.out) if args.out else ROOT / "webdata" / cfg["out"]
     dest.write_text(json.dumps(result, separators=(",", ":"), ensure_ascii=False))
     print(f"Scritto {dest} ({dest.stat().st_size / 1e6:.2f} MB)")
 

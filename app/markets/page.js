@@ -21,7 +21,7 @@ export default function MarketsPage() {
           <p><strong>Same question, roughly.</strong> A market asks whether something called a coup happens by a date. Our target is at least one confirmed attempt, successful or failed, in the window. Markets also count rumours, plots and looser events, so they usually price higher than our model. A market below the model is rarer and worth a look.</p>
           <p><strong>Volume is the confidence.</strong> A market with a few thousand dollars traded tells you little. For each country we show the coup market with the most volume, preferring one with at least $5,000 traded. Both venues trade real money.</p>
           <p><strong>Coverage is thin.</strong> Only countries that traders follow have a market, so a missing market says nothing about risk. Both venues are blocked in some countries, so we show their prices as data and do not link to them.</p>
-          <p><strong>Restating our number.</strong> Our probability covers six months. For a market that closes in <em>n</em> months we assume a constant hazard, 1 − (1 − p)<sup>n/6</sup>. It is an approximation, since coups come in clusters.</p>
+          <p><strong>Restating our number.</strong> Our probability covers six months. For a market that closes in <em>n</em> months, up to six, we assume the same risk every month: 1 − (1 − p)<sup>n/6</sup>. Beyond six months we use a correction fitted on past forecasts, because coups come in clusters and the riskiest countries gain less over a long horizon than a constant risk says; out of sample it lowered the Brier score at 9, 12, 18 and 24 months.</p>
         </section>
       </main>
       <SiteFooter />

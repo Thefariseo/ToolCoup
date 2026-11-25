@@ -19,7 +19,7 @@ export default function CrowdView({ slug, name }) {
   return (
     <section id="crowd" className="card crowd">
       <h2>What the prediction markets say</h2>
-      <p className="note">A second opinion on a similar question. For each country we show one market: the coup question with the most volume on Polymarket or Kalshi. Markets differ from our target in wording, horizon and liquidity, so we restate our probability for the market&rsquo;s horizon (constant hazard). A gap is a reason to look closer. Both venues trade real money and are blocked in some countries, so we do not link to them.</p>
+      <p className="note">A second opinion on a similar question. For each country we show one market: the coup question with the most volume on Polymarket or Kalshi. Markets differ from our target in wording, horizon and liquidity, so we restate our probability for the market&rsquo;s horizon (the same risk every month up to six months, a fitted correction beyond). A gap is a reason to look closer. Both venues trade real money and are blocked in some countries, so we do not link to them.</p>
       {!d && !err && <p className="note">Loading markets…</p>}
       {err && <p className="note" role="alert">Prediction markets are unavailable right now.</p>}
       {d && !d.markets.length && <p className="note">No open market on a coup or leader exit in {name} was found. Few countries have one, so absence says nothing about risk.</p>}

@@ -1,0 +1,3336 @@
+{
+ "issue": "2026-11",
+ "asof": "2026-11-16T00:41:44.376Z",
+ "window": [
+  "2026-11",
+  "2027-04"
+ ],
+ "horizon": 6,
+ "base_rate": 0.00994,
+ "analyst_model": "gpt-6-luna",
+ "method": "pooled in log-odds with prior weights model 0.7, market 0.2 (scaled by liquidity), analyst 0.1; learned adjustments in webdata/hybrid.json; extremised from the base rate by 1 + 0.1 (n - 1)",
+ "logw": {
+  "model": 0,
+  "market": 0,
+  "analyst": 0
+ },
+ "countries": [
+  {
+   "slug": "iran",
+   "name": "Iran",
+   "iso": "364",
+   "rank": 59,
+   "model": {
+    "p": 0.0057,
+    "lo": 0.00307,
+    "hi": 0.00954
+   },
+   "market": {
+    "p6": 0.20618063078200538,
+    "volume": 386607.949593,
+    "n": 2,
+    "markets": [
+     {
+      "source": "Polymarket",
+      "question": "Iran coup attempt by December 31, 2026?",
+      "p": 0.065,
+      "months": 1.52,
+      "volume": 208577.25304599997,
+      "closes": "2027-01-01T04:59:00Z"
+     },
+     {
+      "source": "Polymarket",
+      "question": "Iran coup attempt by December 31, 2027?",
+      "p": 0.305,
+      "months": 13.51,
+      "volume": 178030.696547,
+      "closes": "2028-01-01T04:59:00Z"
+     }
+    ]
+   },
+   "analyst": {
+    "raw": 0.01755821632831574,
+    "samples": [
+     0.018,
+     0.025,
+     0.012
+    ],
+    "confidence": "low",
+    "rationale": "Iran’s 36.8-year head-of-state tenure puts it above the 0.99% worldwide base rate, though it has had no coup attempts since 2000. The Bahrain strikes and currency-market crackdown show no officers or ruling elites moving against the government, so they do not materially change the estimate.",
+    "signals": [],
+    "calibrated": 0.013218140901632657,
+    "headlines": [
+     {
+      "id": "P1",
+      "title": "Iran targets US military base in Bahrain with drone attack",
+      "outlet": "BBC",
+      "date": "2026-11-15",
+      "angle": "violence"
+     },
+     {
+      "id": "P2",
+      "title": "Iran Attacks Bahrain for the Second Time in Days",
+      "outlet": "The New York Times",
+      "date": "2026-11-15",
+      "angle": "violence"
+     },
+     {
+      "id": "P3",
+      "title": "Iran launches drone attacks against US military base in Bahrain",
+      "outlet": "The Guardian",
+      "date": "2026-11-15",
+      "angle": "violence"
+     },
+     {
+      "id": "P4",
+      "title": "US denies Iran's claim that it attacked early-warning radar in Bahrain",
+      "outlet": "Reuters",
+      "date": "2026-11-14",
+      "angle": "violence"
+     },
+     {
+      "id": "P5",
+      "title": "Trump tells advisers he may hold off on Iran attacks barring new provocations, sources say",
+      "outlet": "Reuters",
+      "date": "2026-11-14",
+      "angle": "violence"
+     },
+     {
+      "id": "P6",
+      "title": "‘Get Focused on London’: How Iran’s Agents Attacked European Targets",
+      "outlet": "The New York Times",
+      "date": "2026-11-13",
+      "angle": "violence"
+     },
+     {
+      "id": "P7",
+      "title": "Anti-Houthi forces retreat in Yemen as Iran strikes Bahrain",
+      "outlet": "Reuters",
+      "date": "2026-11-15",
+      "angle": "unrest"
+     },
+     {
+      "id": "P8",
+      "title": "Iran targets US military radar in Bahrain in ‘retaliatory’ drone strikes",
+      "outlet": "Al Jazeera",
+      "date": "2026-11-15",
+      "angle": "unrest"
+     },
+     {
+      "id": "P9",
+      "title": "Can Netanyahu launch a strike on Iran before he leaves?",
+      "outlet": "Al Jazeera",
+      "date": "2026-11-13",
+      "angle": "unrest"
+     },
+     {
+      "id": "P10",
+      "title": "Iran says it targeted US military radar in Bahrain in retaliatory strike",
+      "outlet": "The Guardian",
+      "date": "2026-11-13",
+      "angle": "unrest"
+     },
+     {
+      "id": "P11",
+      "title": "Gulf stocks close higher as Trump dials back Iran strike talk",
+      "outlet": "Reuters",
+      "date": "2026-11-10",
+      "angle": "unrest"
+     },
+     {
+      "id": "P12",
+      "title": "Oil falls below $90 as Trump pulls back from threat to strike Iran",
+      "outlet": "Financial Times",
+      "date": "2026-11-10",
+      "angle": "unrest"
+     },
+     {
+      "id": "P13",
+      "title": "Iran's first women-only military training centre opens in Tehran",
+      "outlet": "Africanews",
+      "date": "2026-11-15",
+      "angle": "military"
+     },
+     {
+      "id": "P14",
+      "title": "Rubio says further US military action is not needed against economically weakened Iran",
+      "outlet": "Associated Press",
+      "date": "2026-11-14",
+      "angle": "military"
+     },
+     {
+      "id": "P15",
+      "title": "Iran showcases missiles as military targets US army radar in Bahrain",
+      "outlet": "Africanews",
+      "date": "2026-11-13",
+      "angle": "military"
+     },
+     {
+      "id": "P16",
+      "title": "Photos of a new military training center for women in Iran",
+      "outlet": "Associated Press",
+      "date": "2026-11-10",
+      "angle": "military"
+     },
+     {
+      "id": "P17",
+      "title": "Iran’s hidden web of military agencies is slipping hardware past the US blockade",
+      "outlet": "Reuters",
+      "date": "2026-10-29",
+      "angle": "military"
+     },
+     {
+      "id": "P18",
+      "title": "Netanyahu reportedly pressured military to attack Iran in run-up to election",
+      "outlet": "The Guardian",
+      "date": "2026-10-26",
+      "angle": "military"
+     },
+     {
+      "id": "P19",
+      "title": "Iran's security crackdown on currency market Intensifies - VOA",
+      "outlet": "Voice of America",
+      "date": "2026-10-12",
+      "angle": "economy"
+     }
+    ]
+   },
+   "pooled": {
+    "p": 0.013972828425351625,
+    "weights": {
+     "model": 0.7000000000000001,
+     "market": 0.20000000000000004,
+     "analyst": 0.10000000000000002
+    },
+    "n": 3,
+    "a": 1.2
+   }
+  },
+  {
+   "slug": "ukraine",
+   "name": "Ukraine",
+   "iso": "804",
+   "rank": 79,
+   "model": {
+    "p": 0.00337,
+    "lo": 0.00337,
+    "hi": 0.0075
+   },
+   "market": {
+    "p6": 0.13498144911334792,
+    "volume": 154863.20642399997,
+    "n": 1,
+    "markets": [
+     {
+      "source": "Polymarket",
+      "question": "Ukraine coup attempt by December 31, 2026?",
+      "p": 0.036,
+      "months": 1.52,
+      "volume": 154863.20642399997,
+      "closes": "2027-01-01T04:59:00Z"
+     },
+     {
+      "source": "Polymarket",
+      "question": "Ukraine coup attempt by December 31, 2027?",
+      "p": 0.225,
+      "months": 13.51,
+      "volume": 4560.410801,
+      "closes": "2028-01-01T04:59:00Z"
+     }
+    ]
+   },
+   "analyst": {
+    "raw": 0.028234048490311036,
+    "samples": [
+     0.025,
+     0.03,
+     0.03
+    ],
+    "confidence": "low",
+    "rationale": "Ukraine sits above the 0.99% base rate because it had a failed attempt in 2022 and is an electoral autocracy. Recent headlines describe wartime strikes and power disruption, not action by officers or governing elites against the government, so they raise risk only slightly. The six-month probability is 3%.",
+    "signals": [
+     {
+      "ref": "P5",
+      "reading": "Critical power disruption adds slight stress, but is not evidence of elite or military action against the government."
+     }
+    ],
+    "calibrated": 0.016792423951231896,
+    "headlines": [
+     {
+      "id": "P1",
+      "title": "Drone attack triggers fire in Russia's Baltic port of Ust-Luga, Ukraine says it launched the attack",
+      "outlet": "Reuters",
+      "date": "2026-11-11",
+      "angle": "violence"
+     },
+     {
+      "id": "P2",
+      "title": "Drone attack leaves part of Ukraine's Kryvyi Rih without power",
+      "outlet": "Reuters",
+      "date": "2026-11-10",
+      "angle": "violence"
+     },
+     {
+      "id": "P3",
+      "title": "More than 400,000 Russians killed fighting in Ukraine war, leaked data suggests",
+      "outlet": "The Guardian",
+      "date": "2026-11-09",
+      "angle": "violence"
+     },
+     {
+      "id": "P4",
+      "title": "Ukraine: At least 9 people were killed in Russian attacks over the past 24 hours",
+      "outlet": "Africanews",
+      "date": "2026-10-22",
+      "angle": "violence"
+     },
+     {
+      "id": "P5",
+      "title": "Ukraine's power supply close to critical as Russian strikes bring darkness and cold",
+      "outlet": "BBC",
+      "date": "2026-11-12",
+      "angle": "unrest"
+     },
+     {
+      "id": "P6",
+      "title": "Russia, Ukraine exchange strikes as Baltic nations issue drone alerts",
+      "outlet": "Al Jazeera",
+      "date": "2026-11-11",
+      "angle": "unrest"
+     },
+     {
+      "id": "P7",
+      "title": "Ukraine: Police footage captures Russian strike on Komyshuvakha shelter",
+      "outlet": "Africanews",
+      "date": "2026-11-04",
+      "angle": "unrest"
+     },
+     {
+      "id": "P8",
+      "title": "Bombings in Russia kill a military officer and injure an adviser to Ukraine's former prime minister",
+      "outlet": "Associated Press",
+      "date": "2026-11-13",
+      "angle": "military"
+     },
+     {
+      "id": "P9",
+      "title": "Russian diplomats and military officials to join talks with US and Ukraine, Kremlin says",
+      "outlet": "Reuters",
+      "date": "2026-11-07",
+      "angle": "military"
+     }
+    ]
+   },
+   "pooled": {
+    "p": 0.008218404728702606,
+    "weights": {
+     "model": 0.7000000000000001,
+     "market": 0.20000000000000004,
+     "analyst": 0.10000000000000002
+    },
+    "n": 3,
+    "a": 1.2
+   }
+  },
+  {
+   "slug": "china",
+   "name": "China",
+   "iso": "156",
+   "rank": 120,
+   "model": {
+    "p": 0.00103,
+    "lo": 0.00103,
+    "hi": 0.00252
+   },
+   "market": {
+    "p6": 0.07119074297079449,
+    "volume": 169044.19764299996,
+    "n": 1,
+    "markets": [
+     {
+      "source": "Polymarket",
+      "question": "China coup attempt before 2027?",
+      "p": 0.0185,
+      "months": 1.52,
+      "volume": 169044.19764299996,
+      "closes": "2027-01-01T04:59:00Z"
+     },
+     {
+      "source": "Polymarket",
+      "question": "China coup attempt before 2028?",
+      "p": 0.105,
+      "months": 13.51,
+      "volume": 555.827226,
+      "closes": "2028-01-01T04:59:00Z"
+     }
+    ]
+   },
+   "analyst": {
+    "raw": 0.010484910490235139,
+    "samples": [
+     0.008,
+     0.012,
+     0.012
+    ],
+    "confidence": "low",
+    "rationale": "The worldwide six-month base rate is 0.99%. China’s closed autocracy and Xi’s long tenure modestly raise risk, while no coup attempt since 1980 weighs against it. The headlines concern regional diplomacy and trade, not a move by security forces or elites, so they do not change the estimate.",
+    "signals": [],
+    "calibrated": 0.010208857711725094,
+    "headlines": [
+     {
+      "id": "P1",
+      "title": "Is China expanding its military presence in Southeast Asia?",
+      "outlet": "Deutsche Welle",
+      "date": "2026-11-15",
+      "angle": "military"
+     },
+     {
+      "id": "P2",
+      "title": "ASEAN, China fail to conclude South China Sea code of conduct",
+      "outlet": "Reuters",
+      "date": "2026-11-15",
+      "angle": "region"
+     },
+     {
+      "id": "P3",
+      "title": "China and ASEAN make progress on South China Sea pact but can’t finish talks this year",
+      "outlet": "Associated Press",
+      "date": "2026-11-12",
+      "angle": "region"
+     },
+     {
+      "id": "P4",
+      "title": "China backs Cuba in opposing sanctions, blockades; pledges 'firm support', Xinhua reports",
+      "outlet": "Reuters",
+      "date": "2026-11-11",
+      "angle": "region"
+     },
+     {
+      "id": "P5",
+      "title": "Lutnick stalled Trump crackdown on diversion of Nvidia chips to China, Axios reports",
+      "outlet": "Reuters",
+      "date": "2026-11-11",
+      "angle": "unrest"
+     }
+    ]
+   },
+   "pooled": {
+    "p": 0.0024190991786146357,
+    "weights": {
+     "model": 0.7000000000000001,
+     "market": 0.20000000000000004,
+     "analyst": 0.10000000000000002
+    },
+    "n": 3,
+    "a": 1.2
+   }
+  },
+  {
+   "slug": "russia",
+   "name": "Russia",
+   "iso": "643",
+   "rank": 71,
+   "model": {
+    "p": 0.00421,
+    "lo": 0.00317,
+    "hi": 0.00614
+   },
+   "market": {
+    "p6": 0.0786535083515358,
+    "volume": 156574.72796999998,
+    "n": 1,
+    "markets": [
+     {
+      "source": "Polymarket",
+      "question": "Russia coup attempt in 2026?",
+      "p": 0.0205,
+      "months": 1.52,
+      "volume": 156574.72796999998,
+      "closes": "2027-01-01T04:59:00Z"
+     },
+     {
+      "source": "Polymarket",
+      "question": "Russia coup attempt by December 31, 2027?",
+      "p": 0.15,
+      "months": 13.51,
+      "volume": 2242.204808,
+      "closes": "2028-01-01T04:59:00Z"
+     }
+    ]
+   },
+   "analyst": {
+    "raw": 0.035,
+    "samples": [
+     0.035,
+     0.035,
+     0.035
+    ],
+    "confidence": "low",
+    "rationale": "Russia sits above the 0.99% worldwide base rate: the failed 2023 mutiny is within five years, and Putin has held power for a long time. The September reports of his party retaining control modestly reduce concern; current headlines show no Russian officer purge or plot. Estimate: 3.5% for the window.",
+    "signals": [
+     {
+      "ref": "P13",
+      "reading": "Parliamentary control appears consolidated, modestly lowering near-term coup risk."
+     },
+     {
+      "ref": "P14",
+      "reading": "The governing party retained its majority, modestly lowering near-term coup risk."
+     }
+    ],
+    "calibrated": 0.018725072281413582,
+    "headlines": [
+     {
+      "id": "P1",
+      "title": "Estonia to close all border crossings with Russia after attack on drone maker",
+      "outlet": "The Guardian",
+      "date": "2026-11-15",
+      "angle": "violence"
+     },
+     {
+      "id": "P2",
+      "title": "Four killed in Ukrainian drone strike on industrial zone in Russia's Volgograd, official says",
+      "outlet": "Reuters",
+      "date": "2026-11-13",
+      "angle": "violence"
+     },
+     {
+      "id": "P3",
+      "title": "Russia: Soldier killed in car explosion in Saint Petersburg",
+      "outlet": "Africanews",
+      "date": "2026-11-12",
+      "angle": "violence"
+     },
+     {
+      "id": "P4",
+      "title": "Drone attack triggers fire in Russia's Baltic port of Ust-Luga, Ukraine says it launched the attack",
+      "outlet": "Reuters",
+      "date": "2026-11-11",
+      "angle": "violence"
+     },
+     {
+      "id": "P5",
+      "title": "Bombings in Russia kill a military officer and injure an adviser to Ukraine's former prime minister",
+      "outlet": "Associated Press",
+      "date": "2026-11-13",
+      "angle": "military"
+     },
+     {
+      "id": "P6",
+      "title": "Russia says it launched a massive overnight strike on Ukrainian military factories",
+      "outlet": "Reuters",
+      "date": "2026-11-12",
+      "angle": "military"
+     },
+     {
+      "id": "P7",
+      "title": "US warns Madagascar over growing military ties with Russia",
+      "outlet": "BBC",
+      "date": "2026-11-11",
+      "angle": "military"
+     },
+     {
+      "id": "P8",
+      "title": "Russia says military-to-military contacts with Britain are possible if London reaches out",
+      "outlet": "Reuters",
+      "date": "2026-11-11",
+      "angle": "military"
+     },
+     {
+      "id": "P9",
+      "title": "US Army soldier suspected of spying for Russia arrested in UK",
+      "outlet": "BBC",
+      "date": "2026-11-10",
+      "angle": "military"
+     },
+     {
+      "id": "P10",
+      "title": "US Army member arrested in UK for suspected 'espionage' for Russia",
+      "outlet": "Reuters",
+      "date": "2026-11-10",
+      "angle": "military"
+     },
+     {
+      "id": "P11",
+      "title": "Niger mutiny exposes growing reliance on Russia",
+      "outlet": "Al Jazeera",
+      "date": "2026-09-14",
+      "angle": "coup"
+     },
+     {
+      "id": "P12",
+      "title": "Niger coup attempt: Is Russia proving better at protecting friends than fighting enemies in West Africa?",
+      "outlet": "BBC",
+      "date": "2026-09-05",
+      "angle": "coup"
+     },
+     {
+      "id": "P13",
+      "title": "Putin's United Russia party tightens control on parliament, early results show",
+      "outlet": "Africanews",
+      "date": "2026-09-22",
+      "angle": "politics"
+     },
+     {
+      "id": "P14",
+      "title": "Russia: Putin party retains majority in parliamentary vote",
+      "outlet": "Deutsche Welle",
+      "date": "2026-09-21",
+      "angle": "politics"
+     },
+     {
+      "id": "P15",
+      "title": "Putin consolidates grip on Russia as 49 Ukraine war veterans elected to parliament",
+      "outlet": "The Guardian",
+      "date": "2026-09-21",
+      "angle": "politics"
+     },
+     {
+      "id": "P16",
+      "title": "Russia: Voting into final day in parliamentary elections",
+      "outlet": "Deutsche Welle",
+      "date": "2026-09-18",
+      "angle": "politics"
+     },
+     {
+      "id": "P17",
+      "title": "A war-fatigued and anxious Russia picks a new parliament",
+      "outlet": "Deutsche Welle",
+      "date": "2026-09-17",
+      "angle": "politics"
+     }
+    ]
+   },
+   "pooled": {
+    "p": 0.008689356189776117,
+    "weights": {
+     "model": 0.7000000000000001,
+     "market": 0.20000000000000004,
+     "analyst": 0.10000000000000002
+    },
+    "n": 3,
+    "a": 1.2
+   }
+  },
+  {
+   "slug": "guinea-bissau",
+   "name": "Guinea-Bissau",
+   "iso": "624",
+   "rank": 1,
+   "model": {
+    "p": 0.06523,
+    "lo": 0.03849,
+    "hi": 0.08994
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.24663604635862243,
+    "samples": [
+     0.24,
+     0.25,
+     0.25
+    ],
+    "confidence": "low",
+    "rationale": "The worldwide six-month base rate is 0.99%, but Guinea-Bissau is far above it: it has a recent coup, a military government, and a long record of attempts. The junta blocking the former president’s return and dismissing an officer close to him suggest ongoing factional tension, raising my estimate to 25%.",
+    "signals": [
+     {
+      "ref": "P1",
+      "reading": "The junta’s continued exclusion of the ousted president indicates an unresolved power struggle."
+     },
+     {
+      "ref": "P3",
+      "reading": "Dismissing an officer close to the ousted president is a sign of possible internal factional tension."
+     }
+    ],
+    "calibrated": 0.054222232196966466,
+    "headlines": [
+     {
+      "id": "P1",
+      "title": "Guinea-Bissau military leaders bar ousted president's return",
+      "outlet": "Reuters",
+      "date": "2026-10-02",
+      "angle": "military"
+     },
+     {
+      "id": "P2",
+      "title": "Guinea-Bissau military government blocks former President Embaló’s return",
+      "outlet": "Associated Press",
+      "date": "2026-10-02",
+      "angle": "military"
+     },
+     {
+      "id": "P3",
+      "title": "Guinea-Bissau junta sacks senior officer close to ousted president Embaló",
+      "outlet": "Africanews",
+      "date": "2026-10-15",
+      "angle": "transition"
+     },
+     {
+      "id": "P4",
+      "title": "Guinea-Bissau junta blocks Embaló’s planned return, citing security concerns",
+      "outlet": "Africanews",
+      "date": "2026-10-02",
+      "angle": "transition"
+     },
+     {
+      "id": "P5",
+      "title": "Guinea-Bissau referendum approves new constitution that expands president's powers",
+      "outlet": "BBC",
+      "date": "2026-09-02",
+      "angle": "transition"
+     },
+     {
+      "id": "P6",
+      "title": "Guinea-Bissau referendum tests democratic future",
+      "outlet": "Deutsche Welle",
+      "date": "2026-09-02",
+      "angle": "transition"
+     },
+     {
+      "id": "P7",
+      "title": "Guinea-Bissau votes 'yes' in referendum for new constitution",
+      "outlet": "Africanews",
+      "date": "2026-09-02",
+      "angle": "transition"
+     },
+     {
+      "id": "P8",
+      "title": "Guinea-Bissau to investigate killing of rapper who criticised coup leaders",
+      "outlet": "Reuters",
+      "date": "2026-11-10",
+      "angle": "coup"
+     }
+    ]
+   },
+   "pooled": {
+    "p": 0.0761726367887288,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "madagascar",
+   "name": "Madagascar",
+   "iso": "450",
+   "rank": 2,
+   "model": {
+    "p": 0.05611,
+    "lo": 0.04204,
+    "hi": 0.0666
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.12236036721143193,
+    "samples": [
+     0.1,
+     0.1,
+     0.18
+    ],
+    "confidence": "low",
+    "rationale": "Madagascar’s successful coup in October 2025 and current military-led government place it well above the 0.99% base rate. P1 and P2 describe public disillusionment and authoritarianism, but report no officer split, plot, or move against the leadership; they raise the estimate only modestly. The six-month risk remains uncertain.",
+    "signals": [
+     {
+      "ref": "P1",
+      "reading": "Reports Gen Z disillusionment with the military government; no direct sign of an elite move."
+     },
+     {
+      "ref": "P2",
+      "reading": "Describes authoritarian drift a year after the coup, but not a new coup plot or military split."
+     }
+    ],
+    "calibrated": 0.036063920988425556,
+    "headlines": [
+     {
+      "id": "P1",
+      "title": "Madagascar's Gen Z 'betrayed' after ushering in military govt",
+      "outlet": "Africanews",
+      "date": "2026-09-26",
+      "angle": "military"
+     },
+     {
+      "id": "P2",
+      "title": "A year after the military coup: Authoritarianism dashes Gen Z aspirations for a new Madagascar",
+      "outlet": "The Africa Report",
+      "date": "2026-10-30",
+      "angle": "coup"
+     }
+    ]
+   },
+   "pooled": {
+    "p": 0.062472899950378094,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "central-african-republic",
+   "name": "Central African Republic",
+   "iso": "140",
+   "rank": 3,
+   "model": {
+    "p": 0.0446,
+    "lo": 0.03471,
+    "hi": 0.05953
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.03422780133172083,
+    "samples": [
+     0.04,
+     0.025,
+     0.04
+    ],
+    "confidence": "low",
+    "rationale": "The 0.99% worldwide base rate understates risk for an electoral autocracy with eight attempts since 2000 and a leader in power for nearly 10 years. The last attempt was in 2021, but the headline about an ICC conviction does not indicate movement against the government. Estimated risk: 4%.",
+    "signals": [],
+    "calibrated": 0.018513934570502735,
+    "headlines": [
+     {
+      "id": "P1",
+      "title": "ICC convicts former Central African Republic militia commander of torture",
+      "outlet": "Associated Press",
+      "date": "2026-09-23",
+      "angle": "violence"
+     }
+    ]
+   },
+   "pooled": {
+    "p": 0.04585587754776227,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "niger",
+   "name": "Niger",
+   "iso": "562",
+   "rank": 4,
+   "model": {
+    "p": 0.04336,
+    "lo": 0.02685,
+    "hi": 0.05691
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.24486117257290954,
+    "samples": [
+     0.22,
+     0.22,
+     0.3
+    ],
+    "confidence": "medium",
+    "rationale": "Niger is far above the 0.99% six-month global base rate: it is a junta-led state with five attempts since 2000 and a failed attempt in August. Reports of a mutiny, a military chief replacement and an alleged October coup attempt materially raise the risk of recurrence, though they may describe the same episode. Estimate: 22%.",
+    "signals": [
+     {
+      "ref": "P7",
+      "reading": "Reports an alleged October coup attempt, suggesting immediate threat remains."
+     },
+     {
+      "ref": "P3",
+      "reading": "A new military chief was appointed following a mutiny, evidence of security-force instability."
+     },
+     {
+      "ref": "P8",
+      "reading": "Describes fallout from the recent attempt and declining trust within the junta."
+     },
+     {
+      "ref": "P10",
+      "reading": "Reports fractures in the army linked to a coup plot."
+     }
+    ],
+    "calibrated": 0.05397722913402756,
+    "headlines": [
+     {
+      "id": "P1",
+      "title": "Niger signs cooperation deal with military leader in eastern Libya",
+      "outlet": "Africanews",
+      "date": "2026-11-04",
+      "angle": "military"
+     },
+     {
+      "id": "P2",
+      "title": "More than 50 members of Niger's security forces killed in attacks, sources say",
+      "outlet": "Reuters",
+      "date": "2026-09-28",
+      "angle": "military"
+     },
+     {
+      "id": "P3",
+      "title": "Niger’s junta leader appoints new head of military following mutiny",
+      "outlet": "Associated Press",
+      "date": "2026-09-12",
+      "angle": "military"
+     },
+     {
+      "id": "P4",
+      "title": "Niger appoints new Chief of Staff of Armed Forces after foiled mutiny",
+      "outlet": "Africanews",
+      "date": "2026-09-12",
+      "angle": "military"
+     },
+     {
+      "id": "P5",
+      "title": "Niger blames France for inciting soldiers' mutiny",
+      "outlet": "Reuters",
+      "date": "2026-09-04",
+      "angle": "military"
+     },
+     {
+      "id": "P6",
+      "title": "Niger and Chad’s drone-strike row exposes deep rifts in the Sahel",
+      "outlet": "The Africa Report",
+      "date": "2026-11-09",
+      "angle": "unrest"
+     },
+     {
+      "id": "P7",
+      "title": "Algeria sent fighter jets to Niger to thwart ‘coup attempt’, president says",
+      "outlet": "Al Jazeera",
+      "date": "2026-10-03",
+      "angle": "coup"
+     },
+     {
+      "id": "P8",
+      "title": "After Niger’s coup attempt, Tiani is running out of people to trust",
+      "outlet": "The Africa Report",
+      "date": "2026-09-18",
+      "angle": "coup"
+     },
+     {
+      "id": "P9",
+      "title": "Niger mutiny exposes growing reliance on Russia",
+      "outlet": "Al Jazeera",
+      "date": "2026-09-14",
+      "angle": "coup"
+     },
+     {
+      "id": "P10",
+      "title": "Niger coup plot exposes deepening fractures in Tiani’s army",
+      "outlet": "The Africa Report",
+      "date": "2026-09-07",
+      "angle": "coup"
+     },
+     {
+      "id": "P11",
+      "title": "Niger military accuses France of orchestrating failed mutiny: What to know",
+      "outlet": "Al Jazeera",
+      "date": "2026-09-06",
+      "angle": "coup"
+     },
+     {
+      "id": "P12",
+      "title": "France denies inciting failed Niger mutiny, calls accusation ‘pure fantasy’",
+      "outlet": "Al Jazeera",
+      "date": "2026-09-05",
+      "angle": "coup"
+     }
+    ]
+   },
+   "pooled": {
+    "p": 0.051587584188145436,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "sudan",
+   "name": "Sudan",
+   "iso": "729",
+   "rank": 5,
+   "model": {
+    "p": 0.04173,
+    "lo": 0.03046,
+    "hi": 0.06057
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.14558850075804947,
+    "samples": [
+     0.16,
+     0.12,
+     0.16
+    ],
+    "confidence": "low",
+    "rationale": "Sudan sits well above the 0.99% worldwide base rate: it is a closed autocracy with a failed attempt in 2023 and many attempts since 2000. P1 and P8 describe ongoing wartime violence, while P2 reports economic stress; these raise risk only slightly because none indicates officers moving against the government.",
+    "signals": [
+     {
+      "ref": "P1",
+      "reading": "Army strike amid the war; not evidence of an internal move against the government."
+     },
+     {
+      "ref": "P8",
+      "reading": "Paramilitary violence reflects the conflict, not a reported coup plot."
+     },
+     {
+      "ref": "P2",
+      "reading": "Economic deterioration adds only a small risk signal."
+     }
+    ],
+    "calibrated": 0.03971833778207158,
+    "headlines": [
+     {
+      "id": "P1",
+      "title": "Sudan army drones hit mourners and fuel market killing more than 300 people, sources say",
+      "outlet": "BBC",
+      "date": "2026-10-20",
+      "angle": "military"
+     },
+     {
+      "id": "P2",
+      "title": "Sudan's currency tumbles to new low as war hammers economy",
+      "outlet": "Reuters",
+      "date": "2026-10-21",
+      "angle": "economy"
+     },
+     {
+      "id": "P3",
+      "title": "South Sudan vote: UN warns political transition must hold beyond polling day",
+      "outlet": "Africanews",
+      "date": "2026-11-11",
+      "angle": "transition"
+     },
+     {
+      "id": "P4",
+      "title": "South Sudan president dissolves transitional government ahead of long-delayed elections",
+      "outlet": "Associated Press",
+      "date": "2026-09-23",
+      "angle": "transition"
+     },
+     {
+      "id": "P5",
+      "title": "UN peacekeepers failed to protect civilians before South Sudan massacre, Amnesty says",
+      "outlet": "Associated Press",
+      "date": "2026-11-12",
+      "angle": "violence"
+     },
+     {
+      "id": "P6",
+      "title": "South Sudan and UN failed to heed massacre warnings-Amnesty International",
+      "outlet": "Africanews",
+      "date": "2026-11-12",
+      "angle": "violence"
+     },
+     {
+      "id": "P7",
+      "title": "South Sudan cattle raids: Co-oridanted attacks kill at least 72 people in Warrup state",
+      "outlet": "BBC",
+      "date": "2026-10-27",
+      "angle": "violence"
+     },
+     {
+      "id": "P8",
+      "title": "Rights group says paramilitary drone strike in Sudan killed 41 near Ethiopian border",
+      "outlet": "Associated Press",
+      "date": "2026-10-19",
+      "angle": "violence"
+     },
+     {
+      "id": "P9",
+      "title": "Drone attack near market kills 80 in Sudan",
+      "outlet": "The Guardian",
+      "date": "2026-10-19",
+      "angle": "violence"
+     },
+     {
+      "id": "P10",
+      "title": "Sudan army chief al-Burhan orders probe into airstrike that killed 72",
+      "outlet": "Africanews",
+      "date": "2026-10-13",
+      "angle": "violence"
+     }
+    ]
+   },
+   "pooled": {
+    "p": 0.04768576166121041,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "bolivia",
+   "name": "Bolivia",
+   "iso": "068",
+   "rank": 6,
+   "model": {
+    "p": 0.03542,
+    "lo": 0.0215,
+    "hi": 0.04301
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.04876620296059573,
+    "samples": [
+     0.06,
+     0.035,
+     0.055
+    ],
+    "confidence": "low",
+    "rationale": "Bolivia’s failed coup attempt in 2024 places it above the 0.99% global six-month base rate, though the electoral-democracy setting and time since that attempt temper the risk. Fuel-crisis resistance and IMF negotiations suggest pressure but not military moves; the base explosion reports no coup-related activity. Estimate: 5.5%.",
+    "signals": [
+     {
+      "ref": "P2",
+      "reading": "Fuel-crisis resistance adds modest instability, but is not evidence of military action against the government."
+     }
+    ],
+    "calibrated": 0.02218377785668509,
+    "headlines": [
+     {
+      "id": "P1",
+      "title": "Bolivia approves $1.9 billion IMF deal in hopes of accessing external financing",
+      "outlet": "Reuters",
+      "date": "2026-09-18",
+      "angle": "economy"
+     },
+     {
+      "id": "P2",
+      "title": "Resistance to Bolivia IMF deal grows as groups meet over fuel crisis",
+      "outlet": "Reuters",
+      "date": "2026-09-03",
+      "angle": "economy"
+     },
+     {
+      "id": "P3",
+      "title": "Bolivia confirms 9 deaths after military base explosion",
+      "outlet": "Reuters",
+      "date": "2026-09-07",
+      "angle": "military"
+     },
+     {
+      "id": "P4",
+      "title": "Explosion at Bolivia military base kills at least 2, 14 missing, ministry says",
+      "outlet": "Reuters",
+      "date": "2026-09-05",
+      "angle": "military"
+     },
+     {
+      "id": "P5",
+      "title": "Deadly explosion reported at Bolivia military base",
+      "outlet": "Reuters",
+      "date": "2026-09-05",
+      "angle": "military"
+     },
+     {
+      "id": "P6",
+      "title": "At least two dead in blast at Bolivia military barracks",
+      "outlet": "BBC",
+      "date": "2026-09-05",
+      "angle": "military"
+     }
+    ]
+   },
+   "pooled": {
+    "p": 0.03765344264185771,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "benin",
+   "name": "Benin",
+   "iso": "204",
+   "rank": 7,
+   "model": {
+    "p": 0.03155,
+    "lo": 0.01949,
+    "hi": 0.06234
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.07157116351871948,
+    "samples": [
+     0.12,
+     0.06,
+     0.05
+    ],
+    "confidence": "low",
+    "rationale": "The 0.99% worldwide six-month base rate understates Benin’s risk: it had a failed coup attempt in December 2025, less than a year before this window. That recent history raises the estimate, but with no new headlines the outlook remains uncertain and far from likely.",
+    "signals": [],
+    "calibrated": 0.02706699844004485,
+    "headlines": []
+   },
+   "pooled": {
+    "p": 0.03461887921124151,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "burkina-faso",
+   "name": "Burkina Faso",
+   "iso": "854",
+   "rank": 8,
+   "model": {
+    "p": 0.03081,
+    "lo": 0.02011,
+    "hi": 0.04284
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.14832579374580726,
+    "samples": [
+     0.18,
+     0.12,
+     0.15
+    ],
+    "confidence": "low",
+    "rationale": "Burkina Faso sits well above the 0.99% worldwide base rate: it is a closed, military-led autocracy with a failed coup attempt in January 2026 and a record of repeated attempts. The headlines offer no fresh, specific sign of plotting, mutiny or a purge, so I make no further adjustment.",
+    "signals": [],
+    "calibrated": 0.04013685548408173,
+    "headlines": [
+     {
+      "id": "P1",
+      "title": "Burkina Faso's military leaders mark four years in power",
+      "outlet": "Africanews",
+      "date": "2026-10-01",
+      "angle": "military"
+     },
+     {
+      "id": "P2",
+      "title": "Burkina Faso death penalty: Ibrahim Traore junta govment restore death penalty for terrorism, treason oda high crimes",
+      "outlet": "BBC",
+      "date": "2026-10-22",
+      "angle": "transition"
+     },
+     {
+      "id": "P3",
+      "title": "Burkina Faso’s junta lays claim to Thomas Sankara’s legacy",
+      "outlet": "The Africa Report",
+      "date": "2026-10-15",
+      "angle": "coup"
+     },
+     {
+      "id": "P4",
+      "title": "Ecowas, Burkina Faso, Mali, Niger meeting: Wetin Alliance of Sahel States proposed cooperation wit Ecowas mean for West Africa",
+      "outlet": "BBC",
+      "date": "2026-10-18",
+      "angle": "region"
+     },
+     {
+      "id": "P5",
+      "title": "Kungiyar AES ta Nijar Mali da Burkina Faso na tattaunawa da ECOWAS",
+      "outlet": "Deutsche Welle",
+      "date": "2026-10-18",
+      "angle": "region"
+     }
+    ]
+   },
+   "pooled": {
+    "p": 0.0357199857807164,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "chad",
+   "name": "Chad",
+   "iso": "148",
+   "rank": 9,
+   "model": {
+    "p": 0.02859,
+    "lo": 0.02054,
+    "hi": 0.04656
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.09879664727450445,
+    "samples": [
+     0.1,
+     0.08,
+     0.12
+    ],
+    "confidence": "low",
+    "rationale": "Chad sits well above the 0.99% worldwide base rate: it has a failed attempt in January 2025 and nine attempts since 2000. The Niger dispute is external, and resumed French cooperation is not evidence of officers moving against the government, so the headlines do not materially change the country-card estimate.",
+    "signals": [],
+    "calibrated": 0.032110560776062884,
+    "headlines": [
+     {
+      "id": "P1",
+      "title": "Niger and Chad’s drone-strike row exposes deep rifts in the Sahel",
+      "outlet": "The Africa Report",
+      "date": "2026-11-09",
+      "angle": "unrest"
+     },
+     {
+      "id": "P2",
+      "title": "Niger accuses Chad of drone attack that killed two civilians",
+      "outlet": "Africanews",
+      "date": "2026-10-28",
+      "angle": "violence"
+     },
+     {
+      "id": "P3",
+      "title": "Why Niger-Chad tensions are growing over armed groups and shifting alliances",
+      "outlet": "The Africa Report",
+      "date": "2026-09-08",
+      "angle": "violence"
+     },
+     {
+      "id": "P4",
+      "title": "France and Chad resume military cooperation as they mend ties",
+      "outlet": "Africanews",
+      "date": "2026-10-30",
+      "angle": "military"
+     }
+    ]
+   },
+   "pooled": {
+    "p": 0.03224318581382064,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "myanmar",
+   "name": "Myanmar",
+   "iso": "104",
+   "rank": 10,
+   "model": {
+    "p": 0.02521,
+    "lo": 0.02034,
+    "hi": 0.03483
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.052002468099173395,
+    "samples": [
+     0.05,
+     0.07,
+     0.04
+    ],
+    "confidence": "low",
+    "rationale": "Myanmar’s closed autocracy and history of a successful 2021 coup put it above the 0.99% worldwide baseline, though that coup was nearly six years ago. The headlines describe military violence and diplomacy, not elite moves against the rulers, so they do not materially change the estimate.",
+    "signals": [],
+    "calibrated": 0.022929609682174827,
+    "headlines": [
+     {
+      "id": "P1",
+      "title": "Newborn among 15 killed as Myanmar military strikes maternity clinic and school, sources say",
+      "outlet": "Reuters",
+      "date": "2026-11-02",
+      "angle": "military"
+     },
+     {
+      "id": "P2",
+      "title": "EXCLUSIVE: US holds more secret talks with Myanmar's military-backed rulers in Tokyo, sources say",
+      "outlet": "Reuters",
+      "date": "2026-10-18",
+      "angle": "military"
+     },
+     {
+      "id": "P3",
+      "title": "Once shunned, Myanmar's military-backed leader gets red carpet welcome in Malaysia",
+      "outlet": "Reuters",
+      "date": "2026-10-07",
+      "angle": "military"
+     },
+     {
+      "id": "P4",
+      "title": "Myanmar military airstrikes on Rakhine displacement camps kill eight, rebel group says",
+      "outlet": "Reuters",
+      "date": "2026-10-05",
+      "angle": "military"
+     },
+     {
+      "id": "P5",
+      "title": "UN investigator: Myanmar junta attacks civilians to terrorize them as arms buys fuel war",
+      "outlet": "Associated Press",
+      "date": "2026-10-31",
+      "angle": "transition"
+     },
+     {
+      "id": "P6",
+      "title": "UN alarmed by reports that Myanmar air strike killed 50",
+      "outlet": "Reuters",
+      "date": "2026-09-29",
+      "angle": "violence"
+     },
+     {
+      "id": "P7",
+      "title": "Video: Dozens Killed in Myanmar Military Airstrike",
+      "outlet": "The New York Times",
+      "date": "2026-09-29",
+      "angle": "violence"
+     },
+     {
+      "id": "P8",
+      "title": "At least 33 people killed in western Myanmar airstrike, rebel group and aid worker say",
+      "outlet": "Reuters",
+      "date": "2026-09-28",
+      "angle": "violence"
+     }
+    ]
+   },
+   "pooled": {
+    "p": 0.027285969736197818,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "democratic-republic-of-congo",
+   "name": "Democratic Republic of Congo",
+   "iso": "180",
+   "rank": 11,
+   "model": {
+    "p": 0.02502,
+    "lo": 0.02237,
+    "hi": 0.03652
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.04935932844325229,
+    "samples": [
+     0.06,
+     0.04,
+     0.05
+    ],
+    "confidence": "low",
+    "rationale": "The 2024 failed coup and six attempts since 2000 put the DRC well above the 0.99% six-month base rate. The sentencing of 66 soldiers for fleeing combat may deepen military grievances, but it is not evidence of a coup plot, so the upward adjustment is modest. Overall probability: 5%.",
+    "signals": [
+     {
+      "ref": "P1",
+      "reading": "Mass death sentences for soldiers could fuel military discontent, but no coup action is reported."
+     }
+    ],
+    "calibrated": 0.02232208037257138,
+    "headlines": [
+     {
+      "id": "P1",
+      "title": "DR Congo conflict: At least 66 Congolese soldiers sentenced to death for cowardice",
+      "outlet": "BBC",
+      "date": "2026-11-10",
+      "angle": "military"
+     },
+     {
+      "id": "P2",
+      "title": "DR Congo sentences 66 soldiers to death for fleeing rebel fighting",
+      "outlet": "Africanews",
+      "date": "2026-11-10",
+      "angle": "military"
+     },
+     {
+      "id": "P3",
+      "title": "DR Congo: At least 44 dead in attack by Islamic State-linked gunmen",
+      "outlet": "Africanews",
+      "date": "2026-11-14",
+      "angle": "violence"
+     },
+     {
+      "id": "P4",
+      "title": "DR Congo Ebola outbreak: Unrest fuelled by armed groups holds back response",
+      "outlet": "UN News",
+      "date": "2026-11-13",
+      "angle": "violence"
+     },
+     {
+      "id": "P5",
+      "title": "World News in Brief: Civilians killed in DR Congo, Ukrainians wrestle with return, Guterres calls out ‘normalisation’ of force",
+      "outlet": "UN News",
+      "date": "2026-11-06",
+      "angle": "violence"
+     }
+    ]
+   },
+   "pooled": {
+    "p": 0.026989043929279026,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "ivory-coast",
+   "name": "Ivory Coast",
+   "iso": "384",
+   "rank": 12,
+   "model": {
+    "p": 0.02258,
+    "lo": 0.01485,
+    "hi": 0.03364
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.028879339744071177,
+    "samples": [
+     0.02,
+     0.04,
+     0.03
+    ],
+    "confidence": "low",
+    "rationale": "The worldwide six-month base rate is 0.99%. Côte d’Ivoire sits above that baseline given its electoral-autocracy profile, long-serving 84-year-old president and history of coup attempts. But its last attempt was in 2012, and there are no current headlines pointing to a specific trigger. Estimate: 3%.",
+    "signals": [],
+    "calibrated": 0.016985540609779772,
+    "headlines": []
+   },
+   "pooled": {
+    "p": 0.023558031166304668,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "mali",
+   "name": "Mali",
+   "iso": "466",
+   "rank": 13,
+   "model": {
+    "p": 0.02257,
+    "lo": 0.01668,
+    "hi": 0.04093
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.12,
+    "samples": [
+     0.12,
+     0.12,
+     0.12
+    ],
+    "confidence": "low",
+    "rationale": "Mali sits well above the 0.99% worldwide base rate: it is a closed autocracy with a failed coup attempt in 2025 and repeated attempts since 2000. Reports of civilian deaths and the junta’s retaking of Kidal indicate pressure, but no headline reports officers moving against the government, so they raise the estimate only modestly.",
+    "signals": [
+     {
+      "ref": "P1",
+      "reading": "Reported abuses add some pressure but give no sign of a coup move."
+     },
+     {
+      "ref": "P2",
+      "reading": "Reported civilian deaths are a weak risk signal, not evidence of officers plotting."
+     },
+     {
+      "ref": "P6",
+      "reading": "The junta’s retaking of Kidal suggests active conflict, but not a coup attempt."
+     }
+    ],
+    "calibrated": 0.03568063778403431,
+    "headlines": [
+     {
+      "id": "P1",
+      "title": "Mali's army and rebel opponents guilty of human rights violations, new report finds",
+      "outlet": "Africanews",
+      "date": "2026-10-19",
+      "angle": "military"
+     },
+     {
+      "id": "P2",
+      "title": "Soldiers and mercenaries killed at least 34 civilians in Mali, Amnesty report says",
+      "outlet": "Reuters",
+      "date": "2026-09-29",
+      "angle": "military"
+     },
+     {
+      "id": "P3",
+      "title": "Ukraine's alleged support for Mali rebels: A risky strategy to weaken Russia in Africa?",
+      "outlet": "Deutsche Welle",
+      "date": "2026-10-26",
+      "angle": "violence"
+     },
+     {
+      "id": "P4",
+      "title": "Massacre in Mali: Islamic State militants kill at least 48 civilians in Ménaka",
+      "outlet": "The Africa Report",
+      "date": "2026-10-21",
+      "angle": "violence"
+     },
+     {
+      "id": "P5",
+      "title": "Attack by Islamic State-affiliated group in Mali kills 48 people, official says",
+      "outlet": "Associated Press",
+      "date": "2026-10-20",
+      "angle": "violence"
+     },
+     {
+      "id": "P6",
+      "title": "Mali: Junta forces retake strategic town of Kidal from separatists",
+      "outlet": "Deutsche Welle",
+      "date": "2026-10-07",
+      "angle": "transition"
+     },
+     {
+      "id": "P7",
+      "title": "Ecowas, Burkina Faso, Mali, Niger meeting: Wetin Alliance of Sahel States proposed cooperation wit Ecowas mean for West Africa",
+      "outlet": "BBC",
+      "date": "2026-10-18",
+      "angle": "region"
+     },
+     {
+      "id": "P8",
+      "title": "Kungiyar AES ta Nijar Mali da Burkina Faso na tattaunawa da ECOWAS",
+      "outlet": "Deutsche Welle",
+      "date": "2026-10-18",
+      "angle": "region"
+     }
+    ]
+   },
+   "pooled": {
+    "p": 0.026079356411032418,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "nigeria",
+   "name": "Nigeria",
+   "iso": "566",
+   "rank": 14,
+   "model": {
+    "p": 0.0225,
+    "lo": 0.0155,
+    "hi": 0.03709
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.028234048490311036,
+    "samples": [
+     0.03,
+     0.03,
+     0.025
+    ],
+    "confidence": "low",
+    "rationale": "The 0.99% six-month worldwide base rate is a starting point; Nigeria’s failed coup attempt in October 2025 raises its risk above that level. The headlines describe violence and insurgent attacks, not moves by Nigerian security forces or elites against the government. The Niger coup report does not provide specific evidence of such a move in Nigeria.",
+    "signals": [],
+    "calibrated": 0.016792423951231896,
+    "headlines": [
+     {
+      "id": "P1",
+      "title": "Nigeria: Axe-wielding men attack opposition candidate Peter Obi presidential campaign in Lagos",
+      "outlet": "Deutsche Welle",
+      "date": "2026-11-12",
+      "angle": "violence"
+     },
+     {
+      "id": "P2",
+      "title": "At least 62 people killed in attack on a community in northeastern Nigeria",
+      "outlet": "Associated Press",
+      "date": "2026-10-27",
+      "angle": "violence"
+     },
+     {
+      "id": "P3",
+      "title": "Dozens of soldiers, militants and miners killed in Nigeria attacks",
+      "outlet": "Reuters",
+      "date": "2026-10-07",
+      "angle": "violence"
+     },
+     {
+      "id": "P4",
+      "title": "South Africa anti-migrants protests: Nigeria say three citizens killed in SA as September 30 deadline for foreign nationals draw close",
+      "outlet": "BBC",
+      "date": "2026-09-29",
+      "angle": "violence"
+     },
+     {
+      "id": "P5",
+      "title": "Islamist fighters kill 10 soldiers in attack on northeast Nigeria army base",
+      "outlet": "Reuters",
+      "date": "2026-10-15",
+      "angle": "military"
+     },
+     {
+      "id": "P6",
+      "title": "Niger coup update: Wetin be Nigeria relationship wit Niger as Tinubu govment deny say dem back failed coup",
+      "outlet": "BBC",
+      "date": "2026-09-04",
+      "angle": "coup"
+     }
+    ]
+   },
+   "pooled": {
+    "p": 0.023441133105277068,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "guinea",
+   "name": "Guinea",
+   "iso": "324",
+   "rank": 15,
+   "model": {
+    "p": 0.02156,
+    "lo": 0.01973,
+    "hi": 0.03476
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.08250761770913263,
+    "samples": [
+     0.1,
+     0.07,
+     0.08
+    ],
+    "confidence": "low",
+    "rationale": "Guinea sits well above the 0.99% worldwide base rate: it is a closed autocracy with a successful coup in 2021 and a military-led government. Those factors raise the risk, but the headlines provide no new developments; the six-month probability remains uncertain.",
+    "signals": [],
+    "calibrated": 0.029170977092262004,
+    "headlines": []
+   },
+   "pooled": {
+    "p": 0.024271842408937764,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "ethiopia",
+   "name": "Ethiopia",
+   "iso": "231",
+   "rank": 16,
+   "model": {
+    "p": 0.01951,
+    "lo": 0.01283,
+    "hi": 0.0345
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.09879664727450445,
+    "samples": [
+     0.12,
+     0.08,
+     0.1
+    ],
+    "confidence": "low",
+    "rationale": "The global six-month base rate is 0.99%, but Ethiopia’s successful attempt in October 2024 places it well above that baseline. The headlines describe renewed fighting and regional tensions, not officers or ruling elites moving against the government, so they add little direct coup evidence.",
+    "signals": [],
+    "calibrated": 0.032110560776062884,
+    "headlines": [
+     {
+      "id": "P1",
+      "title": "Ethiopia's Tigray rebels claim to have inflicted heavy losses on army",
+      "outlet": "Africanews",
+      "date": "2026-11-03",
+      "angle": "military"
+     },
+     {
+      "id": "P2",
+      "title": "Ethiopia’s army chief accuses Eritrea, Sudan and Egypt of supporting Tigray rebels",
+      "outlet": "Associated Press",
+      "date": "2026-09-28",
+      "angle": "military"
+     },
+     {
+      "id": "P3",
+      "title": "Ethiopia's military says it killed hundreds of TPLF rebels",
+      "outlet": "Deutsche Welle",
+      "date": "2026-09-24",
+      "angle": "military"
+     },
+     {
+      "id": "P4",
+      "title": "African Union urges Ethiopia, Eritrea and Egypt to refrain from actions that could undermine stability",
+      "outlet": "Reuters",
+      "date": "2026-10-01",
+      "angle": "region"
+     }
+    ]
+   },
+   "pooled": {
+    "p": 0.02234773635858066,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "syria",
+   "name": "Syria",
+   "iso": "760",
+   "rank": 17,
+   "model": {
+    "p": 0.01818,
+    "lo": 0.0064,
+    "hi": 0.02577
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.020855145202195932,
+    "samples": [
+     0.04,
+     0.015,
+     0.015
+    ],
+    "confidence": "low",
+    "rationale": "The worldwide six-month base rate is 0.99%. Syria’s closed autocracy and fragile setting put it somewhat above that baseline, but the card reports no attempt since 2013 and the leader is not long-tenured. Fuel protests and the detention of an Assad-era general add only a small concern; neither headline describes security forces moving against the government. Estimate: 1.5%.",
+    "signals": [
+     {
+      "ref": "P8",
+      "reading": "Fuel-related protests suggest pressure, but protests alone are weak coup evidence."
+     },
+     {
+      "ref": "P9",
+      "reading": "Reports of protests over fuel prices add slight instability concern."
+     },
+     {
+      "ref": "P10",
+      "reading": "The detention of a former-regime general is notable, but no coup plot or military move is reported."
+     }
+    ],
+    "calibrated": 0.014412547009142268,
+    "headlines": [
+     {
+      "id": "P1",
+      "title": "Syria aids Saudi Arabia with military advice and training amid Houthi attacks, sources say",
+      "outlet": "Reuters",
+      "date": "2026-11-06",
+      "angle": "military"
+     },
+     {
+      "id": "P2",
+      "title": "Jordan says its military struck 'militant hideouts' in Syria after deadly church attack",
+      "outlet": "Deutsche Welle",
+      "date": "2026-10-26",
+      "angle": "military"
+     },
+     {
+      "id": "P3",
+      "title": "Jordan says 'terrorists' killed in Syria in retaliatory strike over church attack",
+      "outlet": "BBC",
+      "date": "2026-10-27",
+      "angle": "violence"
+     },
+     {
+      "id": "P4",
+      "title": "Jordan says it attacked militants in Syria tied to church assault. Syria says civilians killed",
+      "outlet": "Associated Press",
+      "date": "2026-10-27",
+      "angle": "violence"
+     },
+     {
+      "id": "P5",
+      "title": "Jordan attacks militants in Syria in retaliation for church attack",
+      "outlet": "The Guardian",
+      "date": "2026-10-26",
+      "angle": "violence"
+     },
+     {
+      "id": "P6",
+      "title": "At least 14 killed in explosion at weapons depot in Syria's Idlib, state TV says",
+      "outlet": "Reuters",
+      "date": "2026-09-09",
+      "angle": "violence"
+     },
+     {
+      "id": "P7",
+      "title": "14 Killed in Weapons Depot Blast in Northwest Syria",
+      "outlet": "The New York Times",
+      "date": "2026-09-09",
+      "angle": "violence"
+     },
+     {
+      "id": "P8",
+      "title": "Fuel costs, and protests, add to challenge as Syria rebuilds",
+      "outlet": "Christian Science Monitor",
+      "date": "2026-09-28",
+      "angle": "unrest"
+     },
+     {
+      "id": "P9",
+      "title": "Protests erupt across Syria over sharp fuel price hikes",
+      "outlet": "Al Jazeera",
+      "date": "2026-09-14",
+      "angle": "unrest"
+     },
+     {
+      "id": "P10",
+      "title": "Syria detains Assad-era general accused of bloody crackdown on protests",
+      "outlet": "Al Jazeera",
+      "date": "2026-09-07",
+      "angle": "unrest"
+     },
+     {
+      "id": "P11",
+      "title": "Behind Israeli strike in Syria: A growing rivalry with Turkey",
+      "outlet": "Christian Science Monitor",
+      "date": "2026-09-03",
+      "angle": "unrest"
+     }
+    ]
+   },
+   "pooled": {
+    "p": 0.018700418330345046,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "comoros",
+   "name": "Comoros",
+   "iso": "174",
+   "rank": 18,
+   "model": {
+    "p": 0.01729,
+    "lo": 0.01317,
+    "hi": 0.04889
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.021098310662889593,
+    "samples": [
+     0.025,
+     0.015,
+     0.025
+    ],
+    "confidence": "low",
+    "rationale": "Comoros sits somewhat above the 0.99% worldwide base rate: it is an electoral autocracy and its leader has been in power nearly 10 years. But its last recorded attempt was in 2013, and there are no current headlines indicating coup-related activity. The six-month risk remains low.",
+    "signals": [],
+    "calibrated": 0.014496886475265463,
+    "headlines": []
+   },
+   "pooled": {
+    "p": 0.01783316132417644,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "togo",
+   "name": "Togo",
+   "iso": "768",
+   "rank": 19,
+   "model": {
+    "p": 0.01671,
+    "lo": 0.00993,
+    "hi": 0.02817
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.017546294603178976,
+    "samples": [
+     0.018,
+     0.015,
+     0.02
+    ],
+    "confidence": "low",
+    "rationale": "I place Togo modestly above the 0.99% global base rate because it is an electoral autocracy with three attempts since 2000. Its last attempt was in 2009, and the head of state has been in office less than a year. With no relevant headlines, evidence for this six-month window is limited.",
+    "signals": [],
+    "calibrated": 0.013213632888296998,
+    "headlines": []
+   },
+   "pooled": {
+    "p": 0.01703951463398412,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "gabon",
+   "name": "Gabon",
+   "iso": "266",
+   "rank": 20,
+   "model": {
+    "p": 0.01633,
+    "lo": 0.00975,
+    "hi": 0.02078
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.04583096043739143,
+    "samples": [
+     0.04,
+     0.06,
+     0.04
+    ],
+    "confidence": "low",
+    "rationale": "Gabon’s successful 2023 coup and electoral-autocratic regime place it above the worldwide 0.99% six-month base rate. The headline is retrospective and gives no sign of current plotting or military action, so it does not materially change that elevated baseline.",
+    "signals": [],
+    "calibrated": 0.021487971649963744,
+    "headlines": [
+     {
+      "id": "P1",
+      "title": "Conservation after a coup: Former Gabon minister Lee White satisfied about legacy",
+      "outlet": "The Africa Report",
+      "date": "2026-10-14",
+      "angle": "coup"
+     }
+    ]
+   },
+   "pooled": {
+    "p": 0.017818652064830576,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "afghanistan",
+   "name": "Afghanistan",
+   "iso": "004",
+   "rank": 21,
+   "model": {
+    "p": 0.016,
+    "lo": 0.00851,
+    "hi": 0.02501
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.028234048490311036,
+    "samples": [
+     0.025,
+     0.03,
+     0.03
+    ],
+    "confidence": "low",
+    "rationale": "Afghanistan’s closed autocracy and the country card’s 2021 successful attempt place it above the 0.99% global baseline. The headlines describe cross-border violence, not moves by Afghan officers or elites against the government, so they do not materially change the estimate.",
+    "signals": [],
+    "calibrated": 0.016792423951231896,
+    "headlines": [
+     {
+      "id": "P1",
+      "title": "Pakistan security forces kill 15 militants attempting to cross from Afghanistan",
+      "outlet": "Associated Press",
+      "date": "2026-09-03",
+      "angle": "military"
+     },
+     {
+      "id": "P2",
+      "title": "Pakistan defends attacks on Afghanistan, denies civilian casualties",
+      "outlet": "Voice of America",
+      "date": "2026-10-26",
+      "angle": "violence"
+     },
+     {
+      "id": "P3",
+      "title": "Afghanistan says 28 fighters killed after crossing from Pakistan; Islamabad denies ties",
+      "outlet": "Reuters",
+      "date": "2026-09-27",
+      "angle": "violence"
+     },
+     {
+      "id": "P4",
+      "title": "Four civilians killed in Pakistani strikes in Afghanistan, Taliban says",
+      "outlet": "BBC",
+      "date": "2026-09-24",
+      "angle": "violence"
+     },
+     {
+      "id": "P5",
+      "title": "Pakistan says strikes in Afghanistan killed '28 terrorists'",
+      "outlet": "Deutsche Welle",
+      "date": "2026-09-21",
+      "angle": "violence"
+     }
+    ]
+   },
+   "pooled": {
+    "p": 0.016888931479138048,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "bangladesh",
+   "name": "Bangladesh",
+   "iso": "050",
+   "rank": 22,
+   "model": {
+    "p": 0.01506,
+    "lo": 0.0109,
+    "hi": 0.02288
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.07273546532116408,
+    "samples": [
+     0.08,
+     0.06,
+     0.08
+    ],
+    "confidence": "low",
+    "rationale": "Bangladesh’s successful coup in August 2024 and closed autocracy place it well above the 0.99% worldwide six-month base rate. Reuters’ report of workers’ economic hardship adds little: economic stress alone is weak evidence of a coup attempt. The recent coup history drives the estimate; evidence for this specific window is sparse.",
+    "signals": [
+     {
+      "ref": "P1",
+      "reading": "Economic hardship is a weak, indirect risk factor; it raises the estimate only slightly."
+     }
+    ],
+    "calibrated": 0.027296942313132424,
+    "headlines": [
+     {
+      "id": "P1",
+      "title": "Behind Bangladesh's garment boom, workers cut food, healthcare as wages fall short",
+      "outlet": "Reuters",
+      "date": "2026-11-11",
+      "angle": "leader"
+     }
+    ]
+   },
+   "pooled": {
+    "p": 0.01704045437960408,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "fiji",
+   "name": "Fiji",
+   "iso": "242",
+   "rank": 23,
+   "model": {
+    "p": 0.01478,
+    "lo": 0.00686,
+    "hi": 0.0168
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.0195828403950181,
+    "samples": [
+     0.015,
+     0.02,
+     0.025
+    ],
+    "confidence": "low",
+    "rationale": "Fiji’s four attempts since 2000 place it above the 0.99% worldwide base rate, but its last successful coup was nearly 20 years ago and it is now an electoral democracy. No headlines provide a current trigger, so the estimate remains modest.",
+    "signals": [],
+    "calibrated": 0.013963294793665064,
+    "headlines": []
+   },
+   "pooled": {
+    "p": 0.015256748383416667,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "haiti",
+   "name": "Haiti",
+   "iso": "332",
+   "rank": 24,
+   "model": {
+    "p": 0.01471,
+    "lo": 0.01152,
+    "hi": 0.02733
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.02242824503851047,
+    "samples": [
+     0.03,
+     0.015,
+     0.025
+    ],
+    "confidence": "low",
+    "rationale": "Haiti’s closed autocracy and severe instability put it somewhat above the 0.99% worldwide base rate, but its last coup attempt was in 2004 and the head of state’s tenure is short. Election postponement and gang violence raise concern only slightly; the headlines show no domestic officers or ruling elites moving against the government.",
+    "signals": [
+     {
+      "ref": "P14",
+      "reading": "Election postponement adds political uncertainty, but reports no coup-related move by the military or elite."
+     }
+    ],
+    "calibrated": 0.014950096342826218,
+    "headlines": [
+     {
+      "id": "P1",
+      "title": "El Salvador deploys special forces to Haiti to help find 4 missing soldiers who came under attack",
+      "outlet": "Associated Press",
+      "date": "2026-10-22",
+      "angle": "violence"
+     },
+     {
+      "id": "P2",
+      "title": "Gangs in Haiti target foreign troops in the biggest attack since a new force began operations",
+      "outlet": "Associated Press",
+      "date": "2026-10-19",
+      "angle": "violence"
+     },
+     {
+      "id": "P3",
+      "title": "Trump attacks immigrants from Somalia and Haiti while rallying in Ohio for Republican candidates",
+      "outlet": "Associated Press",
+      "date": "2026-10-12",
+      "angle": "violence"
+     },
+     {
+      "id": "P4",
+      "title": "More than 5,000 people killed or injured in Haiti due to gang violence this year, UN says",
+      "outlet": "BBC",
+      "date": "2026-10-02",
+      "angle": "violence"
+     },
+     {
+      "id": "P5",
+      "title": "At least 5,700 killed, wounded in Haiti gang crisis this year: UN",
+      "outlet": "Africanews",
+      "date": "2026-10-02",
+      "angle": "violence"
+     },
+     {
+      "id": "P6",
+      "title": "New human rights report unveils details and blames police for recent massacre in Haiti",
+      "outlet": "Associated Press",
+      "date": "2026-09-17",
+      "angle": "violence"
+     },
+     {
+      "id": "P7",
+      "title": "El Salvador has built up a military presence in Haiti. What's in it for the Central American country?",
+      "outlet": "Deutsche Welle",
+      "date": "2026-11-14",
+      "angle": "military"
+     },
+     {
+      "id": "P8",
+      "title": "Haiti announces new election dates as El Salvador sends troops to rescue missing soldiers",
+      "outlet": "Africanews",
+      "date": "2026-10-30",
+      "angle": "military"
+     },
+     {
+      "id": "P9",
+      "title": "El Salvador sends 2,000 troops to Haiti to rescue four missing soldiers",
+      "outlet": "BBC",
+      "date": "2026-10-29",
+      "angle": "military"
+     },
+     {
+      "id": "P10",
+      "title": "Bodies of ambushed Salvadoran soldiers found in Haiti, New York Times reports",
+      "outlet": "Reuters",
+      "date": "2026-10-24",
+      "angle": "military"
+     },
+     {
+      "id": "P11",
+      "title": "Bukele says military operation launched to rescue Salvadorans held by gangs in Haiti",
+      "outlet": "Associated Press",
+      "date": "2026-10-21",
+      "angle": "military"
+     },
+     {
+      "id": "P12",
+      "title": "El Salvador's Bukele makes a political gamble with a Haiti gang offensive ahead of an election",
+      "outlet": "Associated Press",
+      "date": "2026-11-11",
+      "angle": "politics"
+     },
+     {
+      "id": "P13",
+      "title": "Haiti announces new election dates as 2,000 Salvadoran troops help fight gangs",
+      "outlet": "Associated Press",
+      "date": "2026-10-29",
+      "angle": "politics"
+     },
+     {
+      "id": "P14",
+      "title": "El Salvador to send over 2,000 soldiers to Haiti for rescue while elections postponed",
+      "outlet": "Reuters",
+      "date": "2026-10-28",
+      "angle": "politics"
+     },
+     {
+      "id": "P15",
+      "title": "Haiti struggles with rise in kidnappings as general election looms",
+      "outlet": "Associated Press",
+      "date": "2026-10-01",
+      "angle": "politics"
+     },
+     {
+      "id": "P16",
+      "title": "Haiti urges UN to renew anti-gang force mandate ahead of planned election",
+      "outlet": "Reuters",
+      "date": "2026-09-03",
+      "angle": "politics"
+     }
+    ]
+   },
+   "pooled": {
+    "p": 0.015330378225322629,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "equatorial-guinea",
+   "name": "Equatorial Guinea",
+   "iso": "226",
+   "rank": 25,
+   "model": {
+    "p": 0.01427,
+    "lo": 0.01119,
+    "hi": 0.03045
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.15041649390442255,
+    "samples": [
+     0.14,
+     0.12,
+     0.2
+    ],
+    "confidence": "low",
+    "rationale": "The country card places Equatorial Guinea well above the 0.99% global monthly base rate: it had an attempt in 2017 and Obiang has ruled for nearly 47 years. P1 reports a government claim that a coup attempt was foiled shortly before the window, raising the risk, though the claim is unverified and does not establish an ongoing plot.",
+    "signals": [
+     {
+      "ref": "P1",
+      "reading": "A recent claimed foiled attempt is a meaningful warning, but its source and implications are uncertain."
+     }
+    ],
+    "calibrated": 0.04045502418767482,
+    "headlines": [
+     {
+      "id": "P1",
+      "title": "Equatorial Guinea: Obiang’s government claims to have foiled coup attempt",
+      "outlet": "The Africa Report",
+      "date": "2026-09-04",
+      "angle": "coup"
+     }
+    ]
+   },
+   "pooled": {
+    "p": 0.0170963815297032,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "honduras",
+   "name": "Honduras",
+   "iso": "340",
+   "rank": 26,
+   "model": {
+    "p": 0.01427,
+    "lo": 0.00847,
+    "hi": 0.02196
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.0035572853872099246,
+    "samples": [
+     0.005,
+     0.003,
+     0.003
+    ],
+    "confidence": "low",
+    "rationale": "Honduras is an electoral democracy, and its last coup was in 2009; the current leader’s tenure is not unusually long. These country-card factors place it below the 0.99% worldwide base rate. With no relevant headlines, I make no event-driven adjustment.",
+    "signals": [],
+    "calibrated": 0.005951183389862916,
+    "headlines": []
+   },
+   "pooled": {
+    "p": 0.013124873845756233,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "sierra-leone",
+   "name": "Sierra Leone",
+   "iso": "694",
+   "rank": 27,
+   "model": {
+    "p": 0.01295,
+    "lo": 0.01035,
+    "hi": 0.01988
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.033030026459729286,
+    "samples": [
+     0.04,
+     0.03,
+     0.03
+    ],
+    "confidence": "low",
+    "rationale": "The 0.99% worldwide monthly base rate is low. Sierra Leone sits above it because it is an electoral autocracy and had a failed coup attempt in November 2023, within the past five years. With no new headlines, the six-month risk remains modest; evidence does not narrow the estimate much.",
+    "signals": [],
+    "calibrated": 0.0181819892251958,
+    "headlines": []
+   },
+   "pooled": {
+    "p": 0.01393280855995154,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "cameroon",
+   "name": "Cameroon",
+   "iso": "120",
+   "rank": 28,
+   "model": {
+    "p": 0.01274,
+    "lo": 0.00892,
+    "hi": 0.02678
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.02656920244053254,
+    "samples": [
+     0.03,
+     0.025,
+     0.025
+    ],
+    "confidence": "low",
+    "rationale": "Cameroon sits above the 0.99% six-month base rate because its ruler has been in power for nearly 44 years and is 93, raising succession risk. But there has been no coup attempt since 1984. The reported militant raid is not evidence of a move by security forces or elites, so it does not change the estimate.",
+    "signals": [],
+    "calibrated": 0.01628428748460103,
+    "headlines": [
+     {
+      "id": "P1",
+      "title": "Militants kill 15 in overnight Cameroon raid, village sources say",
+      "outlet": "Reuters",
+      "date": "2026-09-17",
+      "angle": "violence"
+     }
+    ]
+   },
+   "pooled": {
+    "p": 0.013508425829341714,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "venezuela",
+   "name": "Venezuela",
+   "iso": "862",
+   "rank": 29,
+   "model": {
+    "p": 0.01252,
+    "lo": 0.00869,
+    "hi": 0.01925
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.029728200660195016,
+    "samples": [
+     0.035,
+     0.03,
+     0.025
+    ],
+    "confidence": "low",
+    "rationale": "I place Venezuela above the 0.99% worldwide base rate because it is an electoral autocracy with a long-serving leader and several attempts since 2000. The most recent attempt was over six years ago. The headlines describe conflict, rhetoric and economic developments, but no military or elite move against the government; they do not materially change the estimate.",
+    "signals": [],
+    "calibrated": 0.017236499098970664,
+    "headlines": [
+     {
+      "id": "P1",
+      "title": "Bomb blast near Colombia’s border with Venezuela injures at least 4 police officers",
+      "outlet": "Associated Press",
+      "date": "2026-10-27",
+      "angle": "military"
+     },
+     {
+      "id": "P2",
+      "title": "U.S. Assisted Venezuela in Deadly Drone Strike, Officials Say",
+      "outlet": "The New York Times",
+      "date": "2026-11-03",
+      "angle": "unrest"
+     },
+     {
+      "id": "P3",
+      "title": "Nobel laureate Machado: ‘Illegitimate’ Venezuela regime has no right to strike US oil deal",
+      "outlet": "The Guardian",
+      "date": "2026-09-03",
+      "angle": "unrest"
+     },
+     {
+      "id": "P4",
+      "title": "Top economic adviser says Venezuela aims to publish debt sustainability analysis 'very soon'",
+      "outlet": "Reuters",
+      "date": "2026-10-14",
+      "angle": "economy"
+     },
+     {
+      "id": "P5",
+      "title": "Stability, fair fiscal terms needed in Venezuela, Russia to see investors return, Conoco says",
+      "outlet": "Reuters",
+      "date": "2026-10-06",
+      "angle": "economy"
+     },
+     {
+      "id": "P6",
+      "title": "IMF looking to set up Venezuela office, says no programme requested",
+      "outlet": "Reuters",
+      "date": "2026-10-01",
+      "angle": "economy"
+     },
+     {
+      "id": "P7",
+      "title": "Rubio says Trump and Venezuela's Rodriguez discussed debt restructuring",
+      "outlet": "Reuters",
+      "date": "2026-09-23",
+      "angle": "economy"
+     },
+     {
+      "id": "P8",
+      "title": "Italy's Eni doubles down in Venezuela with rising hope of recovering debt",
+      "outlet": "Reuters",
+      "date": "2026-09-06",
+      "angle": "economy"
+     },
+     {
+      "id": "P9",
+      "title": "Venezuela August inflation slows to 8.9%, central bank says",
+      "outlet": "Reuters",
+      "date": "2026-09-04",
+      "angle": "economy"
+     },
+     {
+      "id": "P10",
+      "title": "US lifts sanctions on head of Venezuela legislature",
+      "outlet": "Reuters",
+      "date": "2026-10-14",
+      "angle": "region"
+     }
+    ]
+   },
+   "pooled": {
+    "p": 0.013388574182322744,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "lebanon",
+   "name": "Lebanon",
+   "iso": "422",
+   "rank": 30,
+   "model": {
+    "p": 0.01236,
+    "lo": 0.0059,
+    "hi": 0.01344
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.0134014835983284,
+    "samples": [
+     0.02,
+     0.015,
+     0.008
+    ],
+    "confidence": "low",
+    "rationale": "Lebanon’s 2008 coup attempt and electoral-autocracy status put it somewhat above the 0.99% worldwide six-month base rate. But that attempt was long ago, the current head of state has been in office less than a year, and there are no relevant headlines to indicate immediate coup activity.",
+    "signals": [],
+    "calibrated": 0.011543203112278997,
+    "headlines": []
+   },
+   "pooled": {
+    "p": 0.012513773956814779,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "malawi",
+   "name": "Malawi",
+   "iso": "454",
+   "rank": 31,
+   "model": {
+    "p": 0.01162,
+    "lo": 0.00861,
+    "hi": 0.02341
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.003915202261881816,
+    "samples": [
+     0.005,
+     0.003,
+     0.004
+    ],
+    "confidence": "low",
+    "rationale": "Malawi’s electoral democracy and lack of a coup attempt since 2008 put it below the 0.99% worldwide base rate. The new leader’s short tenure and advanced age add uncertainty, but the IMF headline reports lending progress, not a coup-related development. The evidence supports only a small chance over this window.",
+    "signals": [],
+    "calibrated": 0.006242689248902948,
+    "headlines": [
+     {
+      "id": "P1",
+      "title": "IMF says Malawi visit makes progress towards new lending programme",
+      "outlet": "Reuters",
+      "date": "2026-10-06",
+      "angle": "economy"
+     }
+    ]
+   },
+   "pooled": {
+    "p": 0.010838739405046474,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "yemen",
+   "name": "Yemen",
+   "iso": "887",
+   "rank": 32,
+   "model": {
+    "p": 0.01118,
+    "lo": 0.00365,
+    "hi": 0.01541
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.03986897344731483,
+    "samples": [
+     0.06,
+     0.03,
+     0.035
+    ],
+    "confidence": "low",
+    "rationale": "Yemen’s closed autocracy, conflict and past coup attempt place it above the 0.99% worldwide base rate, though that attempt was years ago. The Guardian’s report that the president sacked ministers and officers modestly raises risk, but gives no sign they are moving against him. The other headlines describe warfare, not a coup attempt.",
+    "signals": [
+     {
+      "ref": "P8",
+      "reading": "Officer and minister dismissals amid war are relevant, but no reported move against the president."
+     }
+    ],
+    "calibrated": 0.02000951529184328,
+    "headlines": [
+     {
+      "id": "P1",
+      "title": "Yemen: Anti-Houthi forces pull back from Bab el-Mandeb Strait as rebels advance towards Aden",
+      "outlet": "Deutsche Welle",
+      "date": "2026-11-15",
+      "angle": "violence"
+     },
+     {
+      "id": "P2",
+      "title": "Yemen's Houthis say they attacked pumping station on Saudi Arabia's East-West oil pipeline",
+      "outlet": "Reuters",
+      "date": "2026-11-12",
+      "angle": "violence"
+     },
+     {
+      "id": "P3",
+      "title": "Saudi Aramco Tower Damaged as Yemen’s Houthis Attack Riyadh",
+      "outlet": "The New York Times",
+      "date": "2026-11-08",
+      "angle": "violence"
+     },
+     {
+      "id": "P4",
+      "title": "Yemen: 33 killed in strike near Sanaa, Houthis say",
+      "outlet": "Deutsche Welle",
+      "date": "2026-11-08",
+      "angle": "violence"
+     },
+     {
+      "id": "P5",
+      "title": "More Than 50 Killed in Yemen in One of the Deadliest 24 Hours of the War",
+      "outlet": "The New York Times",
+      "date": "2026-11-07",
+      "angle": "violence"
+     },
+     {
+      "id": "P6",
+      "title": "Yemen: 22 killed in strike near Sanaa, Houthis say",
+      "outlet": "Deutsche Welle",
+      "date": "2026-11-07",
+      "angle": "violence"
+     },
+     {
+      "id": "P7",
+      "title": "Syria denies plans to send troops to Yemen as Saudi military ties deepen",
+      "outlet": "Reuters",
+      "date": "2026-11-07",
+      "angle": "military"
+     },
+     {
+      "id": "P8",
+      "title": "Yemen’s president sacks ministers and officers in attempt to turn tide of war",
+      "outlet": "The Guardian",
+      "date": "2026-11-05",
+      "angle": "military"
+     },
+     {
+      "id": "P9",
+      "title": "Egypt calls for Yemen talks as parliament weighs military support to Saudi Arabia",
+      "outlet": "Reuters",
+      "date": "2026-10-22",
+      "angle": "military"
+     },
+     {
+      "id": "P10",
+      "title": "Explainer: What's behind Egypt's move towards possible military involvement in Saudi-Yemen conflict?",
+      "outlet": "Reuters",
+      "date": "2026-10-19",
+      "angle": "military"
+     },
+     {
+      "id": "P11",
+      "title": "BBC's Orla Guerin travels with Yemen's southern national security forces through desert battlefield",
+      "outlet": "BBC",
+      "date": "2026-10-13",
+      "angle": "military"
+     },
+     {
+      "id": "P12",
+      "title": "Yemen launches major military operation against Houthis",
+      "outlet": "Deutsche Welle",
+      "date": "2026-10-05",
+      "angle": "military"
+     },
+     {
+      "id": "P13",
+      "title": "PODCAST: Yemen retakes Strait, Spain early election, Nobels (Updated)",
+      "outlet": "Reuters",
+      "date": "2026-10-05",
+      "angle": "politics"
+     },
+     {
+      "id": "P14",
+      "title": "PODCAST: Yemen's Houthi operation, Ukraine targets Russian refineries and Brazil vote",
+      "outlet": "Reuters",
+      "date": "2026-10-05",
+      "angle": "politics"
+     }
+    ]
+   },
+   "pooled": {
+    "p": 0.012258092838667842,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "somalia",
+   "name": "Somalia",
+   "iso": "706",
+   "rank": 33,
+   "model": {
+    "p": 0.01096,
+    "lo": 0.00891,
+    "hi": 0.02111
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.012558467076865464,
+    "samples": [
+     0.012,
+     0.011,
+     0.015
+    ],
+    "confidence": "low",
+    "rationale": "Somalia’s closed autocracy and fragile security environment modestly raise risk, but it has had no coup attempt since 2000 and its leader has been in office less than four years. The headlines on US air strikes and anti-immigrant rhetoric do not indicate an elite move against the government. I stay near the 0.99% base rate.",
+    "signals": [],
+    "calibrated": 0.01117365057999245,
+    "headlines": [
+     {
+      "id": "P1",
+      "title": "The human cost of surging US air strikes in Somalia",
+      "outlet": "Al Jazeera",
+      "date": "2026-10-20",
+      "angle": "unrest"
+     },
+     {
+      "id": "P2",
+      "title": "Trump attacks immigrants from Somalia and Haiti while rallying in Ohio for Republican candidates",
+      "outlet": "Associated Press",
+      "date": "2026-10-12",
+      "angle": "violence"
+     }
+    ]
+   },
+   "pooled": {
+    "p": 0.011096943481559053,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "algeria",
+   "name": "Algeria",
+   "iso": "012",
+   "rank": 34,
+   "model": {
+    "p": 0.01088,
+    "lo": 0.01023,
+    "hi": 0.02005
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.023210920506232857,
+    "samples": [
+     0.025,
+     0.02,
+     0.025
+    ],
+    "confidence": "low",
+    "rationale": "Algeria’s electoral-autocracy status and a successful attempt in 2019 place it somewhat above the 0.99% worldwide base rate, but that event is more than seven years ago and the country has had only one attempt since 2000. The headlines concern a coup attempt in Niger, not Algeria, so they do not change the estimate.",
+    "signals": [],
+    "calibrated": 0.015210780694254012,
+    "headlines": [
+     {
+      "id": "P1",
+      "title": "Algeria sent fighter jets to Niger to thwart ‘coup attempt’, president says",
+      "outlet": "Al Jazeera",
+      "date": "2026-10-03",
+      "angle": "coup"
+     },
+     {
+      "id": "P2",
+      "title": "Algeria sent fighter jets to Niger to thwart 'coup attempt', president says - Al Jazeera",
+      "outlet": "Al Jazeera",
+      "date": "2026-10-03",
+      "angle": "coup"
+     }
+    ]
+   },
+   "pooled": {
+    "p": 0.011497268721100415,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "mozambique",
+   "name": "Mozambique",
+   "iso": "508",
+   "rank": 35,
+   "model": {
+    "p": 0.01078,
+    "lo": 0.00866,
+    "hi": 0.01928
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.011296706936741067,
+    "samples": [
+     0.008,
+     0.012,
+     0.015
+    ],
+    "confidence": "low",
+    "rationale": "Mozambique’s 1991 coup attempt and zero attempts since 2000 place it below the 0.99% global six-month base rate. The new president’s short tenure is a modest uncertainty, but the opposition leader’s trial headline gives no evidence of military or elite action. Estimate remains near the low country baseline.",
+    "signals": [],
+    "calibrated": 0.010596895326008982,
+    "headlines": [
+     {
+      "id": "P1",
+      "title": "What an opposition leader's trial means for Mozambique",
+      "outlet": "Deutsche Welle",
+      "date": "2026-09-15",
+      "angle": "politics"
+     }
+    ]
+   },
+   "pooled": {
+    "p": 0.01084220173496642,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "iraq",
+   "name": "Iraq",
+   "iso": "368",
+   "rank": 36,
+   "model": {
+    "p": 0.01063,
+    "lo": 0.00602,
+    "hi": 0.01668
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.016512275871812098,
+    "samples": [
+     0.015,
+     0.02,
+     0.015
+    ],
+    "confidence": "low",
+    "rationale": "Iraq’s electoral-autocracy status and history of attempts since 2000 put it somewhat above the 0.99% worldwide base rate, but its last attempt was in 2004. The oil-smuggling crackdown raises some risk of militia-state confrontation (P5), yet no headline reports officers moving against the government or an active coup plot.",
+    "signals": [
+     {
+      "ref": "P5",
+      "reading": "Militia-state tensions could create instability, but this is not evidence of a coup move."
+     }
+    ],
+    "calibrated": 0.012816787749538223,
+    "headlines": [
+     {
+      "id": "P1",
+      "title": "Trump hails the US military’s exit from Iraq after 12-year mission against Islamic State",
+      "outlet": "Associated Press",
+      "date": "2026-09-30",
+      "angle": "military"
+     },
+     {
+      "id": "P2",
+      "title": "Pentagon says it has formally completed withdrawal of US troops from Iraq | US military",
+      "outlet": "The Guardian",
+      "date": "2026-09-30",
+      "angle": "military"
+     },
+     {
+      "id": "P3",
+      "title": "Turkey and Iraq agree Turkey will turn over military camp in northern Iraq",
+      "outlet": "Reuters",
+      "date": "2026-09-23",
+      "angle": "military"
+     },
+     {
+      "id": "P4",
+      "title": "US military set to end decades-long presence in country in Iraq",
+      "outlet": "Africanews",
+      "date": "2026-09-16",
+      "angle": "military"
+     },
+     {
+      "id": "P5",
+      "title": "Will Iraq’s oil smuggling crackdown disarm militias without a conflict?",
+      "outlet": "Al Jazeera",
+      "date": "2026-11-15",
+      "angle": "unrest"
+     },
+     {
+      "id": "P6",
+      "title": "Drones attack Iranian Kurdish opposition in Iraq's Sulaymaniyah and east Erbil, sources say",
+      "outlet": "Reuters",
+      "date": "2026-11-03",
+      "angle": "politics"
+     },
+     {
+      "id": "P7",
+      "title": "Iran steps up pressure on Kurdish opposition in Iraq",
+      "outlet": "Voice of America",
+      "date": "2026-10-21",
+      "angle": "politics"
+     },
+     {
+      "id": "P8",
+      "title": "Iraq parliament approves remaining cabinet posts, PM deputies",
+      "outlet": "Reuters",
+      "date": "2026-10-15",
+      "angle": "politics"
+     },
+     {
+      "id": "P9",
+      "title": "Iraq parliament fills Cabinet posts, naming a US-sanctioned deputy prime minister",
+      "outlet": "Associated Press",
+      "date": "2026-10-15",
+      "angle": "politics"
+     }
+    ]
+   },
+   "pooled": {
+    "p": 0.010980642042272,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "mauritania",
+   "name": "Mauritania",
+   "iso": "478",
+   "rank": 37,
+   "model": {
+    "p": 0.01061,
+    "lo": 0.00874,
+    "hi": 0.01887
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.020000000000000004,
+    "samples": [
+     0.02,
+     0.02,
+     0.02
+    ],
+    "confidence": "low",
+    "rationale": "Mauritania’s four attempts since 2000 and electoral-autocratic regime put it somewhat above the 0.99% worldwide country-month base rate. But its last successful coup was in 2008, and there are no current headlines indicating an imminent threat. I estimate a 2% chance over this six-month window.",
+    "signals": [],
+    "calibrated": 0.014112109163781725,
+    "headlines": []
+   },
+   "pooled": {
+    "p": 0.011107188935901163,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "south-sudan",
+   "name": "South Sudan",
+   "iso": "728",
+   "rank": 38,
+   "model": {
+    "p": 0.01061,
+    "lo": 0.00543,
+    "hi": 0.01598
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.031091429351908867,
+    "samples": [
+     0.03,
+     0.04,
+     0.025
+    ],
+    "confidence": "low",
+    "rationale": "The 0.99% worldwide base rate is a starting point; South Sudan’s closed autocracy and long-serving leader place it above that level. Its 2013 coup attempt is not recent. The headlines report communal violence, not elite or security-force moves against the government, so they provide little additional evidence.",
+    "signals": [],
+    "calibrated": 0.017632558779836365,
+    "headlines": [
+     {
+      "id": "P1",
+      "title": "UN peacekeepers failed to protect civilians before South Sudan massacre, Amnesty says",
+      "outlet": "Associated Press",
+      "date": "2026-11-12",
+      "angle": "violence"
+     },
+     {
+      "id": "P2",
+      "title": "South Sudan and UN failed to heed massacre warnings-Amnesty International",
+      "outlet": "Africanews",
+      "date": "2026-11-12",
+      "angle": "violence"
+     },
+     {
+      "id": "P3",
+      "title": "South Sudan cattle raids: Co-oridanted attacks kill at least 72 people in Warrup state",
+      "outlet": "BBC",
+      "date": "2026-10-27",
+      "angle": "violence"
+     },
+     {
+      "id": "P4",
+      "title": "Rival communities clashes in South Sudan's Lakes state leaves scores dead",
+      "outlet": "Africanews",
+      "date": "2026-10-14",
+      "angle": "violence"
+     },
+     {
+      "id": "P5",
+      "title": "Clashes between rival groups in central South Sudan leave scores dead",
+      "outlet": "Associated Press",
+      "date": "2026-10-12",
+      "angle": "violence"
+     },
+     {
+      "id": "P6",
+      "title": "At least 26 killed in South Sudan tribal clashes",
+      "outlet": "Reuters",
+      "date": "2026-09-17",
+      "angle": "violence"
+     }
+    ]
+   },
+   "pooled": {
+    "p": 0.011454201523227119,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "republic-of-congo",
+   "name": "Republic of Congo",
+   "iso": "178",
+   "rank": 39,
+   "model": {
+    "p": 0.01006,
+    "lo": 0.00753,
+    "hi": 0.01576
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.02656920244053254,
+    "samples": [
+     0.025,
+     0.025,
+     0.03
+    ],
+    "confidence": "low",
+    "rationale": "The 28.8-year tenure of an 82-year-old ruler in an electoral autocracy puts the country above the 0.99% worldwide six-month base rate. The last successful coup was in 1997, with no attempts since 2000, and there are no headlines indicating an immediate trigger. Estimate: 2.5%.",
+    "signals": [],
+    "calibrated": 0.01628428748460103,
+    "headlines": []
+   },
+   "pooled": {
+    "p": 0.010763494601893438,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  },
+  {
+   "slug": "pakistan",
+   "name": "Pakistan",
+   "iso": "586",
+   "rank": 40,
+   "model": {
+    "p": 0.00987,
+    "lo": 0.00848,
+    "hi": 0.02382
+   },
+   "market": null,
+   "analyst": {
+    "raw": 0.021098310662889593,
+    "samples": [
+     0.015,
+     0.025,
+     0.025
+    ],
+    "confidence": "low",
+    "rationale": "Pakistan’s military influence and history of intervention put it above the 0.99% worldwide six-month base rate, though its last recorded attempt was in 2007. Reuters’ report that the military is taking on a Gulf role without parliament suggests continued military prominence, not a move against the government. I estimate 2.5%.",
+    "signals": [
+     {
+      "ref": "P11",
+      "reading": "Military taking on a Gulf role without parliament modestly raises concern about military dominance, but is not evidence of a coup move."
+     }
+    ],
+    "calibrated": 0.014496886475265463,
+    "headlines": [
+     {
+      "id": "P1",
+      "title": "Pakistan’s army says it killed 74 militants in raids on their hideouts",
+      "outlet": "Associated Press",
+      "date": "2026-11-13",
+      "angle": "violence"
+     },
+     {
+      "id": "P2",
+      "title": "Centurions De Silva and Mendis flay inexperienced Pakistan attack to boost Sri Lanka in 1st test",
+      "outlet": "Associated Press",
+      "date": "2026-11-11",
+      "angle": "violence"
+     },
+     {
+      "id": "P3",
+      "title": "Pakistan, Afghan Taliban trade accusations over ‘unprovoked’ attacks - VOA",
+      "outlet": "Voice of America",
+      "date": "2026-10-29",
+      "angle": "violence"
+     },
+     {
+      "id": "P4",
+      "title": "Pakistan defends attacks on Afghanistan, denies civilian casualties",
+      "outlet": "Voice of America",
+      "date": "2026-10-26",
+      "angle": "violence"
+     },
+     {
+      "id": "P5",
+      "title": "At least 33 pupils and teacher killed after school roof collapses in Pakistan",
+      "outlet": "BBC",
+      "date": "2026-10-15",
+      "angle": "violence"
+     },
+     {
+      "id": "P6",
+      "title": "Pakistan army presents man it says India wrongly identified as militant killed in Kashmir",
+      "outlet": "Associated Press",
+      "date": "2026-10-01",
+      "angle": "violence"
+     },
+     {
+      "id": "P7",
+      "title": "Militants ambush police in Pakistan, sparking gunbattle that kills 10 officers and 18 militants",
+      "outlet": "Associated Press",
+      "date": "2026-11-11",
+      "angle": "military"
+     },
+     {
+      "id": "P8",
+      "title": "EXCLUSIVE: Pakistan military 'cautiously optimistic' on Iran-US mediation",
+      "outlet": "Reuters",
+      "date": "2026-10-31",
+      "angle": "military"
+     },
+     {
+      "id": "P9",
+      "title": "Iran tells Pakistan army chief no talks with Washington until demands are met",
+      "outlet": "Reuters",
+      "date": "2026-10-21",
+      "angle": "military"
+     },
+     {
+      "id": "P10",
+      "title": "Pakistan army chief Asim Munir to visit Tehran on Tuesday",
+      "outlet": "Reuters",
+      "date": "2026-10-19",
+      "angle": "military"
+     },
+     {
+      "id": "P11",
+      "title": "As Munir's military takes on Gulf role, Pakistan's parliament is not involved",
+      "outlet": "Reuters",
+      "date": "2026-10-08",
+      "angle": "military"
+     },
+     {
+      "id": "P12",
+      "title": "Roadside bomb kills 6 soldiers in Pakistan as troops kill 10 militants in multiple raids",
+      "outlet": "Associated Press",
+      "date": "2026-09-17",
+      "angle": "military"
+     },
+     {
+      "id": "P13",
+      "title": "IMF reaches tentative $1.21 billion bailout deal with Pakistan",
+      "outlet": "Deutsche Welle",
+      "date": "2026-10-08",
+      "angle": "economy"
+     },
+     {
+      "id": "P14",
+      "title": "Pakistan announces austerity measures to conserve fuel as Gulf conflict spirals",
+      "outlet": "Reuters",
+      "date": "2026-09-17",
+      "angle": "economy"
+     }
+    ]
+   },
+   "pooled": {
+    "p": 0.010399470603098615,
+    "weights": {
+     "model": 0.875,
+     "analyst": 0.12500000000000003
+    },
+    "n": 2,
+    "a": 1.1
+   }
+  }
+ ]
+}

@@ -14,6 +14,7 @@ export const SECTIONS = [
   ["/", "Forecast", "Coup risk for every country, six months ahead"],
   ["/registry", "Registry", "Every monthly forecast, filed first and scored later"],
   ["/violence", "Violence", "Where organised political violence is heading"],
+  ["/unrest", "Unrest", "The chance of protest waves and violence escalations"],
   ["/markets", "Markets", "What prediction markets say, next to our model"],
   ["/world", "Map", "Every recorded coup since 1900"],
   ["/metodo", "Method", "How the model works and where it fails"],

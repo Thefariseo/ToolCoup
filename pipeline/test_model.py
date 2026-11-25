@@ -96,9 +96,17 @@ class ForecastTests(unittest.TestCase):
 
     def test_published_ensemble_and_acled_reference_have_matching_members(self):
         self.assertEqual(len(M.ENSEMBLE), len(M.ENSEMBLE_NOACLED))
-        self.assertTrue(set(M.ENSEMBLE_THREE) < set(M.ENSEMBLE))
-        for name in M.ENSEMBLE + M.ENSEMBLE_NOACLED + M.ENSEMBLE_THREE:
+        self.assertTrue(set(M.ENSEMBLE_THREE) < set(M.ENSEMBLE_FOUR) < set(M.ENSEMBLE))
+        self.assertEqual(set(M.ENSEMBLE) - set(M.ENSEMBLE_FOUR), {"storia_contagio"})
+        for name in M.ENSEMBLE + M.ENSEMBLE_NOACLED + M.ENSEMBLE_THREE + M.ENSEMBLE_FOUR:
             self.assertIn(name, M.SPECS)
+
+    def test_history_member_uses_no_acled_variable(self):
+        from panel import GROUPS
+        _, cols = M.SPECS["storia_contagio"]
+        self.assertFalse(set(cols) & set(GROUPS["acled"]))
+        self.assertEqual(cols, M.SPECS["storia_contagio"][1])
+        self.assertEqual(M.SPECS["storia_contagio"][0], M.make_logit)
 
     def test_lightgbm_does_not_depend_on_thread_count(self):
         rng = np.random.default_rng(3)

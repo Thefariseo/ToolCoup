@@ -9,7 +9,8 @@ import MarketFact from "@/components/MarketFact";
 import DiscourseMonitor from "@/components/DiscourseMonitor";
 import StandingView from "@/components/StandingView";
 import ViolenceOutlook from "@/components/ViolenceOutlook";
-import { getAnalogs, getStanding, getViolence } from "@/lib/outlook";
+import UnrestOutlook from "@/components/UnrestOutlook";
+import { getAnalogs, getStanding, getUnrest, getUnrestCounts, getViolence } from "@/lib/outlook";
 import Flag from "@/components/Flag";
 import CountUp from "@/components/motion/CountUp";
 import Rise from "@/components/motion/Rise";
@@ -92,6 +93,7 @@ async function CountryContent({ params }) {
       {!country.historical && <CrowdView slug={slug} name={country.name} />}
       {!country.historical && <DiscourseMonitor slug={slug} name={country.name} />}
       {!country.historical && <AnalogsView analog={getAnalogs(slug)} name={country.name} modelRisk={country.risk} />}
+      {!country.historical && <UnrestOutlook unrest={getUnrest(slug)} counts={getUnrestCounts(slug)} name={country.name} />}
       {(() => { const v = getViolence(slug); return v ? <ViolenceOutlook country={v.country} meta={v.meta} admin1={v.admin1} /> : null; })()}
       <Dossier key={slug} country={country} others={others} meta={meta} />
     </main>

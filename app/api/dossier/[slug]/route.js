@@ -5,6 +5,7 @@ import { FLAG } from "@/lib/flags";
 import { allMarkets, modelAtHorizon } from "@/lib/markets";
 import { buildPdf } from "@/lib/dossier-pdf";
 import { registrySummary } from "@/lib/registry";
+import hybrid from "@/webdata/hybrid.json";
 
 // GET /api/dossier/niger?issue=2026-11&lens=investor  ->  PDF   (lens: analyst | investor | policy | newsroom | aid)
 // Each call spends OpenAI credit, so: only the known country slugs are accepted, the response is cached at
@@ -46,6 +47,11 @@ export async function GET(request, { params }) {
         months_to_close: x.months == null ? null : +x.months.toFixed(1), closes: x.closes ? String(x.closes).slice(0, 10) : null, volume: x.volume ? Math.round(x.volume) : null,
         our_model_same_horizon: x.kind === "coup" && x.months != null ? +(modelAtHorizon(facts.forecast.probability_of_at_least_one_coup_attempt, x.months) ?? 0).toFixed(3) : null }));
     } catch { facts.prediction_markets = []; }
+    const hy = hybrid.latest?.countries?.find((c) => c.slug === slug);          // the experimental pooled reading, when the latest snapshot has this country
+    if (hy?.pooled) facts.hybrid = { as_of: hybrid.latest.asof.slice(0, 10), window: hybrid.latest.window, pooled_probability: +hy.pooled.p.toFixed(4), model: +hy.model.p.toFixed(4),
+      market_as_six_month_probability: hy.market ? +hy.market.p6.toFixed(4) : null, analyst_probability: hy.analyst ? +hy.analyst.calibrated.toFixed(4) : null,
+      weights: Object.fromEntries(Object.entries(hy.pooled.weights).map(([k, v]) => [k, +v.toFixed(2)])), analyst_rationale: hy.analyst?.rationale ?? null,
+      status: "experimental: no scored window yet, the first closes in May 2027" };
     const narrative = mock ? (await import("@/lib/dossier-mock")).mockNarrative(facts) : await narrate(facts, press);
     if (process.env.NODE_ENV !== "production" && peek === "narrative") return Response.json({ plan: press.plan, press: press.items, markets: facts.prediction_markets, narrative });   // development: read the text without the PDF
     const generated = new Date().toISOString().slice(0, 10);

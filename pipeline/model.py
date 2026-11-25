@@ -12,6 +12,9 @@ Componenti dell'insieme:
   gbm     gradient boosting su alberi (non linearita' e interazioni)
   rf      foresta casuale
   lgbm    LightGBM: alberi a crescita per foglia, valori mancanti nativi (pipeline/lgbm.py); dall'edizione 2026-12
+  storia_contagio  regressione logistica sulla sola storia golpista del paese e sul contagio (14 variabili); dall'edizione 2026-12.
+          Non porta informazione nuova ma poca varianza: nelle prove fuori campione i modelli con tutte le variabili non battono
+          chiaramente questo (docs/extensions.md, sezione "Quinto membro"), e mescolarli migliora il rango dei casi piu' rischiosi.
 """
 from __future__ import annotations
 
@@ -61,7 +64,7 @@ def feats(*groups: str) -> list[str]:
 
 
 NO_ACLED = [g for g in GROUPS if g != "acled"]
-# nome -> (costruttore, variabili). I primi quattro formano l'insieme pubblicato (dall'edizione 2026-12; prima erano tre).
+# nome -> (costruttore, variabili). I primi quattro e `storia_contagio` formano l'insieme pubblicato (dall'edizione 2026-12; prima erano tre).
 SPECS = {
     "logit": (make_logit, ALL_FEATURES),
     "gbm": (make_gbm, ALL_FEATURES),
@@ -75,8 +78,9 @@ SPECS = {
     "rf_noacled": (make_rf, feats(*NO_ACLED)),
     "lgbm_noacled": (make_lgbm, feats(*NO_ACLED)),      # stessa composizione dell'insieme, senza ACLED: il confronto isola i segnali ACLED
 }
-ENSEMBLE = ["logit", "gbm", "rf", "lgbm"]
-ENSEMBLE_NOACLED = ["logit_noacled", "gbm_noacled", "rf_noacled", "lgbm_noacled"]
+ENSEMBLE = ["logit", "gbm", "rf", "lgbm", "storia_contagio"]
+ENSEMBLE_NOACLED = ["logit_noacled", "gbm_noacled", "rf_noacled", "lgbm_noacled", "storia_contagio"]     # il quinto membro non usa ACLED
+ENSEMBLE_FOUR = ["logit", "gbm", "rf", "lgbm"]          # l'insieme con LightGBM ma senza il modello della storia, per il confronto
 ENSEMBLE_THREE = ["logit", "gbm", "rf"]                 # l'insieme delle edizioni fino al 2026-11, per il confronto con e senza LightGBM
 
 
@@ -142,15 +146,15 @@ def combine_forward(panel, preds, horizon, members=ENSEMBLE):
     return out, weights, history
 
 
-def walk_forward(panel: pd.DataFrame, horizon: int, specs=SPECS, log=print) -> pd.DataFrame:
-    """Previsioni fuori campione per ogni modello: una colonna per modello, NaN dove non previsto."""
+def walk_forward(panel: pd.DataFrame, horizon: int, specs=SPECS, log=print, first_year: int | None = None) -> pd.DataFrame:
+    """Previsioni fuori campione per ogni modello: una colonna per modello, NaN dove non previsto. `first_year`: primo anno previsto (default FIRST_TEST_YEAR)."""
     usable = panel
     years = usable["year"].to_numpy()
     preds = pd.DataFrame(np.nan, index=panel.index, columns=list(specs))
     last = int(years.max())
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        for yr in range(FIRST_TEST_YEAR, last + 1):
+        for yr in range(first_year or FIRST_TEST_YEAR, last + 1):
             train = usable[usable["y_known"] & (usable["t"] + horizon < yr * 12)]
             test = usable[years == yr]
             if test.empty or train["y"].sum() < 20:
@@ -163,7 +167,7 @@ def walk_forward(panel: pd.DataFrame, horizon: int, specs=SPECS, log=print) -> p
 
 
 def calibrate_forward(panel: pd.DataFrame, raw: pd.Series, horizon: int, window_years=None,
-                      regularization=1e6) -> tuple[pd.Series, tuple[float, float]]:
+                      regularization=1e6, min_years: int | None = None) -> tuple[pd.Series, tuple[float, float]]:
     """Calibrazione di Platt a finestra espandibile: per l'anno Y usa solo le previsioni con esito noto prima di Y.
 
     Restituisce anche i coefficienti stimati su tutto il periodo, da applicare alla previsione corrente.
@@ -182,7 +186,7 @@ def calibrate_forward(panel: pd.DataFrame, raw: pd.Series, horizon: int, window_
         lr = LogisticRegression(C=regularization, max_iter=1000).fit(z[mask].reshape(-1, 1), y[mask])
         return (float(lr.coef_[0, 0]), float(lr.intercept_[0])) if lr.coef_[0, 0] > 0 else (1.0, 0.0)
 
-    for yr in range(first + MIN_CAL_YEARS, int(years.max()) + 1):
+    for yr in range(first + (MIN_CAL_YEARS if min_years is None else min_years), int(years.max()) + 1):
         past = ok & (t + horizon < yr * 12)
         if window_years:
             past &= t >= (yr - window_years) * 12
