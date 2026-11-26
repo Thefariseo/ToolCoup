@@ -1,0 +1,35 @@
+/* PRAEVEX — page tokens, loaded after the design kit (public/assets). The palette is the brand's own: bone white
+   from the engraving on a near-black ground. One accent (bone) for every control; colour is kept for data:
+   teal -> amber -> red is the risk scale, amber raises and cyan lowers, red marks a recorded coup. */
+:root {
+  color-scheme: dark;
+  --p-bg: #070909; --p-surface: #0f1212; --p-ink: #e4e0d4; --p-muted: #9c9e94;
+  --p-accent: #ece6d6; --p-accent-ink: #070909; --p-action: #ece6d6; --p-action-ink: #070909;
+  --p-inv-bg: #e4e0d4; --p-inv-surface: #d6d2c6; --p-inv-ink: #070909; --p-inv-muted: #474844;
+  --p-inv-accent: #070909; --p-inv-accent-ink: #e4e0d4; --p-inv-action: #070909; --p-inv-action-ink: #e4e0d4;
+  --font-display: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+  --font-text: "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --display-weight: 500;
+  --display-tracking: -0.012em;
+  --display-tracking-xl: -0.022em;
+  --ly-scale: 0.88;
+
+  /* data */
+  --rise: #ffb22e; --fall: #29c7e0; --calm: #2fd3bd; --coup: #ff5a3c;
+  --ramp: linear-gradient(90deg, #0a2b2b, #1ab8a3 38%, #ffb22e 72%, #ff3819);
+  --panel: #0b0e0e;           /* app panels, one step off the page */
+  --panel-2: #131717;         /* a hovered or selected row */
+  --rule: #ffffff14;          /* a hairline */
+  --rule-2: #ffffff24;
+  --text-2: #c3c1b6;          /* running text on a panel, 9.6:1 on --panel */
+  --text-3: #959890;          /* labels and meta, 6.4:1 on --panel */
+}
+html[data-tone="dark"] { scrollbar-color: #2b302f var(--p-bg); }
+body { font-feature-settings: "kern"; }
+.num, .tnum { font-variant-numeric: tabular-nums; }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.up { color: var(--rise); }
+.down { color: var(--fall); }
+.flag { display: inline-block; flex: none; border-radius: 2px; box-shadow: 0 0 0 1px #ffffff1f; object-fit: cover; vertical-align: -0.12em; }
+.nw { white-space: nowrap; }

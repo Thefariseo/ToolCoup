@@ -1,13 +1,35 @@
 # Console
 
-One screen, four fixed regions around one moving field.
+Lives at `/forecast` (old `/?c=…&v=…` links redirect there). One moving field fills the screen; four panels float
+over it, and every view is drawn in the part they leave free.
 
-| Region | Job |
+| Panel | Job |
 |---|---|
-| Watchlist (left) | Every forecast country ranked by 6-month probability. Filter with `/`, move with `↑ ↓`. |
-| Stage (centre) | Three views of the same selection: where, when, why. Keys `1 2 3`. |
-| Timeline (below the stage) | The selected country since 1975: published monthly risk, recorded coups, ACLED counts. |
-| Readout (right) | The number, its 80% interval, rank, change, coup record and the six largest drivers. |
+| Watchlist (left) | Every forecast country with its flag, three-month change and 6-month chance. Sort by chance, rise or name; filter with `/`, move with `↑ ↓`. |
+| View bar (top) | Where, when, why (keys `1 2 3`), flat map (`G`), pause (`M`), timeline (`T`), guide (`?`). |
+| Timeline (bottom) | The selected country since 1975: published monthly risk, recorded coups, ACLED counts. |
+| Readout (right) | The number, how it compares with a typical country, its 80% range, change, coup record, the largest drivers and the brief. |
+
+Under 1100px the panels stack below the stage. A first visit is offered the guide in a corner; it never opens by
+itself (except with `?tour=1`).
+
+The panels' measured size is handed to the engine as margins (`engine.setInset`), so the globe, the atlas and the
+ledger are centred in the free rectangle at any width. `setShift` moves the globe off centre and `setFill` scales it.
+
+## The same stage elsewhere
+
+`components/console/Stage.js` also draws inside pages (`embed`): no zoom buttons, no wheel capture. On the home page
+the hero uses `bare`, which returns the canvas alone as the section's background layer, over `/globe-still.svg`; the
+"when" section shows the atlas; a country page shows the globe turned to that country. When WebGL cannot draw, an
+embedded stage renders nothing and the still picture stays. The home page's choice of country is shared by the three
+sections (`components/home/Pick.js`).
+
+## Site chrome
+
+The header (`components/site/SiteNav.js`) opens the search with its button, `⌘K`/`Ctrl K`, or `/` outside the
+console (`components/site/Palette.js`): Enter opens the country page, Shift+Enter the console. Layout, buttons,
+hero entrance and the two scroll moments come from the design kit copied unchanged into `public/assets`
+(taste-skill 2.5.1); the product's own styles are in `app/styles/`.
 
 The benchmarks for function are CoupCast, ViEWS and ACLED CAST: a ranked list, a map, a country page
 and a forecast-versus-outcome record. The console keeps exactly those four things and nothing else.

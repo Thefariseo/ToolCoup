@@ -53,7 +53,7 @@ export default function StandingView({ standing, name }) {
   const groups = sections(standing);
   if (!groups.length) return null;
   return (
-    <section id="standing" className="card standing">
+    <section id="standing" className="block standing">
 <h2>International standing and context for {name}</h2>
       <p className="note">Facts from open sources, each with the date of its latest value. They describe the country. We test separately whether each one improves the forecast, and the model uses only those that do (see Method). Values older than eight years are left out.</p>
       {groups.map(([title, items]) => (

@@ -18,7 +18,7 @@ vec3 ramp(float r){
 const FIELD_VS = `#version 300 es
 precision highp float;
 in vec2 aLL; in vec4 aD;
-uniform mat3 uRot; uniform vec3 uCam; uniform float uMorph,uTime,uAspect,uZoom,uSel,uHov,uPx,uFade; uniform vec4 uEmit[8];
+uniform mat3 uRot; uniform vec3 uCam; uniform vec4 uView; uniform float uMorph,uTime,uAspect,uZoom,uSel,uHov,uPx,uFade; uniform vec4 uEmit[8];
 out vec3 vCol;
 ${RAMP}
 void main(){
@@ -30,7 +30,7 @@ void main(){
   vec3 p=vec3(lon/3.14159265*1.6, lat/3.14159265*1.6+lift*.55, 1.);
   vec3 pos=mix(g,p,uMorph);
   float front=mix(smoothstep(-.12,.2,g.z), 1., uMorph);
-  gl_Position=vec4((vec2(pos.x*uZoom/uAspect, pos.y*uZoom)-uCam.yz)*uCam.x, 0., 1.);
+  gl_Position=vec4((vec2(pos.x*uZoom/uAspect, pos.y*uZoom)-uCam.yz)*uCam.x*uView.xy+uView.zw, 0., 1.);
   vec3 col; float b;
   if(risk<-1.5){ col=vec3(.05,.16,.16); b=.5; }
   else if(risk<0.){ col=vec3(.10,.14,.15); b=.55; }
@@ -127,7 +127,7 @@ void main(){
 const TRACE_VS = `#version 300 es
 precision highp float; precision highp sampler2D;
 uniform sampler2D uState,uRand;
-uniform vec3 uCam,uCore; uniform float uSim,uTime,uAspect,uFade,uFocus,uRisk,uSg[10],uKeep[10];
+uniform vec3 uCam,uCore; uniform vec4 uView; uniform float uSim,uTime,uAspect,uFade,uFocus,uRisk,uSg[10],uKeep[10];
 out vec3 vCol;
 ${RAMP}
 void main(){
@@ -144,7 +144,7 @@ void main(){
   } else if(sg!=0.) off=vec2(-sg*len/uAspect,0.);
   else off=vec2(len*.5/uAspect,0.);
   p+=off*tail;
-  gl_Position=vec4((p-uCam.yz)*uCam.x,0.,1.);
+  gl_Position=vec4((p-uCam.yz)*uCam.x*uView.xy+uView.zw,0.,1.);
   vec3 col=c==9 ? ramp(.3+.7*uRisk) : c==0 ? vec3(.75,.95,.92) : sg>0. ? vec3(1.,.62,.14) : sg<0. ? vec3(.14,.80,.92) : vec3(.45,.78,.72);
   float wave=.5+.5*sin(6.2832*(along*sg*1.4-uTime*.45)+r.z*6.);
   float b=c==9 ? .12+.2*pow(.5+.5*sin(6.2832*(along-uTime*.12)+r.z*3.),2.) : .03+.2*pow(wave,4.);
@@ -158,11 +158,11 @@ void main(){
 // Core: the vortex disc and ring halo of Portal.tsx, driven by the final probability (size, spin, colour).
 const VORTEX_FS = `#version 300 es
 precision highp float;
-uniform vec2 uTex,uCore; uniform vec3 uCam; uniform float uTime,uAspect,uCoreR,uRisk,uFade;
+uniform vec2 uTex,uCore; uniform vec3 uCam; uniform vec4 uView; uniform float uTime,uAspect,uCoreR,uRisk,uFade;
 out vec4 o;
 ${RAMP}
 void main(){
-  vec2 clip=gl_FragCoord.xy/uTex*2.-1.;
+  vec2 clip=(gl_FragCoord.xy/uTex*2.-1.-uView.zw)/uView.xy;
   vec2 c0=clip/uCam.x+uCam.yz;
   vec2 p=vec2((c0.x-uCore.x)*uAspect,c0.y-uCore.y)/uCoreR;
   float r=length(p), a=atan(p.y,p.x);
@@ -179,14 +179,14 @@ void main(){
 const ATLAS_VS = `#version 300 es
 precision highp float;
 in vec4 aP;
-uniform vec3 uCam; uniform float uTime,uFade,uMode,uLift,uCursor,uDim;
+uniform vec3 uCam; uniform vec4 uView; uniform float uTime,uFade,uMode,uLift,uCursor,uDim;
 out vec3 vCol;
 ${RAMP}
 void main(){
   float t=aP.x, v=aP.y, row=aP.z, side=aP.w;
   float yb=mix(.38,-.78,row);
   float x=mix(-.95,.52,t)+(1.-row)*.22;
-  gl_Position=vec4((vec2(x, yb+side*v*.30+uLift)-uCam.yz)*uCam.x, 0., 1.);
+  gl_Position=vec4((vec2(x, yb+side*v*.30+uLift)-uCam.yz)*uCam.x*uView.xy+uView.zw, 0., 1.);
   if(uMode<.5){ vCol=vec3(0.); return; }
   if(uMode>2.5){ vCol=ramp(v*1.15)*(.05+.22*side)*uFade; return; }
   float scan=exp(-pow((t-fract(uTime*.045))/.010,2.));
@@ -287,6 +287,9 @@ export function createEngine(canvas) {
     // frame budget: drawing is capped (60 fps while the reader acts, 30 when only the idle motion runs, none when the stage is still) and sizes
     // are read once. The picture never changes with the budget: no lower resolution, no stopped time.
     box: { w: 0, h: 0 }, dirtySize: true, rawDpr: 0, dprCap: 2, fpsActive: 60, lastInput: 0, lastDraw: 0, cost: 2,
+    fill: 1,                                                                    // globe scale
+    shift: { x: 0, y: 0 },                                                      // globe offset from the centre, in clip units (the home hero)
+    view4: new Float32Array([1, 1, 0, 0]), tView: [1, 1, 0, 0],                 // sx, sy, ox, oy: the part of the canvas no panel covers
   };
   const poke = () => { st.lastInput = performance.now(); };
 
@@ -307,9 +310,9 @@ export function createEngine(canvas) {
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
   }
 
-  const aspect = () => st.W / st.H;
+  const aspect = () => (st.W * st.view4[0]) / (st.H * st.view4[1]);        // of the free rectangle, so the globe stays round
   const zoom = () => {
-    const a = aspect(), globe = Math.min(0.86, 0.86 * a), plane = Math.min(0.94 * a / 1.6, 0.94 / 0.74);
+    const a = aspect(), globe = Math.min(0.86, 0.86 * a) * st.fill, plane = Math.min(0.94 * a / 1.6, 0.94 / 0.74);
     return globe + (plane - globe) * st.morph;
   };
   function rot() {
@@ -319,8 +322,8 @@ export function createEngine(canvas) {
 
   // ---- camera: clip' = (clip - pan) * zoom, shared by all three scenes. Pan only applies to the flat map.
   const camOf = (view) => {
-    const c = st.cams[view], m = view === "field" ? st.morph : 1;
-    return [c.z, c.x * m, c.y * m];
+    const c = st.cams[view], m = view === "field" ? st.morph : 1, g = view === "field" ? 1 - st.morph : 0;
+    return [c.z, c.x * m - st.shift.x * g, c.y * m - st.shift.y * g];
   };
   const clampCam = (c) => {
     const lim = Math.max(0, 1.08 - 1 / c.tz);
@@ -329,13 +332,15 @@ export function createEngine(canvas) {
   };
   /** clip position of the current view (before camera) -> stage fractions [0..1] */
   function toStage(cx, cy) {
-    const [z, px, py] = camOf(st.view);
-    return { x: ((cx - px) * z) * 0.5 + 0.5, y: 0.5 - ((cy - py) * z) * 0.5 };
+    const [z, px, py] = camOf(st.view), [sx, sy, ox, oy] = st.view4;
+    return { x: ((cx - px) * z * sx + ox) * 0.5 + 0.5, y: 0.5 - ((cy - py) * z * sy + oy) * 0.5 };
   }
   /** stage fractions -> clip position of the current view (before camera) */
+  /** stage fractions -> clip position inside the free rectangle (-1..1 across it) */
+  const inner = (fx, fy) => { const [sx, sy, ox, oy] = st.view4; return [(fx * 2 - 1 - ox) / sx, (1 - fy * 2 - oy) / sy]; };
   function fromStage(fx, fy) {
-    const [z, px, py] = camOf(st.view);
-    return [(fx * 2 - 1) / z + px, (1 - fy * 2) / z + py];
+    const [z, px, py] = camOf(st.view), [cx, cy] = inner(fx, fy);
+    return [cx / z + px, cy / z + py];
   }
   /** lon/lat in degrees -> stage position in CSS-relative units [0..1], plus visibility. */
   function project(lon, lat) {
@@ -344,13 +349,13 @@ export function createEngine(canvas) {
     const g = [m[0] * s[0] + m[3] * s[1] + m[6] * s[2], m[1] * s[0] + m[4] * s[1] + m[7] * s[2], m[2] * s[0] + m[5] * s[1] + m[8] * s[2]];
     const p = [(lo / Math.PI) * 1.6, (la / Math.PI) * 1.6];
     const x = g[0] + (p[0] - g[0]) * st.morph, y = g[1] + (p[1] - g[1]) * st.morph;
-    const [cz, px, py] = camOf("field");
-    return { x: ((x * z / a - px) * cz) * 0.5 + 0.5, y: 0.5 - ((y * z - py) * cz) * 0.5, front: st.morph > 0.5 || g[2] > 0.12 };
+    const [cz, px, py] = camOf("field"), [sx, sy, ox, oy] = st.view4;
+    return { x: ((x * z / a - px) * cz * sx + ox) * 0.5 + 0.5, y: 0.5 - ((y * z - py) * cz * sy + oy) * 0.5, front: st.morph > 0.5 || g[2] > 0.12 };
   }
   /** stage position [0..1] -> lon/lat in degrees, or null when off the globe / mid-morph. */
   function unproject(fx, fy) {
-    const [cz, px, py] = camOf("field"), z = zoom(), a = aspect();
-    const x = (((fx * 2 - 1) / cz + px) * a) / z, y = ((1 - fy * 2) / cz + py) / z;
+    const [cz, px, py] = camOf("field"), z = zoom(), a = aspect(), [ix, iy] = inner(fx, fy);
+    const x = ((ix / cz + px) * a) / z, y = (iy / cz + py) / z;
     if (st.morph > 0.98) {
       const lon = (x / 1.6) * 180, lat = (y / 1.6) * 180;
       return Math.abs(lon) <= 180 && Math.abs(lat) <= 90 ? [lon, lat] : null;
@@ -414,7 +419,7 @@ export function createEngine(canvas) {
     const cell2 = st.cell * st.cell, keep = new Float32Array(10);
     for (let i = 0; i < 10; i++) {
       const n = sim.n * sim.n * (c.cum[i + 1] - c.cum[i]);
-      const area = i < 9 ? (c.hi[i] - c.lo[i]) * (st.W / 2) * c.hh[i] * st.H : Math.PI * ((coreR() * st.H) / 2) ** 2;
+      const area = i < 9 ? (c.hi[i] - c.lo[i]) * ((st.W * st.view4[0]) / 2) * c.hh[i] * st.H * st.view4[1] : Math.PI * ((coreR() * st.H * st.view4[1]) / 2) ** 2;
       keep[i] = n > 0 ? Math.min(1, (DENS * area) / cell2 / n) : 1;
     }
     c.kw = st.W; c.kh = st.H; c.keep = keep;
@@ -435,7 +440,7 @@ export function createEngine(canvas) {
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   }
 
-  const unsettled = () => st.tYaw != null || Math.abs(st.tMorph - st.morph) > 0.002 || Object.keys(st.fade).some((k) => Math.abs(st.fade[k] - (k === st.view ? 1 : 0)) > 0.01)
+  const unsettled = () => st.tYaw != null || Math.abs(st.tMorph - st.morph) > 0.002 || st.tView.some((v, i) => Math.abs(v - st.view4[i]) > 0.002) || Object.keys(st.fade).some((k) => Math.abs(st.fade[k] - (k === st.view ? 1 : 0)) > 0.01)
     || Object.values(st.cams).some((c) => Math.abs(c.tz - c.z) > 0.001 || Math.abs(c.tx - c.x) > 0.0005 || Math.abs(c.ty - c.y) > 0.0005);
   /** How much main-thread time a drawn frame costs, smoothed. If drawing at 60 fps keeps the main thread more than about half busy for
    *  several seconds, the active rate drops to 30 and comes back when it is cheap again. It only trades frame rate: resolution and
@@ -460,6 +465,10 @@ export function createEngine(canvas) {
     const dt = Math.min(0.05, (now - st.last) / 1000 || 0); st.last = now;
     if (st.live) st.t += dt;
     for (const k of Object.keys(st.fade)) st.fade[k] += ((k === st.view ? 1 : 0) - st.fade[k]) * Math.min(1, dt * 7);
+    for (let i = 0; i < 4; i++) {
+      st.view4[i] += (st.tView[i] - st.view4[i]) * Math.min(1, dt * 6);
+      if (Math.abs(st.tView[i] - st.view4[i]) < 0.002) st.view4[i] = st.tView[i];
+    }
     st.morph += (st.tMorph - st.morph) * Math.min(1, dt * 4);
     if (Math.abs(st.tMorph - st.morph) < 0.002) st.morph = st.tMorph;
     for (const c of Object.values(st.cams)) {
@@ -488,7 +497,7 @@ export function createEngine(canvas) {
       gl.useProgram(field.p);
       attribs(field, buf.field, [["aLL", 2, 0], ["aD", 4, 2]], 6);
       const u = field.u;
-      gl.uniformMatrix3fv(u.uRot, false, rot()); gl.uniform3fv(u.uCam, camOf("field"));
+      gl.uniformMatrix3fv(u.uRot, false, rot()); gl.uniform3fv(u.uCam, camOf("field")); gl.uniform4fv(u.uView, st.view4);
       gl.uniform1f(u.uMorph, st.morph); gl.uniform1f(u.uTime, st.t); gl.uniform1f(u.uAspect, aspect());
       gl.uniform1f(u.uZoom, zoom()); gl.uniform1f(u.uSel, st.sel); gl.uniform1f(u.uHov, st.hov);
       gl.uniform1f(u.uPx, px * 1.25); gl.uniform1f(u.uFade, st.fade.field); gl.uniform4fv(u.uEmit, st.emit);
@@ -498,7 +507,7 @@ export function createEngine(canvas) {
       const cam = camOf("trace"), c = st.cas;
       gl.useProgram(vortexP.p); bindQuad(vortexP);
       const v = vortexP.u;
-      gl.uniform2f(v.uTex, st.tw, st.th); gl.uniform2f(v.uCore, c.core.x, c.core.y); gl.uniform3fv(v.uCam, cam);
+      gl.uniform2f(v.uTex, st.tw, st.th); gl.uniform2f(v.uCore, c.core.x, c.core.y); gl.uniform3fv(v.uCam, cam); gl.uniform4fv(v.uView, st.view4);
       gl.uniform1f(v.uTime, st.t); gl.uniform1f(v.uAspect, aspect()); gl.uniform1f(v.uCoreR, coreR());
       gl.uniform1f(v.uRisk, st.risk); gl.uniform1f(v.uFade, st.fade.trace);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
@@ -508,7 +517,7 @@ export function createEngine(canvas) {
         const u = sim.draw.u;
         unit(0, sim.tex[sim.cur]); unit(1, sim.rand);
         gl.uniform1i(u.uState, 0); gl.uniform1i(u.uRand, 1);
-        gl.uniform3fv(u.uCam, cam); gl.uniform1f(u.uSim, sim.n); gl.uniform1f(u.uTime, st.t); gl.uniform1f(u.uFade, st.fade.trace);
+        gl.uniform3fv(u.uCam, cam); gl.uniform4fv(u.uView, st.view4); gl.uniform1f(u.uSim, sim.n); gl.uniform1f(u.uTime, st.t); gl.uniform1f(u.uFade, st.fade.trace);
         gl.uniform1f(u.uFocus, st.focusIdx); gl.uniform1f(u.uRisk, st.risk); gl.uniform1fv(u.uSg, c.sg); gl.uniform1fv(u.uKeep, keepOf(c));
         gl.uniform3f(u.uCore, c.core.x, c.core.y, coreR()); gl.uniform1f(u.uAspect, aspect());
         gl.drawArrays(gl.LINES, 0, sim.n * sim.n * 2);
@@ -518,7 +527,7 @@ export function createEngine(canvas) {
       gl.useProgram(atlas.p);
       attribs(atlas, buf.atlas, [["aP", 4, 0]], 4);
       const u = atlas.u, per = st.Q * 3, lift = 1.5 / st.th;
-      gl.uniform3fv(u.uCam, camOf("atlas"));
+      gl.uniform3fv(u.uCam, camOf("atlas")); gl.uniform4fv(u.uView, st.view4);
       gl.uniform1f(u.uTime, st.t); gl.uniform1f(u.uFade, st.fade.atlas); gl.uniform1f(u.uCursor, st.cursor);
       for (let r = 0; r < st.rows; r++) {
         gl.uniform1f(u.uLift, 0); gl.uniform1f(u.uDim, st.selRow >= 0 && r !== st.selRow ? 1 : 0);
@@ -561,6 +570,14 @@ export function createEngine(canvas) {
     state: st, project, unproject, toStage, fromStage,
     setView(v) { poke(); st.view = v; if (!st.viewSet) { st.viewSet = true; for (const k of Object.keys(st.fade)) st.fade[k] = k === v ? 1 : 0; } },
     setLive(v) { st.live = v; poke(); },
+    setFill(v) { st.fill = v; poke(); },
+    setShift(x, y) { st.shift = { x, y }; poke(); },
+    /** the margins that panels cover, as fractions of the canvas; every view is drawn in what is left */
+    setInset({ l = 0, r = 0, t = 0, b = 0 }) {
+      st.tView = [Math.max(0.2, 1 - l - r), Math.max(0.2, 1 - t - b), l - r, b - t];
+      if (!st.framed) { st.framed = true; st.view4.set(st.tView); }
+      poke();
+    },
     setPlane(v) { st.tMorph = v ? 1 : 0; poke(); },
     setField(data, emit) { poke(); upload(buf.field, data); st.nField = data.length / 6; st.emit.fill(0); st.emit.set(emit.slice(0, 32)); },
     /**
@@ -585,13 +602,13 @@ export function createEngine(canvas) {
     hover(idx) { st.hov = idx; poke(); },
     rows(sel, hov, cursor) { poke(); st.selRow = sel; st.hovRow = hov; st.cursor = cursor; },
     focus(i) { st.focusIdx = i == null ? -1 : i; poke(); },
-    drag(dx, dy) { poke(); st.tYaw = null; st.idle = 0; st.yaw -= dx * 2.2 / (zoom() * st.cams.field.z); st.pitch = Math.max(-1.3, Math.min(1.3, st.pitch + dy * 2.2 / (zoom() * st.cams.field.z))); },
+    drag(dx, dy) { poke(); st.tYaw = null; st.idle = 0; const k = 2.2 / (zoom() * st.cams.field.z * st.view4[1]); st.yaw -= dx * k; st.pitch = Math.max(-1.3, Math.min(1.3, st.pitch + dy * k)); },
     dragging(v) { poke(); st.drag = v; st.idle = 0; },
     /** multiply the zoom of the current view by f, keeping the stage point (fx, fy) under the cursor */
     zoomAt(fx, fy, f) {
       poke();
       if (st.view === "trace") return;                 // the ledger is laid out in pixels: it does not zoom
-      const c = st.cams[st.view], cx = fx * 2 - 1, cy = 1 - fy * 2, z1 = clamp(c.tz * f, 1, MAXZ);
+      const c = st.cams[st.view], [cx, cy] = inner(fx, fy), z1 = clamp(c.tz * f, 1, MAXZ);
       if (st.view !== "field" || st.tMorph === 1) {
         const wx = cx / c.tz + c.tx, wy = cy / c.tz + c.ty;
         c.tx = wx - cx / z1; c.ty = wy - cy / z1;
@@ -603,7 +620,7 @@ export function createEngine(canvas) {
       poke();
       const c = st.cams[st.view];
       if (st.view === "trace" || (st.view === "field" && st.morph < 0.99)) return;
-      c.tx -= (dfx * 2) / c.z; c.ty += (dfy * 2) / c.z; clampCam(c); c.x = c.tx; c.y = c.ty;
+      c.tx -= (dfx * 2) / (c.z * st.view4[0]); c.ty += (dfy * 2) / (c.z * st.view4[1]); clampCam(c); c.x = c.tx; c.y = c.ty;
     },
     resetCam() { poke(); const c = st.cams[st.view]; c.tz = 1; c.tx = 0; c.ty = 0; },
     zoomLevel() { return st.cams[st.view].tz; },

@@ -19,6 +19,19 @@ Praevex is an open-source political instability intelligence instrument combinin
 | `.github/workflows/` | aggiornamento mensile automatico |
 | `docs/` | note sulla console (`console.md`) e sui segnali di innesco (`triggers.md`) |
 | `app/`, `components/`, `lib/` | sito e API |
+| `public/assets/` | kit di design (taste-skill 2.5.1) copiato senza modifiche; gli stili del sito sono in `app/styles/` |
+
+## Pagine
+
+| Percorso | Contenuto |
+|---|---|
+| `/` | presentazione: il globo, poi quando, perche', il record, il brief, il registro e le altre previsioni |
+| `/forecast` | la console (prima stava su `/`: i vecchi link `/?c=...` reindirizzano) |
+| `/paese/[paese]` | la stima accanto al globo, poi cinque schede: sintesi, storia, segnali, contesto, evidenze |
+| `/violence`, `/unrest`, `/markets` | mappa o confronto mercato-modello in apertura, poi le tabelle |
+| `/registry`, `/world`, `/metodo` | registro, mappa dei golpe dal 1900, metodo |
+
+La ricerca di paesi e pagine si apre con `⌘K` (o `Ctrl K`) da qualunque pagina.
 
 ## Marchio
 

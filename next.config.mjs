@@ -4,6 +4,10 @@ const nextConfig = {
   cacheComponents: true,
   devIndicators: false,       // the round "N" badge of the dev server, which covered the corner of the preview
   partialPrefetching: true,
+  // The console moved from the home page to /forecast: links shared before (/?c=sudan&v=trace) still open it.
+  async redirects() {
+    return ["c", "v", "tour"].map((key) => ({ source: "/", has: [{ type: "query", key }], destination: "/forecast", permanent: false }));
+  },
   // Files read at request time by the serverless routes (fonts and flags for the dossier PDF, coup source links).
   outputFileTracingIncludes: {
     "/api/dossier/\\[slug\\]": [

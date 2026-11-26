@@ -71,8 +71,8 @@ export default function Dossier({ country, others, meta }) {
 
       {!country.historical && (
         <>
-          <section className="card" id="history">
-            <div className="card-head">
+          <section className="block" id="history">
+            <div className="block-head">
               <h2>Risk estimates over time</h2>
               <label className="check">Compare with{" "}
                 <select className="select" defaultValue="" onChange={(e) => compare(e.target.value)}>
@@ -83,22 +83,22 @@ export default function Dossier({ country, others, meta }) {
             </div>
             {busy && <p className="note">Loading comparison…</p>}
             {error && <p role="alert">{error}</p>}
-            <div className="grid-2" style={{ marginTop: 8 }}>
+            <div className="cols-2">
               <div>
                 <div className="legend">
                   <span><i className="ln s1" />{country.name}</span>
                   {other && <span><i className="ln s2" />{other.name}</span>}
-                  <span><i className="ln" />successful coup</span>
-                  <span><i className="ln dash" />failed coup</span>
+                  <span><i className="ln ok" />successful coup</span>
+                  <span><i className="ln ko" />failed coup</span>
                 </div>
                 <LineChart series={riskSeries} markers={markers} height={240} fmt={(v) => pct(v, v < 0.1 ? 1 : 0)} />
                 {country.structural === false && (
-                  <p className="note" style={{ marginTop: 8 }}>
+                  <p className="note">
                     We have no regime, leadership or economic indicators for this territory, so its estimate rests on coup history and ACLED signals alone.
                   </p>
                 )}
                 {other && (
-                  <p className="note" style={{ marginTop: 8 }}>
+                  <p className="note">
                     Latest: {country.name} {pct(country.risk)}, {other.name} {pct(other.risk)}. Attempts since 1900:{" "}
                     {country.attempts} versus {other.attempts}.
                   </p>
@@ -106,12 +106,12 @@ export default function Dossier({ country, others, meta }) {
               </div>
               <div>
                 {country.groups?.length > 0 && <><h3>Contributions to the latest estimate</h3>
-                <p className="note" style={{ margin: "0 0 4px" }}>Logistic-component log-odds contributions relative to its training reference; not percentage points or causal effects.</p>
+                <p className="note">Logistic-component log-odds contributions relative to its training reference; not percentage points or causal effects.</p>
                 <HBars rows={country.groups || []} value={(r) => r.contrib} label={(r) => labelEn(r.label)} diverging labelWidth={250}
                        cls={(r) => (r.contrib >= 0 ? "bar-up" : "bar-down")}
                        fmt={(r) => (r.contrib >= 0 ? "+" : "−") + dec(Math.abs(r.contrib))}
                        tipFor={(r) => (<><b>{labelEn(r.label)}</b>{r.contrib >= 0 ? "Increases" : "Reduces"} risk relative to an average country</>)} />
-                </>}<h3 style={{ marginTop: 14 }}>Leading individual factors</h3>
+                </>}<h3>Leading individual factors</h3>
                 <div className="legend">
                   <span><i className="sw" style={{ background: "var(--up)" }} />increases risk</span>
                   <span><i className="sw" style={{ background: "var(--down)" }} />reduces risk</span>
@@ -124,8 +124,8 @@ export default function Dossier({ country, others, meta }) {
             </div>
           </section>
 
-          {country.series?.start && <section className="card">
-            <h2>Monthly observations / ACLED</h2>
+          {country.series?.start && <section className="block" id="observations">
+            <h2>Monthly ACLED observations</h2>
             <p className="note">Vertical lines mark coups. Counts also depend on the extent of ACLED coverage over time.</p>
             <div className="small-multiples">
               {SERIES.map(([k, title]) => (
@@ -139,9 +139,9 @@ export default function Dossier({ country, others, meta }) {
           </section>}
         </>
       )}
-      <section className="card" id="archive">
-        <div className="card-head">
-          <h2>Coup archive / since 1900</h2>
+      <section className="block" id="archive">
+        <div className="block-head">
+          <h2>Coup archive since 1900</h2>
           <label className="check">Minimum confidence{" "}
             <select className="select" value={minConf} onChange={(e) => setMinConf(e.target.value)}>
               <option value="A">high (A)</option>
@@ -159,15 +159,15 @@ export default function Dossier({ country, others, meta }) {
         {shown.length ? <CoupTimeline events={shown} endYear={endYear} />
                       : <p className="note">No events at this confidence level.</p>}
         {shown.length > 0 && (
-          <div className="table-scroll">
+          <div className="table-scroll" tabIndex={0} role="region" aria-label="Recorded events">
             <table>
               <thead><tr><th>Date</th><th>Outcome</th><th>Conf.</th><th>Sources</th><th>Notes</th></tr></thead>
               <tbody>
                 {[...shown].reverse().map((e) => (
                   <tr key={e.id}>
                     <td className="tnum" style={{ whiteSpace: "nowrap" }}>{fmtEventDate(e)}</td>
-                    <td><span className={`badge ${e.type}`}>{TYPE_LABEL[e.type]}</span></td>
-                    <td><span className="badge conf" title={CONF_LABEL[e.conf]}>{e.conf}</span></td>
+                    <td><span className={`tag ${e.type}`}>{TYPE_LABEL[e.type]}</span></td>
+                    <td><span className="tag conf" title={CONF_LABEL[e.conf]}>{e.conf}</span></td>
                     <td className="src-cell">
                       <span className="src-names">{e.sources}</span>
                       {e.links?.length > 0 && <span className="src-links">

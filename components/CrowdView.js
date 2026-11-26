@@ -17,7 +17,7 @@ export default function CrowdView({ slug, name }) {
   const notice = d ? marketNotice(d.status) : null;
   const lead = d?.primary, verdict = lead ? marketVerdict(lead.p, lead.model) : null;
   return (
-    <section id="crowd" className="card crowd">
+    <section id="crowd" className="block crowd">
       <h2>What the prediction markets say</h2>
       <p className="note">A second opinion on a similar question. For each country we show one market: the coup question with the most volume on Polymarket or Kalshi. Markets differ from our target in wording, horizon and liquidity, so we restate our probability for the market&rsquo;s horizon (the same risk every month up to six months, a fitted correction beyond). A gap is a reason to look closer. Both venues trade real money and are blocked in some countries, so we do not link to them.</p>
       {!d && !err && <p className="note">Loading markets…</p>}
@@ -26,10 +26,12 @@ export default function CrowdView({ slug, name }) {
       {lead && (
         <div className={`mk-lead ${verdict?.kind || ""}`}>
           <div className="mk-big"><b>{p1(lead.p)}</b><span>{lead.source} · {money(lead.volume)} traded · closes {fmtClose(lead.closes)}</span></div>
-          <p className="mk-q">{lead.question}</p>
-          <div className="mk-vs">
-            <div><span>Our model, same horizon</span><b>{lead.model != null ? p1(lead.model) : "–"}</b></div>
-            {verdict && <p>{verdict.text} Definitions differ: markets often count rumours and looser attempts, while our target counts only confirmed events.</p>}
+          <div className="mk-body">
+            <p className="mk-q">{lead.question}</p>
+            <div className="mk-vs">
+              <div><span>Our model, same horizon</span><b>{lead.model != null ? p1(lead.model) : "–"}</b></div>
+              {verdict && <p>{verdict.text} Definitions differ: markets often count rumours and looser attempts, while our target counts only confirmed events.</p>}
+            </div>
           </div>
         </div>
       )}

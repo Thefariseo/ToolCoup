@@ -7,11 +7,10 @@ import TraceLedger from "@/components/console/TraceLedger";
 import { pct } from "@/lib/format";
 
 const RAD = Math.PI / 180;
-export const GROUP_NAME = { storia: "COUP HISTORY", contagio: "CONTAGION", regime: "REGIME", leader: "LEADER / ELECTIONS", economia: "ECONOMY", piazza: "MOBILIZATION", acled: "ACLED MONTHLY" };
-const REGION_SHORT = { "Western Africa": "W AFRICA", "Middle Africa": "M AFRICA", "Eastern Africa": "E AFRICA", "Southern Africa": "S AFRICA",
-  "Northern Africa": "N AFRICA", "Middle East": "MIDEAST", "Caucasus and Central Asia": "C ASIA", "South Asia": "S ASIA",
-  "Southeast Asia": "SE ASIA", "East Asia": "E ASIA", Europe: "EUROPE", "South America": "S AMERICA", "Central America": "C AMERICA",
-  Caribbean: "CARIB", "North America": "N AMERICA", Oceania: "OCEANIA" };
+export const GROUP_NAME = { storia: "coup history", contagio: "contagion", regime: "regime", leader: "leaders and elections", economia: "economy", piazza: "mobilisation", acled: "ACLED monthly" };
+const REGION_SHORT = { "Western Africa": "W Africa", "Middle Africa": "Central Africa", "Eastern Africa": "E Africa", "Southern Africa": "Southern Africa",
+  "Northern Africa": "N Africa", "Middle East": "Middle East", "Caucasus and Central Asia": "Central Asia", "South Asia": "South Asia",
+  "Southeast Asia": "SE Asia", "East Asia": "East Asia", "Central America": "C America", "North America": "N America", "South America": "S America" };
 const rnd = (seed) => { let s = seed >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); };
 
 let landPromise;
@@ -25,7 +24,14 @@ const cellKey = (lon, lat, step, dr = 0, dc = 0) => {
   return row * 4096 + ((Math.floor(((lon + 180) / 360) * n) + dc + n) % n);
 };
 
-export default function Stage({ view, list, selected, detail, atlas, plane, live, onSelect, focus, onFocus, apiRef }) {
+const NO_INSET = { l: 0, r: 0, t: 0, b: 0 };
+
+/** `embed` is a stage inside a page (the home hero, the "when" section, a country page): no zoom buttons and no
+ *  wheel capture, so the page scrolls past it. `inset` (px) is what floating panels cover: every view is drawn in
+ *  the rest. `shift` moves the globe off centre (clip units), `fill` scales it, `labels` caps the globe's tags.
+ *  `bare` (a class name) draws the canvas alone, as a section's background layer. An embedded stage that WebGL
+ *  cannot draw renders nothing, so the still picture under it shows. */
+export default function Stage({ view, list, selected, detail, atlas, plane, live, onSelect, focus, onFocus, apiRef, embed = false, inset = NO_INSET, shift = null, fill = 1, labels = embed ? 6 : 10, bare = "", onReady }) {
   const canvasRef = useRef(null), engineRef = useRef(null), labelRefs = useRef(new Map()), overlayRef = useRef(null), rootRef = useRef(null);
   const [land, setLand] = useState(null), [failed, setFailed] = useState(false), [tip, setTip] = useState(null);
   const [atlasHover, setAtlasHover] = useState(null), [zoomShown, setZoomShown] = useState(1);
@@ -40,7 +46,9 @@ export default function Stage({ view, list, selected, detail, atlas, plane, live
     engineRef.current = engine;
     if (process.env.NODE_ENV !== "production") window.__cx = engine;       // development only: lets the test scripts find a country on screen
     if (apiRef) apiRef.current = { zoom: (f) => engine.zoomAt(0.5, 0.5, f), reset: () => engine.resetCam() };
-    loadLand().then(setLand).catch(() => setFailed(true));
+    let raf = 0;
+    loadLand().then((d) => { setLand(d); raf = requestAnimationFrame(() => { raf = requestAnimationFrame(() => onReady?.()); }); }).catch(() => setFailed(true));
+    if (embed) return () => { cancelAnimationFrame(raf); engine.destroy(); engineRef.current = null; };
     const el = canvasRef.current;
     const wheel = (e) => {                     // native listener: React's onWheel is passive and cannot stop page scroll
       if (engine.state.view === "trace") return; // the trace does not zoom: let the page scroll
@@ -49,8 +57,9 @@ export default function Stage({ view, list, selected, detail, atlas, plane, live
       engine.zoomAt((e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height, Math.exp(-e.deltaY * (e.ctrlKey ? 0.012 : 0.0016)));
     };
     el.addEventListener("wheel", wheel, { passive: false });
-    return () => { el.removeEventListener("wheel", wheel); engine.destroy(); engineRef.current = null; if (apiRef) apiRef.current = null; };
-  }, [apiRef]);
+    return () => { cancelAnimationFrame(raf); el.removeEventListener("wheel", wheel); engine.destroy(); engineRef.current = null; if (apiRef) apiRef.current = null; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [apiRef, embed]);
 
   // ---- FIELD: land dots carry their country's forecast; plumes and pulses scale with it
   const geo = useMemo(() => {
@@ -95,18 +104,25 @@ export default function Stage({ view, list, selected, detail, atlas, plane, live
     if (view === "trace" && !peerData) fetch("/api/trace").then((r) => (r.ok ? r.json() : null)).then((d) => d && setPeerData(d)).catch(() => {});
   }, [view, peerData]);
   useEffect(() => {
-    const el = rootRef.current; if (!el) return;
+    const el = bare ? canvasRef.current : rootRef.current; if (!el) return;
     const read = () => setSize((s) => { const w = Math.round(el.clientWidth), h = Math.round(el.clientHeight); return s.w === w && s.h === h ? s : { w, h }; });
     read();
     const ro = new ResizeObserver(read); ro.observe(el);
     return () => ro.disconnect();
   }, []);
+  const { l, r, t, b } = inset, sx = shift?.x || 0, sy = shift?.y || 0;
+  useEffect(() => {
+    const engine = engineRef.current; if (!engine || !size.w || !size.h) return;
+    engine.setInset({ l: l / size.w, r: r / size.w, t: t / size.h, b: b / size.h });
+    engine.setShift(sx, sy); engine.setFill(fill);
+  }, [size, l, r, t, b, sx, sy, fill]);
+  const inW = Math.max(0, size.w - l - r), inH = Math.max(0, size.h - t - b);
   const ledger = useMemo(() => {
-    if (!selected || detail?.slug !== selected.slug || !peerData?.ref || size.w < 240 || size.h < 240) return null;
+    if (!selected || detail?.slug !== selected.slug || !peerData?.ref || inW < 240 || inH < 240) return null;
     const m = ledgerModel({ groups: detail.groups, components: detail.diagnostics?.components, risk: selected.risk, lo: selected.risk_lo, hi: selected.risk_hi,
       ref: peerData.ref, peers: peerData.peers, imputed: selected.structural === false });
-    return m ? layoutLedger(m, size.w, size.h) : { none: true };
-  }, [selected, detail, peerData, size]);
+    return m ? layoutLedger(m, inW, inH) : { none: true };
+  }, [selected, detail, peerData, inW, inH]);
   useEffect(() => {
     const engine = engineRef.current; if (!engine || !ledger || ledger.none) return;
     engine.setLedger({ boxes: ledger.boxes, core: ledger.core }, Math.max(0, riskNorm(selected.risk, maxRisk)));
@@ -159,9 +175,9 @@ export default function Stage({ view, list, selected, detail, atlas, plane, live
   // ---- overlay placement, once per frame: globe labels follow the sphere, the rest follow the camera
   const beacons = useMemo(() => {
     if (!geo) return [];
-    const top = list.slice(0, 10), all = selected && !top.some((c) => c.slug === selected.slug) ? [...top, selected] : top;
+    const top = list.slice(0, labels), all = selected && !top.some((c) => c.slug === selected.slug) ? [...top, selected] : top;
     return all.map((c) => ({ c, g: land.meta.countries[geo.idxOf.get(c.slug)] })).filter((b) => b.g);
-  }, [geo, land, list, selected]);
+  }, [geo, land, list, selected, labels]);
   useEffect(() => {                         // the overlay's size and each label's width are read here, once, never per frame
     const root = overlayRef.current; if (!root) return;
     const read = () => { sizeRef.current = { W: root.clientWidth, H: root.clientHeight }; for (const [slug, el] of labelRefs.current) widths.current.set(slug, el.offsetWidth); };
@@ -188,11 +204,13 @@ export default function Stage({ view, list, selected, detail, atlas, plane, live
           const el = labelRefs.current.get(b.c.slug); if (!el) continue;
           const p = engine.project(b.g.c[0], b.g.c[1]);
           const x = p.x * W, w = widths.current.get(b.c.slug) ?? 80; let y = p.y * H;
+          const flip = x + w > W - 8, left = flip ? x - w + 6 : x;          // a label that would leave the stage reads leftwards from its marker
           if (p.front) {                                  // stack labels that would collide; the marker stays on the country
-            for (let k = 0; k < 8 && placed.some((q) => x < q.x + q.w + 6 && q.x < x + w + 6 && Math.abs(q.y - y) < 13); k++) y += 13;
-            placed.push({ x, y, w });
+            for (let k = 0; k < 8 && placed.some((q) => left < q.x + q.w + 6 && q.x < left + w + 6 && Math.abs(q.y - y) < 19); k++) y += 19;
+            placed.push({ x: left, y, w });
           }
-          el.style.transform = `translate(${x.toFixed(1)}px, ${(p.y * H).toFixed(1)}px)`;
+          el.classList.toggle("flip", flip);
+          el.style.transform = `translate(${left.toFixed(1)}px, ${(p.y * H).toFixed(1)}px)`;
           el.style.setProperty("--dy", `${(y - p.y * H).toFixed(1)}px`);
           el.style.opacity = p.front && p.x > -0.05 && p.x < 1.05 && p.y > -0.05 && p.y < 1.05 ? 1 : 0;
           el.style.pointerEvents = p.front ? "auto" : "none";
@@ -255,6 +273,7 @@ export default function Stage({ view, list, selected, detail, atlas, plane, live
     }
   };
   const onDown = (e) => {
+    if (embed && e.pointerType === "touch" && view !== "field") return;      // a finger on an embedded chart scrolls the page
     pts.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     ptr.current = { down: true, moved: pts.current.size > 1 ? 99 : 0, x: e.clientX, y: e.clientY };
     pinch.current = 0;
@@ -273,29 +292,34 @@ export default function Stage({ view, list, selected, detail, atlas, plane, live
 
   const quarterLabel = (q) => `${atlas.start + Math.floor(q / 4)} Q${(q % 4) + 1}`;
   const zoomBtn = (f) => engineRef.current?.zoomAt(0.5, 0.5, f);
+  const canvas = (
+    <canvas ref={canvasRef} className={`${view === "field" && !plane ? "grab" : "pan"}${bare ? ` ${bare}` : ""}`} onPointerMove={onMove} onPointerDown={onDown} onPointerUp={onUp}
+      onPointerCancel={onUp} onPointerLeave={onLeave} aria-hidden="true" />
+  );
+  if (failed && embed) return null;
+  if (bare) return canvas;
 
   return (
-    <div ref={rootRef} className={`cx-stage v-${view}`}>
-      <canvas ref={canvasRef} className={view === "field" && !plane ? "grab" : "pan"} onPointerMove={onMove} onPointerDown={onDown} onPointerUp={onUp}
-        onPointerCancel={onUp} onPointerLeave={onLeave} aria-hidden="true" />
-      {failed && <p className="cx-fail">WebGL2 is unavailable in this browser. The watchlist, readout and timeline remain fully usable.</p>}
+    <div ref={rootRef} className={`cx-stage v-${view}${failed ? " failed" : ""}${embed ? " embed" : ""}`} style={{ "--in-l": `${l}px`, "--in-r": `${r}px`, "--in-t": `${t}px`, "--in-b": `${b}px` }}>
+      {canvas}
+      {failed && !embed && <p className="cx-fail">WebGL2 is unavailable in this browser. The watchlist, readout and timeline remain fully usable.</p>}
 
-      <div className="cx-zoom" role="group" aria-label="Zoom">
+      {!embed && <div className="cx-zoom" role="group" aria-label="Zoom">
         <button onClick={() => zoomBtn(1.5)} aria-label="Zoom in">+</button>
         <button onClick={() => zoomBtn(1 / 1.5)} aria-label="Zoom out">−</button>
-        <button onClick={() => engineRef.current?.resetCam()} className="fit" aria-label="Reset zoom" title="Reset zoom [0]">{zoomShown.toFixed(1)}×</button>
-      </div>
+        <button onClick={() => engineRef.current?.resetCam()} className="fit" aria-label="Reset zoom" title="Reset zoom (key 0)">{zoomShown.toFixed(1)}×</button>
+      </div>}
 
       <div ref={overlayRef} className={`cx-overlay${zoomShown > 2.2 ? " zin" : ""}`}>
         {view === "field" && beacons.map(({ c }) => (
           <button key={c.slug} ref={(el) => { if (el) labelRefs.current.set(c.slug, el); else labelRefs.current.delete(c.slug); }}
-            className={`cx-beacon${c.slug === selected?.slug ? " on" : ""}`} onClick={() => onSelect(c.slug)}>
-            <i /><span>{String(c.pos).padStart(2, "0")} {c.name.toUpperCase()}</span><b>{pct(c.risk)}</b>
+            className={`cx-beacon${c.slug === selected?.slug ? " on" : ""}`} onClick={() => onSelect(c.slug)} tabIndex={embed ? -1 : undefined}>
+            <i /><span>{c.name}</span><b>{pct(c.risk)}</b>
           </button>
         ))}
 
         {view === "atlas" && ridge && ridge.regions.map((g) => (
-          <span key={g.name} className="cx-region" data-cx={ATLAS_GEOM.x(1, ridge.pos[g.i]) + 0.02} data-cy={ATLAS_GEOM.yb(ridge.pos[g.i])}>{REGION_SHORT[g.name] || g.name.toUpperCase()}</span>
+          <span key={g.name} className="cx-region" data-cx={ATLAS_GEOM.x(1, ridge.pos[g.i]) + 0.02} data-cy={ATLAS_GEOM.yb(ridge.pos[g.i])}>{REGION_SHORT[g.name] || g.name}</span>
         ))}
         {view === "atlas" && atlas && Array.from({ length: 6 }, (_, k) => 1980 + k * 10).map((y) => {
           const t = ((y - atlas.start) * 4) / (atlas.quarters - 1); if (t > 1) return null;
@@ -304,28 +328,32 @@ export default function Stage({ view, list, selected, detail, atlas, plane, live
         {view === "atlas" && traj && (
           <>
             <span className="cx-guide" data-cx={traj.start.cx} data-cx2={traj.end.cx} data-cy={traj.start.cy} />
-            <span className="cx-rowtag" data-cx={traj.start.cx - 0.01} data-cy={traj.start.cy}>{selected.name.toUpperCase()} ▸</span>
+            <span className="cx-rowtag" data-cx={traj.start.cx - 0.01} data-cy={traj.start.cy}>{selected.name}</span>
             {traj.coups.map((e) => (
               <span key={e.id} className={`cx-mark ${e.type === "riuscito" ? "ok" : "ko"}`} data-cx={e.cx} data-cy={e.cy}><i />{<small>{e.date.slice(0, 4)}</small>}</span>
             ))}
-            <span className="cx-peak" data-cx={traj.peak.cx} data-cy={traj.peak.cy}>PEAK {pct(traj.peak.v / 10000)} · {quarterLabel(traj.peak.q)}</span>
-            <span className="cx-now" data-cx={traj.now.cx} data-cy={traj.now.cy}><i />NOW {pct(traj.now.v / 10000)}</span>
+            <span className="cx-peak" data-cx={traj.peak.cx} data-cy={traj.peak.cy}>Peak {pct(traj.peak.v / 10000)}, {quarterLabel(traj.peak.q)}</span>
+            <span className="cx-now" data-cx={traj.now.cx} data-cy={traj.now.cy}><i />Now {pct(traj.now.v / 10000)}</span>
           </>
         )}
-        {view === "atlas" && !atlas && <p className="cx-wait">LOADING 51 YEARS OF FORECASTS<i>_</i></p>}
+        {view === "atlas" && !atlas && <p className="cx-wait">Loading 51 years of forecasts…</p>}
 
-        {view === "trace" && ledger && !ledger.none && <TraceLedger ledger={ledger} focus={focus} onFocus={onFocus} name={selected.name} />}
-        {view === "trace" && ledger?.none && <p className="cx-wait">NO DRIVER DECOMPOSITION EXPORTED FOR THIS COUNTRY</p>}
-        {view === "trace" && !ledger && <p className="cx-wait">COMPUTING THE LEDGER<i>_</i></p>}
+        {view === "trace" && (
+          <div className="cx-inner" style={{ left: l, top: t, width: inW, height: inH }}>
+            {ledger && !ledger.none && <TraceLedger ledger={ledger} focus={focus} onFocus={onFocus} name={selected.name} />}
+            {ledger?.none && <p className="cx-wait">No driver breakdown is published for this country.</p>}
+            {!ledger && <p className="cx-wait">Laying out the ledger…</p>}
+          </div>
+        )}
       </div>
 
       {view === "atlas" && traj && (
         <div className="cx-traj">
-          <b>{selected.name.toUpperCase()} · TRAJECTORY SINCE {atlas.start}</b>
-          <span>PEAK <em>{pct(traj.peak.v / 10000)}</em> {quarterLabel(traj.peak.q)}</span>
-          <span>NOW <em>{pct(traj.now.v / 10000)}</em> {quarterLabel(traj.now.q)}</span>
-          <span>MEDIAN <em>{pct(traj.median / 10000)}</em></span>
-          <span><i className="d" /> {traj.coups.length} recorded attempts (A–C)</span>
+          <b>{selected.name} since {atlas.start}</b>
+          <span>Peak <em>{pct(traj.peak.v / 10000)}</em> {quarterLabel(traj.peak.q)}</span>
+          <span>Now <em>{pct(traj.now.v / 10000)}</em> {quarterLabel(traj.now.q)}</span>
+          <span>Median <em>{pct(traj.median / 10000)}</em></span>
+          <span><i className="d" />{traj.coups.length} recorded attempts (confidence A–C)</span>
         </div>
       )}
 

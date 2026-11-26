@@ -13,19 +13,19 @@ const STEPS = [
     "A typical country sits near 1%, so judge a figure against that and against its neighbours. We file a new issue every month and score it later against what happened.",
   ], hint: "Five short steps. Arrow keys move, Esc closes." },
   { target: ".cx-list", side: "right", title: "Pick a country", body: [
-    "The watchlist runs from the highest chance to the lowest. Click a country, use the arrow keys, or press / to filter by name or region.",
-    "The small triangle shows the move over three months: amber up, cyan down.",
+    "The watchlist opens from the highest chance to the lowest; you can also sort it by rise or by name. Click a country, use the arrow keys, or press / to filter.",
+    "The small figure is the move over three months, in points: amber up, cyan down.",
   ] },
   { target: ".cx-tabs", side: "bottom", view: "field", title: "Three ways to read one forecast", body: [
     "Where: a globe coloured by each country's chance. When: one ridge per country since 1975. Why: how each group of variables pushes this country's odds up or down.",
-    "Switch with the tabs or the keys 1, 2 and 3. Drag and scroll move the globe; G turns it into a flat map.",
+    "Switch with the tabs or the keys 1, 2 and 3. Drag and scroll move the globe; G turns it into a flat map; T hides the timeline.",
   ] },
   { target: ".cx-read", side: "left", title: "The readout", body: [
     "The chance with its 80% range, the rank, the biggest drivers and the coup record.",
     "Download country brief builds a four-page note, cover included, that sets our model against recent press. The country page has every figure and a source for each coup.",
   ] },
-  { target: ".site-header", side: "bottom", title: "The rest of the site", body: [
-    "The logo sits in the middle of every page. Menu, top left, opens the registry (each month's forecast, dated and scored once the outcome is known), violence, markets, the map of every recorded coup since 1900, and the method.",
+  { target: ".nav", side: "bottom", title: "The rest of the site", body: [
+    "The header opens the map of every recorded coup since 1900, the violence, unrest and market outlooks, the registry of filed forecasts and the method. Search any country with ⌘K.",
     "Press ? to open this guide again.",
   ], last: true },
 ];
@@ -100,15 +100,15 @@ export default function Tour({ open, onClose, onView }) {
       {(!box || narrow) && <div className="tour-dim" />}
       <div className="tour-card" ref={cardRef} style={{ ...pos, width: narrow ? undefined : W }}>
         <header><span>Step {i + 1} of {STEPS.length}</span><button onClick={finish} aria-label="Close the guide">Skip guide</button></header>
-        {step.logo && <Brand variant="lockup" height={84} className="tour-logo" />}
+        {step.logo && <Brand variant="lockup" height={72} className="tour-logo" />}
         <h2 id="tour-title">{step.title}</h2>
         {step.body.map((t) => <p key={t}>{t}</p>)}
         {step.hint && <p className="tour-hint">{step.hint}</p>}
         <footer>
           <div className="tour-dots" aria-hidden="true">{STEPS.map((_, k) => <i key={k} className={k === i ? "on" : k < i ? "done" : ""} />)}</div>
           <div>
-            {i > 0 && <button onClick={() => go(-1)}>Back</button>}
-            <button ref={nextRef} className="primary" onClick={() => (lastStep ? finish() : go(1))}>{lastStep ? "Start exploring" : i === 0 ? "Start the guide" : "Next"}</button>
+            {i > 0 && <button className="btn btn--secondary" onClick={() => go(-1)}>Back</button>}
+            <button ref={nextRef} className="btn btn--primary" onClick={() => (lastStep ? finish() : go(1))}>{lastStep ? "Close the guide" : i === 0 ? "Start the guide" : "Next step"}</button>
           </div>
         </footer>
       </div>

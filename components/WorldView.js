@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Tip, useTip } from "@/components/Tooltip";
-import Rise from "@/components/motion/Rise";
 import WorldMap from "@/components/WorldMap";
 import { fmtEventDate, fmtMonth, num, parseDate, pct, TYPE_LABEL } from "@/lib/format";
 
@@ -13,7 +12,6 @@ const HIST_LABELS = ["1", "2", "3–4", "5–7", "8 or more"];
 
 export default function WorldView({ countries, meta, initialCoups }) {
   const [mode, setMode] = useState("history");              // the forecast is the home page; this page opens on what only it shows: every coup since 1900
-  const view = "map";
   const [year, setYear] = useState(() => Number(meta.data_end.slice(0, 4)));
   const [playing, setPlaying] = useState(false);
   const [conf, setConf] = useState("C");
@@ -28,7 +26,8 @@ export default function WorldView({ countries, meta, initialCoups }) {
 
   const minYear = 1900;
   const maxYear = Number(meta.data_end.slice(0, 4));
-  const ranked = useMemo(() => countries.filter((c) => !c.historical), [countries]);
+  // countries and territories: seas, oceans and Antarctica are in the export but are not countries
+  const ranked = useMemo(() => countries.filter((c) => !c.historical && c.region !== "International Waters" && c.region !== "Antarctica"), [countries]);
   const byIso = useMemo(() => new Map(ranked.filter((c) => c.iso).map((c) => [c.iso, c])), [ranked]);
   const bySlug = useMemo(() => new Map(countries.map((c) => [c.slug, c])), [countries]);
   const maxRisk = ranked[0]?.risk || 1;
@@ -126,25 +125,25 @@ export default function WorldView({ countries, meta, initialCoups }) {
   const from = parseDate(meta.forecast_from), to = parseDate(meta.forecast_to);
 
   return (
-    <main className="console">
-      <div className="page-head world-head"><h1><Rise>World map</Rise></h1><p className="lede">The current forecast for {num(meta.n_countries)} countries, and every recorded coup attempt since 1900. The forecast draws on {num(meta.n_events)} ACLED events; data runs through {meta.data_end}.</p></div>
+    <main id="top" className="page">
+      <div className="wrap">
+      <header className="page-head"><h1>Every recorded coup since 1900, on one map</h1><div className="page-head__side"><p className="lede">The current forecast for {ranked.length} countries and territories, and the archive of attempts year by year. The forecast draws on {num(meta.n_events)} ACLED events; data runs through {meta.data_end}.</p></div></header>
     <div className="world">
       <div className="world-main">
-        <div className="instrument-head"><span>Map</span><span>{mode === "risk" ? `Forecast for ${meta.forecast_from} to ${meta.forecast_to}` : `Coups in ${year}`}</span></div>
-        <div className={`map-wrap ${mode === "risk" && view === "field" ? "with-field" : ""}`}>
+        <div className="wm-bar">
+          <div className="seg" role="group" aria-label="Map mode">
+            <button aria-pressed={mode === "history"} onClick={() => setMode("history")}>Coup archive</button>
+            <button aria-pressed={mode === "risk"} onClick={() => { setMode("risk"); setPlaying(false); }}>Current forecast</button>
+          </div>
+          <span>{mode === "risk" ? `Forecast for ${meta.forecast_from} to ${meta.forecast_to}` : `Coups in ${year}`}</span>
+        </div>
+        <div className="map-wrap">
           {<WorldMap
             classOf={classOf} active={active} selectedIso={sel?.iso} dots={mode === "history" ? dots : []}
             onSelect={(iso) => setSelected(byIso.get(iso).slug)} onHover={hover} onLeave={hideTip}
             label={mode === "risk" ? "Country coup-risk map" : `Coup events in ${year}`}
           />}
-          <div className="map-top">
-            
-            <div className="seg" role="group" aria-label="Analysis mode">
-              <button aria-pressed={mode === "risk"} onClick={() => { setMode("risk"); setPlaying(false); }}>Forecast</button>
-              <button aria-pressed={mode === "history"} onClick={() => setMode("history")}>Historical archive</button>
-            </div>
-          </div>
-          <div className={`map-legend ${mode === "risk" && view === "field" ? "field-legend" : ""}`}>
+          <div className="map-legend">
             {mode === "risk" ? (<>
               <b>Probability of a coup attempt by {fmtMonth(to)}</b>
               <div className="legend-row">
@@ -175,30 +174,31 @@ export default function WorldView({ countries, meta, initialCoups }) {
         )}
       </div>
 
-      <aside className="panel" aria-label="Country monitor"><div className="instrument-head"><span>Countries</span><span>Highest probability first</span></div>
+      <aside className="wm-side" aria-label="Country monitor">
         {sel && (
-          <div className="panel-sec">
-            <div className="card-sel">
+          <div className="wm-sec">
               <h2>{sel.name}</h2>
               <div className="row">
                 {sel.risk != null && <span>{pct(sel.risk)} chance of an attempt{sel.risk_lo != null && ` (range ${pct(sel.risk_lo)} to ${pct(sel.risk_hi)})`}, rank {sel.rank} of {ranked.length}</span>}
                 <span>{sel.attempts} {sel.attempts === 1 ? "attempt" : "attempts"} since 1900</span>
               </div>
-              <Link className="btn primary" href={`/?c=${sel.slug}&v=field`}>Open in forecast</Link>{" "}<Link className="btn" href={`/paese/${sel.slug}`}>Country page</Link>{" "}
-              <button className="btn" onClick={() => setSelected(null)}>Clear</button>
-            </div>
+              <div className="wm-actions">
+                <Link className="btn btn--primary btn--sm" href={`/forecast?c=${sel.slug}&v=field`}>Open in the console</Link>
+                <Link className="btn btn--secondary btn--sm" href={`/paese/${sel.slug}`}>Read the page</Link>
+                <button className="btn btn--secondary btn--sm" onClick={() => setSelected(null)}>Clear selection</button>
+              </div>
           </div>
         )}
         {mode === "risk" ? (<>
-          <div className="panel-sec">
-            <h2>Country monitor</h2>
-            <p className="sub">
+          <div className="wm-sec">
+            <h2>Highest chance first</h2>
+            <p>
               Estimated probability of at least one attempt between {fmtMonth(from)} and {fmtMonth(to)}. The reference base rate since 2000 is {pct(meta.base_rate)}.
             </p>
-            <input className="input" style={{ marginTop: 10 }} type="search" placeholder="Filter country or region…"
+            <input className="input" type="search" placeholder="Filter by country or region"
                    aria-label="Filter country monitor" value={q} onChange={(e) => setQ(e.target.value)} />
           </div>
-          <div className="monitor-columns"><span>RK / COUNTRY</span><span>P(ATTEMPT)</span></div><ol className="rank-list">
+          <ol className="rank-list">
             {(showAll || q.trim() ? list : list.slice(0, 24)).map((c) => (
               <li key={c.slug}>
                 <button className={selected === c.slug ? "sel" : ""} onClick={() => setSelected(c.slug)}>
@@ -212,18 +212,18 @@ export default function WorldView({ countries, meta, initialCoups }) {
             {list.length === 0 && <li className="empty">No matching countries.</li>}
           </ol>
           {!q.trim() && list.length > 24 && (
-            <button className="fx-more" onClick={() => setShowAll(!showAll)}>{showAll ? "↑ SHOW TOP 24" : `↓ SHOW ALL ${list.length} COUNTRIES`}</button>
+            <button className="fx-more" onClick={() => setShowAll(!showAll)}>{showAll ? "Show the top 24" : `Show all ${list.length} countries`}</button>
           )}
         </>) : (<>
-          <div className="panel-sec">
-            <h2>{year}</h2>
+          <div className="wm-sec">
+            <h2>Attempts in {year}</h2>
             <div className="kpi-row">
               <div><b>{succ}</b><span>successful</span></div>
               <div><b>{fail}</b><span>failed</span></div>
               {plots && <div><b>{yearEvents.length - succ - fail}</b><span>plots</span></div>}
             </div>
             <div className="filters">
-              <label className="check">Confidence{" "}
+              <label className="check">Confidence
                 <select className="select" value={conf} onChange={(e) => setConf(e.target.value)}>
                   <option value="A">high only (A)</option>
                   <option value="B">high and good (A–B)</option>
@@ -232,14 +232,10 @@ export default function WorldView({ countries, meta, initialCoups }) {
                 </select>
               </label>
               <label className="check">
-                <input type="checkbox" checked={plots} onChange={(e) => setPlots(e.target.checked)} /> plots
+                <input type="checkbox" checked={plots} onChange={(e) => setPlots(e.target.checked)} /> Include plots
               </label>
             </div>
-            {year < 1946 && (
-              <p className="sub" style={{ marginTop: 8 }}>
-                Failed coups before 1946 are incompletely recorded.
-              </p>
-            )}
+            {year < 1946 && <p>Failed coups before 1946 are incompletely recorded.</p>}
           </div>
           <ul className="event-list" aria-busy={loading}>
             {yearEvents.map((e) => (
@@ -247,8 +243,8 @@ export default function WorldView({ countries, meta, initialCoups }) {
                 <Link href={`/paese/${e.slug}`}>
                   <span>{e.name}<small>{fmtEventDate(e)}</small></span>
                   <span className="badges">
-                    <span className={`badge ${e.type}`}>{TYPE_LABEL[e.type]}</span>
-                    <span className="badge conf" title="Confidence">{e.conf}</span>
+                    <span className={`tag ${e.type}`}>{TYPE_LABEL[e.type]}</span>
+                    <span className="tag conf" title="Confidence">{e.conf}</span>
                   </span>
                 </Link>
               </li>
@@ -258,7 +254,9 @@ export default function WorldView({ countries, meta, initialCoups }) {
         </>)}
       </aside>
       <Tip tip={tip} />
-    </div></main>
+    </div>
+      </div>
+    </main>
   );
 }
 
@@ -275,8 +273,8 @@ function TimeBar({ year, setYear, min, max, perYear, playing, toggle }) {
   return (
     <div className="timebar">
       <div className="timebar-row">
-        <button className="btn" onClick={toggle} aria-label={playing ? "Stop" : "Start playback"}>
-          {playing ? "❚❚ Pause" : "▶ Play"}
+        <button className="btn btn--secondary btn--sm" onClick={toggle} aria-label={playing ? "Stop playback" : "Play the years"}>
+          {playing ? "Pause" : "Play years"}
         </button>
         <div className="year-big" aria-live="polite">{year}</div>
         <div className="slider-wrap">
@@ -295,9 +293,9 @@ function TimeBar({ year, setYear, min, max, perYear, playing, toggle }) {
           </div>
         </div>
       </div>
-      <div className="legend" style={{ margin: "6px 0 0" }}>
-        <span><i className="sw" style={{ background: "var(--series-1)" }} />successful per year</span>
-        <span><i className="sw" style={{ background: "var(--series-2)" }} />failed per year</span>
+      <div className="legend">
+        <span><i className="sw" style={{ background: "var(--coup)" }} />successful per year</span>
+        <span><i className="sw" style={{ background: "var(--rise)" }} />failed per year</span>
         <span>{num(counts.reduce((a, c) => a + c.s + c.f, 0))} attempts in total</span>
       </div>
     </div>

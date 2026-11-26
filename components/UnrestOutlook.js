@@ -23,7 +23,7 @@ export default function UnrestOutlook({ unrest, counts, name }) {
   return (
     <>
       {unrest && (
-        <section id="unrest" className="card violence">
+        <section id="unrest" className="block violence">
           <h2>Political unrest in the next three months</h2>
           <p className="note">Two chances, each defined on the monthly ACLED counts for {name}: a wave of protests and riots, and an escalation of organised violence. Both are measured against the country&rsquo;s own last twelve months, so a country with constant unrest is not flagged just for having it. Estimates come from a logistic model and a gradient-boosted model, averaged and calibrated on past forecasts; the range comes from refitting on resampled countries.</p>
           {TARGETS.map(([key, label, text, what]) => {

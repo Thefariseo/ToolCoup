@@ -15,3 +15,7 @@ __pycache__/
 .env*
 *.tsbuildinfo
 npm-debug.log*
+
+# taste-skill working files (screenshots, gate state)
+.taste-skill/
+shots/

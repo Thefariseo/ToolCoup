@@ -14,21 +14,21 @@ const mult = (d) => `×${Math.exp(d).toFixed(d >= 0 ? 1 : 2)}`;
  * The Model Trace as crisp vector rows over the swarm. Left of each group row: its bar on a log-probability axis, from the probability before
  * the group's term to the probability after it. Right: every other country as a tick on the same group, and this country as a dot.
  */
-export default function TraceLedger({ ledger: L, focus, onFocus, name }) {
+export default function TraceLedger({ ledger: L, focus, onFocus, name, readOnly = false }) {
   if (!L) return null;
   const groups = L.rows.filter((r) => r.kind === "group"), axisEnd = L.top + L.rows.length * L.rh;
   const stripEnd = groups.length ? groups.at(-1).y + L.rh / 2 : axisEnd;
   const toggle = (key) => onFocus(focus === key ? null : key);
   return (
-    <svg className="cx-ledger" viewBox={`0 0 ${L.W} ${L.H}`} width={L.W} height={L.H} role="group" aria-label={`Model trace for ${name}`}>
-      <text className="cap" x={L.bx0} y={L.top - 32}>PROBABILITY · LOG SCALE</text>
+    <svg className="cx-ledger" viewBox={`0 0 ${L.W} ${L.H}`} width={L.W} height={L.H} role={readOnly ? "img" : "group"} aria-label={`Model trace for ${name}`}>
+      <text className="cap" x={L.bx0} y={L.top - 32}>Probability, log scale</text>
       {L.legend && (
         <>
-          <text className="cap" x={L.bx0 + 186} y={L.top - 32} style={fill(AM)}>■ RAISES</text>
-          <text className="cap" x={L.bx0 + 252} y={L.top - 32} style={fill(CY)}>■ LOWERS</text>
+          <text className="cap" x={L.bx0 + 186} y={L.top - 32} style={fill(AM)}>■ raises</text>
+          <text className="cap" x={L.bx0 + 252} y={L.top - 32} style={fill(CY)}>■ lowers</text>
         </>
       )}
-      {L.strips && <text className="cap" x={L.sx0} y={L.top - 32}>OTHER COUNTRIES · LOG-ODDS</text>}
+      {L.strips && <text className="cap" x={L.sx0} y={L.top - 32}>Other countries, log-odds</text>}
       {L.axis.map((t) => (
         <Fragment key={t.p}>
           <line x1={t.x} x2={t.x} y1={L.top - 8} y2={axisEnd} stroke={LN} />
@@ -54,9 +54,8 @@ export default function TraceLedger({ ledger: L, focus, onFocus, name }) {
         if (r.kind === "group") {
           const on = focus === r.key, dim = focus && !on, col = r.s.d >= 0 ? AM : CY;
           return (
-            <g key={r.key} className={`row${on ? " on" : ""}`} role="button" tabIndex={0} aria-pressed={on} opacity={dim ? 0.45 : 1}
-              onClick={() => toggle(r.key)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(r.key); } }}>
-              <title>{`${r.label}: odds ${mult(r.s.d)} (log-odds ${signed(r.s.d)}); ${r.s.share == null ? "no peer data" : `${r.s.side} ${Math.max(1, Math.round(r.s.share * 100))}% of countries on this group`}. Click to list its drivers.`}</title>
+            <g key={r.key} className={`row${on ? " on" : ""}`} opacity={dim ? 0.45 : 1} {...(readOnly ? {} : { role: "button", tabIndex: 0, "aria-pressed": on, onClick: () => toggle(r.key), onKeyDown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(r.key); } } })}>
+              <title>{`${r.label}: odds ${mult(r.s.d)} (log-odds ${signed(r.s.d)}); ${r.s.share == null ? "no peer data" : `${r.s.side} ${Math.max(1, Math.round(r.s.share * 100))}% of countries on this group`}.${readOnly ? "" : " Click to list its drivers."}`}</title>
               <rect className="hit" x={8} y={r.y - L.rh / 2} width={L.W - 16} height={L.rh} />
               <line x1={r.xa} x2={r.xa} y1={prev.y + 4} y2={r.y - 4} stroke={MU} strokeWidth="0.6" />
               <text className="lab" x={16} y={r.y + 4} style={fill(on ? "#fff" : TX)}>{r.label}</text>

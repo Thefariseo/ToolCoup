@@ -23,7 +23,7 @@ export default function DiscourseMonitor({ slug, name }) {
   }, [slug]);
   const w = d?.wiki, nv = d?.news;
   return (
-    <section id="discourse" className="card discourse">
+    <section id="discourse" className="block discourse">
 <h2>Is public attention to {name} shifting?</h2>
       <p className="note">How much people read about the country, and how the news talks about it, compared with its own last three months. Social platforms such as X do not give free access, so this uses Wikipedia readership and the GDELT news archive. We tested signals like these against the coup model and they did not improve it, so they are alerts only, not model inputs.</p>
       {!d && !err && <p className="note">Loading public signals…</p>}
@@ -31,13 +31,13 @@ export default function DiscourseMonitor({ slug, name }) {
       {d && (
         <div className="dm-grid">
           <div>
-            <h3>Readership of the Wikipedia article {w?.alert && <em className="dm-flag">ATTENTION SPIKE</em>}</h3>
+            <h3>Readership of the Wikipedia article {w?.alert && <em className="dm-flag">Attention spike</em>}</h3>
             {w ? (<><Spark days={w.days} alert={w.alert} label="Daily Wikipedia pageviews, last 120 days" />
               <p className="note">Last 7 days average {Math.round(w.recent).toLocaleString("en-GB")} views a day, {w.ratio}× the usual {Math.round(w.median).toLocaleString("en-GB")} (robust z = {w.z}).</p></>)
               : <p className="note">Not available ({d.errors.wikipedia || "no data"}).</p>}
           </div>
           <div>
-            <h3>News volume on security and politics {nv?.volShift?.alert && <em className="dm-flag">VOLUME SPIKE</em>}</h3>
+            <h3>News volume on security and politics {nv?.volShift?.alert && <em className="dm-flag">Volume spike</em>}</h3>
             {nv ? (<><Spark days={nv.vol} alert={nv.volShift?.alert} label="Share of global news coverage, last 90 days" />
               <p className="note">Volume {nv.volShift?.ratio ?? "–"}× the usual. Average tone last week {nv.toneRecent} against {nv.toneBase} before (more negative means grimmer coverage).</p></>)
               : <p className="note">The news archive did not answer ({d.errors.gdelt || "no data"}). It rate-limits requests; try again later.</p>}

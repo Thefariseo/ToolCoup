@@ -17,11 +17,11 @@ export default function MarketFact({ slug }) {
   const v = marketVerdict(m.p, m.model);
   return (
     <div className="fact">
-      <b>{p1(m.p)}</b>
-      <span>
-        {m.source} prices this, to {fmtClose(m.closes)}, with {money(m.volume)} traded
+      <dt>
+        {m.source} prices this to {fmtClose(m.closes)}, with {money(m.volume)} traded
         {m.model != null && `; our model at the same horizon: ${p1(m.model)}`}.{v ? ` ${v.text}` : ""} <a href="#crowd">Market check</a>
-      </span>
+      </dt>
+      <dd>{p1(m.p)}</dd>
     </div>
   );
 }

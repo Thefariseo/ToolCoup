@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MONTHS, pct } from "@/lib/format";
 
-const WINDOWS = [{ key: "all", label: "1975→", months: null }, { key: "25", label: "25Y", months: 300 }, { key: "10", label: "10Y", months: 120 }];
+const WINDOWS = [{ key: "all", label: "All", months: null }, { key: "25", label: "25 yr", months: 300 }, { key: "10", label: "10 yr", months: 120 }];
 const CHANNELS = [{ key: "unrest", label: "Unrest", cls: "c1" }, { key: "violence", label: "Violence", cls: "c2" }, { key: "fatalities", label: "Fatalities", cls: "c3" }];
 const ym = (s) => { const [y, m] = s.split("-").map(Number); return y * 12 + (m - 1); };
 const label = (t) => `${MONTHS[t % 12]} ${Math.floor(t / 12)}`;
@@ -31,7 +31,7 @@ export default function Strip({ country, detail }) {
     return { t0, end, months, maxRisk, maxOf, coups, risk: (t) => at(risk.values, r0, t), ch: (k, t) => at(series?.[k], s0, t) };
   }, [detail, win]);
 
-  const H = 150, padL = 44, padR = 14, top = 16, riskH = 66, rowH = 14, rowsTop = top + riskH + 8;
+  const H = 128, padL = 44, padR = 14, top = 16, riskH = 50, rowH = 12, rowsTop = top + riskH + 6;
   const x = (t) => padL + ((t - d.t0) / Math.max(1, d.end - d.t0)) * (w - padL - padR);
   const y = (v) => top + riskH - (v / d.maxRisk) * riskH;
   const path = d ? d.months.map((t, i) => { const v = d.risk(t); return v == null ? "" : `${i && d.risk(t - 1) != null ? "L" : "M"}${x(t).toFixed(1)},${y(v).toFixed(1)}`; }).join("") : "";
@@ -46,8 +46,8 @@ export default function Strip({ country, detail }) {
   // the static drawing (about two thousand nodes) is built once per data set and width; a pointer move only redraws the cursor line and the readout
   const art = useMemo(() => d && (
     <>
-            {years.map((yr) => <g key={yr}><line className="grid" x1={x(yr * 12)} x2={x(yr * 12)} y1={top} y2={H - 14} /><text className="axis" x={x(yr * 12) + 3} y={H - 3}>{yr}</text></g>)}
-      <line className="grid" x1={padL} x2={w - padR} y1={top} y2={top} /><line className="base" x1={padL} x2={w - padR} y1={top + riskH} y2={top + riskH} />
+            {years.map((yr) => <g key={yr}><line className="gridline" x1={x(yr * 12)} x2={x(yr * 12)} y1={top} y2={H - 14} /><text className="axis" x={x(yr * 12) + 3} y={H - 3}>{yr}</text></g>)}
+      <line className="gridline" x1={padL} x2={w - padR} y1={top} y2={top} /><line className="base" x1={padL} x2={w - padR} y1={top + riskH} y2={top + riskH} />
       <text className="axis" x={padL - 5} y={top + 4} textAnchor="end">{pct(d.maxRisk, 1)}</text>
       <text className="axis" x={padL - 5} y={top + riskH + 3} textAnchor="end">0</text>
       <path className="risk-fill" d={`${path}L${x(d.end)},${top + riskH}L${x(d.months.find((m) => d.risk(m) != null) ?? d.t0)},${top + riskH}Z`} />
@@ -83,7 +83,7 @@ export default function Strip({ country, detail }) {
         </div>
       </header>
       <div ref={ref} className="cx-strip-plot" onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
-        {!d ? <p className="cx-wait">{detail ? "NO FORECAST HISTORY FOR THIS COUNTRY" : "RETRIEVING SERIES"}<i>_</i></p> : (
+        {!d ? <p className="cx-wait">{detail ? "No forecast history for this country." : "Loading the series…"}</p> : (
           <svg width={w} height={H} role="img" aria-label={`Monthly coup-attempt probability for ${country.name}, with recorded coups and ACLED counts`}>
             {art}
             {hover != null && <line className="cursor" x1={x(hover)} x2={x(hover)} y1={top - 6} y2={H - 14} />}

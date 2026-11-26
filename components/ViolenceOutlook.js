@@ -20,7 +20,7 @@ export default function ViolenceOutlook({ country, meta, admin1, types = VIOLENC
   const next = fc[0][0], six = fc.reduce((a, f) => a + f[0], 0) / fc.length, change = ma > 0 ? six / ma - 1 : null;
   const ticks = [0, 0.5, 1].map((k) => Math.round(max * k));
   return (
-    <section id={id} className="card violence">
+    <section id={id} className="block violence">
 <h2>{title}</h2>
       {note ? <p className="note">{note}</p> : <p className="note">Forecast events per four-week period. One gradient-boosted model covers all six horizons and is trained on absolute error. We blend it with the 6-period average and the last period, scale provinces to the country total, and take {meta.interval} intervals from a 24-date backtest. The method follows ACLED&rsquo;s published CAST approach, but the model is ours and is not ACLED&rsquo;s forecast.</p>}
       <div className="vo-tabs" role="tablist" aria-label="Event type">
@@ -31,8 +31,8 @@ export default function ViolenceOutlook({ country, meta, admin1, types = VIOLENC
         <div><span>Average of the next six</span><b>{six.toFixed(0)}</b><small>{change == null ? "" : `${change >= 0 ? "+" : "−"}${Math.abs(change * 100).toFixed(0)}% vs 6-period average`}</small></div>
         <div><span>Last 6 periods, average</span><b>{ma.toFixed(0)}</b><small>moving average</small></div>
       </div>
-      <svg viewBox={`0 0 ${W} ${H}`} className="vo-chart" role="img" aria-label={`Past and forecast ${TYPES.find((t) => t[0] === type)[1]} events per four-week period`}>
-        {[...new Set(ticks)].map((t) => <g key={t}><line x1={L} x2={W - 8} y1={y(t)} y2={y(t)} className="grid" /><text x={L - 5} y={y(t) + 3} textAnchor="end">{t}</text></g>)}
+      <div className="vo-plot"><svg viewBox={`0 0 ${W} ${H}`} className="vo-chart" role="img" aria-label={`Past and forecast ${TYPES.find((t) => t[0] === type)[1]} events per four-week period`}>
+        {[...new Set(ticks)].map((t) => <g key={t}><line x1={L} x2={W - 8} y1={y(t)} y2={y(t)} className="gridline" /><text x={L - 5} y={y(t) + 3} textAnchor="end">{t}</text></g>)}
         {hist.map((v, i) => <rect key={i} x={x(i) - bw / 2} y={y(v)} width={bw} height={Math.max(0, y(0) - y(v))} className="past" />)}
         <line x1={L} x2={W - 8} y1={y(ma)} y2={y(ma)} className="ma" />
         <polygon points={band} className="band" />
@@ -42,7 +42,7 @@ export default function ViolenceOutlook({ country, meta, admin1, types = VIOLENC
         <text x={x(0)} y={H - 5} className="axis">{fmtDay(meta.history_ends[0])}</text>
         <text x={x(hist.length)} y={H - 5} className="axis">{fmtDay(meta.horizons[0])}</text>
         <text x={x(n - 1)} y={H - 5} textAnchor="end" className="axis">{fmtDay(meta.horizons[meta.horizons.length - 1])}</text>
-      </svg>
+      </svg></div>
       <p className="note">Bars: events in each past four-week period. Line and band: forecast and {meta.interval} interval. Dashed line: 6-period moving average.</p>
       {admin1.length > 0 && (
         <div className="table-scroll" tabIndex={0} role="region" aria-label={`Provinces with the most ${what} forecast`}><table>
