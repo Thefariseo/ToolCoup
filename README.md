@@ -25,10 +25,10 @@ Praevex is an open-source political instability intelligence instrument combinin
 
 | Percorso | Contenuto |
 |---|---|
-| `/` | presentazione: il globo, poi quando, perche', il record, il brief, il registro e le altre previsioni |
+| `/` | presentazione: il globo con i paesi a rischio piu' alto, poi quando, perche', il record, il brief, il registro e le altre previsioni |
 | `/forecast` | la console (prima stava su `/`: i vecchi link `/?c=...` reindirizzano) |
 | `/paese/[paese]` | la stima accanto al globo, poi cinque schede: sintesi, storia, segnali, contesto, evidenze |
-| `/violence`, `/unrest`, `/markets` | mappa o confronto mercato-modello in apertura, poi le tabelle |
+| `/violence`, `/unrest`, `/markets` | mappe cliccabili (violenza, proteste) o confronto mercato-modello in apertura, poi le classifiche |
 | `/registry`, `/world`, `/metodo` | registro, mappa dei golpe dal 1900, metodo |
 
 La ricerca di paesi e pagine si apre con `⌘K` (o `Ctrl K`) da qualunque pagina.

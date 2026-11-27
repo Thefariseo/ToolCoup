@@ -8,6 +8,9 @@ import { PauseButton, useMedia, useMotion, usePick } from "@/components/home/Pic
 let atlasPromise;
 const loadAtlas = () => (atlasPromise ||= fetch("/api/atlas").then((r) => (r.ok ? r.json() : Promise.reject(new Error("atlas")))).catch((e) => { atlasPromise = null; throw e; }));
 
+// clear of the figures above (a phone hides them) and of the line under the drawing
+const BELOW = { l: 0, r: 0, t: 44, b: 36 }, PHONE = { l: 0, r: 0, t: 0, b: 40 };
+
 /** "When": the temporal atlas at full size, the picked country's ridge lit. The data and the drawing start only
  *  when the section comes near the screen; the still drawing stands in until then. */
 export default function WhenAtlas({ still }) {
@@ -24,9 +27,9 @@ export default function WhenAtlas({ still }) {
   return (
     <div ref={box} className="when-win fill" data-visual data-ui="atlas" role="group" aria-label={`Forecast history of every country since 1975, with ${selected.name} lit`}>
       {still}
-      {atlas && <Stage view="atlas" list={list} selected={selected} detail={detail} atlas={atlas} live={live} onSelect={pick} embed />}
+      {atlas && <Stage view="atlas" list={list} selected={selected} detail={detail} atlas={atlas} live={live} onSelect={pick} embed inset={phone ? PHONE : BELOW} />}
       <div className="when-win__bar">
-        <span>{phone ? "Tap a ridge" : "Hover a ridge for its figures, click to light it"}</span>
+        <span>{phone ? "Tap a ridge" : "Point at a ridge for its figures, click to light it"}</span>
         <Link className="when-win__open" href={`/forecast?c=${selected.slug}&v=atlas`} prefetch={false}>Open in the console</Link>
       </div>
       <PauseButton live={live} onToggle={() => setLive((v) => !v)} what="the atlas" />

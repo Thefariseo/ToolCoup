@@ -9,7 +9,7 @@ const ym = (s) => { const [y, m] = s.split("-").map(Number); return y * 12 + (m 
 const label = (t) => `${MONTHS[t % 12]} ${Math.floor(t / 12)}`;
 
 /** Selected country over time: published risk (monthly), recorded coups, ACLED monthly counts. */
-export default function Strip({ country, detail }) {
+export default function Strip({ country, detail, onClose }) {
   const ref = useRef(null);
   const [w, setW] = useState(800), [win, setWin] = useState("all"), [hover, setHover] = useState(null);
   useEffect(() => {
@@ -79,8 +79,9 @@ export default function Strip({ country, detail }) {
           </p>
         )}
         <div className="cx-seg" role="group" aria-label="Time window">
-          {WINDOWS.map((o) => <button key={o.key} className={win === o.key ? "on" : ""} onClick={() => setWin(o.key)}>{o.label}</button>)}
+          {WINDOWS.map((o) => <button key={o.key} className={win === o.key ? "on" : ""} aria-pressed={win === o.key} onClick={() => setWin(o.key)}>{o.label}</button>)}
         </div>
+        {onClose && <button type="button" className="cx-strip__close" onClick={onClose} aria-label="Hide the timeline" aria-keyshortcuts="t"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="m3 3 6 6M9 3 3 9" /></svg></button>}
       </header>
       <div ref={ref} className="cx-strip-plot" onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
         {!d ? <p className="cx-wait">{detail ? "No forecast history for this country." : "Loading the series…"}</p> : (

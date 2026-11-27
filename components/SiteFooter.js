@@ -17,7 +17,7 @@ export function FooterDirectory({ generated }) {
           <Link className="footer__logo" href="/" aria-label="Praevex, home"><Brand variant="tagline" height={110} lazy /></Link>
           <p className="footer__lede">A monthly coup-risk forecast for every country, filed in public and scored against what happens.</p>
         </div>
-        <div className="span-2 start-7 footer__col"><h3>Forecast</h3><ul>{link("/registry", "Registry")}{link("/metodo", "Method")}{link("/world", "Map")}</ul></div>
+        <div className="span-2 start-7 footer__col"><h3>Forecast</h3><ul>{link("/registry", "Registry")}{link("/metodo", "Method")}{link("/world", "Coup history")}</ul></div>
         <div className="span-2 footer__col"><h3>Outlooks</h3><ul>{link("/violence", "Violence")}{link("/unrest", "Unrest")}{link("/markets", "Markets")}</ul></div>
         <div className="span-2 footer__col"><h3>Open data</h3><ul>{link("/api/registry", "Registry API", true)}{link(REPO, "Code on GitHub", true)}</ul></div>
       </div>

@@ -1,6 +1,8 @@
 import Link from "next/link";
+import Bar from "@/components/Bar";
 import Flag from "@/components/Flag";
 import Leaders from "@/components/Leaders";
+import Switch from "@/components/Switch";
 import ValueMap, { MapKey } from "@/components/ValueMap";
 import SiteFooter from "@/components/SiteFooter";
 import { listCountries } from "@/lib/data";
@@ -31,13 +33,24 @@ export default function ViolencePage() {
   const cov = acc.map((a) => a.coverage).filter((v) => v != null);
   const hasWis = acc.some((a) => a.wis);
   const wisGain = (h) => { const a = acc.find((x) => x.h === h); return a?.wis ? Math.round((1 - a.wis.mix / a.wis.ma6) * 100) : null; };
-  const world = violenceAll(), most = byLevel[0]?.six || 1;
-  const Row = ({ r }) => (
-    <tr><th scope="row"><Link href={`/paese/${r.slug}#violence`} className="vo-link" data-scramble><Flag iso={iso.get(r.slug)} height={12} /> <span className="sx">{r.name}</span></Link></th>
-      <td className="tnum">{r.ma6.toFixed(0)}</td><td className="tnum">{Math.round(r.next)} <small>({Math.round(r.lo)}–{Math.round(r.hi)})</small></td>
-      <td className="tnum cell-bar" style={{ "--v": Math.min(1, r.six / most) }}>{r.six.toFixed(0)}</td><td className="tnum">{r.change == null ? "–" : `${r.change >= 0 ? "+" : "−"}${Math.abs(r.change * 100).toFixed(0)}%`}</td></tr>
-  );
-  const Head = () => <thead><tr><th scope="col">Country</th><th scope="col">Last 6 periods, avg</th><th scope="col">Next period (80%)</th><th scope="col">Next six, avg</th><th scope="col">Change</th></tr></thead>;
+  const world = violenceAll();
+  const table = (list, label) => {
+    const most = Math.max(1, ...list.map((r) => r.six));
+    return (
+      <div className="table-scroll" tabIndex={0} role="region" aria-label={label}><table className="rank">
+        <thead><tr><th scope="col">Country</th><th scope="col">Next six periods, average</th><th scope="col">Next period (80%)</th><th scope="col">Last six, average</th><th scope="col">Change</th></tr></thead>
+        <tbody>{list.map((r) => (
+          <tr key={r.slug}>
+            <th scope="row"><Link href={`/paese/${r.slug}#violence`} className="vo-link" data-scramble><Flag iso={iso.get(r.slug)} height={12} /> <span className="sx">{r.name}</span></Link></th>
+            <td className="rank__main"><Bar share={r.six / most}>{Math.round(r.six).toLocaleString("en-GB")}</Bar></td>
+            <td className="tnum rank__more" data-label="Next period">{Math.round(r.next).toLocaleString("en-GB")} <small>({Math.round(r.lo).toLocaleString("en-GB")}–{Math.round(r.hi).toLocaleString("en-GB")})</small></td>
+            <td className="tnum rank__more" data-label="Last six">{Math.round(r.ma6).toLocaleString("en-GB")}</td>
+            <td className={`tnum rank__change${r.change > 0.005 ? " up" : r.change < -0.005 ? " down" : ""}`}>{r.change == null ? "–" : `${r.change >= 0.005 ? "+" : r.change <= -0.005 ? "−" : ""}${Math.abs(r.change * 100).toFixed(0)}%`}</td>
+          </tr>
+        ))}</tbody>
+      </table></div>
+    );
+  };
   return (
     <>
       <main id="top" className="page">
@@ -51,7 +64,7 @@ export default function ViolencePage() {
         <section className="map-block" aria-label="Map of the next period">
           <div className="map-head"><p>Organised violence events expected in the next four weeks, by country.</p></div>
           <div className="map-frame" data-ui="map">
-            <ValueMap tone="rise" steps={[10, 50, 200, 1000]} values={world.map((r) => ({ iso: r.iso, name: r.name, value: r.next, text: `${Math.round(r.next).toLocaleString("en-GB")} events` }))} label={`Violence forecast by country; ${world[0].name} is highest with about ${Math.round(world[0].next).toLocaleString("en-GB")} events`} />
+            <ValueMap tone="rise" hash="#violence" steps={[10, 50, 200, 1000]} values={world.map((r) => ({ iso: r.iso, slug: r.slug, name: r.name, value: r.next, text: `${Math.round(r.next).toLocaleString("en-GB")} events expected in four weeks` }))} label={`Violence forecast by country; ${world[0].name} is highest with about ${Math.round(world[0].next).toLocaleString("en-GB")} events`} />
             <Leaders title="Most events, next four weeks" hash="#violence" rows={world.slice(0, 8).map((r) => ({ slug: r.slug, name: r.name, figure: Math.round(r.next).toLocaleString("en-GB") }))} />
             <MapKey tone="rise" labels={["under 10", "10+", "50+", "200+", "1,000+"]} />
           </div>
@@ -61,16 +74,15 @@ export default function ViolencePage() {
             <div className="fact"><dt>events expected worldwide in the next period</dt><dd>{Math.round(gf[0][0]).toLocaleString("en-GB")}</dd></div>
             <div className="fact"><dt>average over the last six periods</dt><dd>{Math.round(sum(gh.slice(-6)) / 6).toLocaleString("en-GB")}</dd></div>
             <div className="fact"><dt>provinces forecast</dt><dd>{m.units.toLocaleString("en-GB")}</dd></div>
-            <div className="fact"><dt>countries covered</dt><dd>{m.countries}</dd></div>
+            <div className="fact"><dt>countries, territories and sea areas</dt><dd>{m.countries}</dd></div>
         </dl>
-        <section className="block">
-          <h2>Where the most violence is forecast</h2>
-          <div className="table-scroll" tabIndex={0} role="region" aria-label="Countries by forecast violence"><table><Head /><tbody>{byLevel.map((r) => <Row key={r.slug} r={r} />)}</tbody></table></div>
-        </section>
-        <section className="block">
-          <h2>Where violence is forecast to rise most</h2>
-          <p className="note">Countries averaging at least 10 events per period. Change compares the next six periods with the last six.</p>
-          <div className="table-scroll" tabIndex={0} role="region" aria-label="Countries by forecast increase"><table><Head /><tbody>{byRise.map((r) => <Row key={r.slug} r={r} />)}</tbody></table></div>
+        <section className="block" aria-labelledby="rank-h">
+          <h2 id="rank-h">Where violence is forecast</h2>
+          <p className="note">Average events per four-week period over the next six, against the last six. The rising list keeps countries that already average at least 10 events a period.</p>
+          <Switch label="Order of the list" tabs={[
+            { label: "Most events", panel: table(byLevel, "Countries by forecast violence") },
+            { label: "Rising fastest", panel: table(byRise, "Countries by forecast increase") },
+          ]} />
         </section>
         <details className="block prose fold">
           <summary><h2>How accurate has it been?</h2></summary>

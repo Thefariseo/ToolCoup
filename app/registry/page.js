@@ -22,6 +22,13 @@ const Kind = ({ type }) => <span className={`rg-kind ${type === "riuscito" ? "ok
 const w = (v) => `${Math.round(v * 100)}%`;
 const SRC = { model: "Model", market: "Markets", analyst: "Analyst" };
 
+/** The analyst's reason: its opening on one line, the whole of it on request. */
+function Rationale({ text }) {
+  if (!text) return null;
+  if (text.length <= 110) return text;
+  return <details className="why-more"><summary><span>{text.slice(0, 110).replace(/\s+\S*$/, "")}…</span></summary><p>{text}</p></details>;
+}
+
 /** The experimental pooled reading: the latest snapshot, the weights, and whether anything has been scored yet. */
 function HybridSection({ hy }) {
   const L = hy.latest, closed = hy.issues.filter((i) => i.status === "closed");
@@ -48,7 +55,7 @@ function HybridSection({ hy }) {
           <tbody>{L.countries.slice(0, 20).map((c) => (
             <tr key={c.slug}><td><Link href={`/paese/${c.slug}`}><span className="sx">{c.name}</span></Link></td>
               <td className="num">{pct(c.model.p, 2)}</td><td className="num">{c.market ? pct(c.market.p6, 2) : "—"}</td><td className="num">{c.analyst ? pct(c.analyst.calibrated, 2) : "—"}</td>
-              <td className="num"><b>{c.pooled ? pct(c.pooled.p, 2) : "—"}</b></td><td className="why">{c.analyst?.rationale ? c.analyst.rationale.slice(0, 150) + (c.analyst.rationale.length > 150 ? "…" : "") : ""}</td></tr>
+              <td className="num"><b>{c.pooled ? pct(c.pooled.p, 2) : "—"}</b></td><td className="why"><Rationale text={c.analyst?.rationale} /></td></tr>
           ))}</tbody>
         </table>
       </div>
@@ -75,7 +82,7 @@ export default function RegistryPage() {
             </div>
           </header>
           <div className="reg-cards">
-            <FiledCard issue={latest} filed={longDay(latest.published)} />
+            <FiledCard issue={latest} filed={longDay(latest.published)} closes={mon(latest.window[1])} />
             <WindowCard issue={latest} filed={longDay(latest.published)} months={monthsOf(latest.window)} closes={mon(latest.window[1])} />
           </div>
           <dl className="facts facts--band">

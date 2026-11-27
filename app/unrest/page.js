@@ -1,11 +1,13 @@
 import Link from "next/link";
+import Bar from "@/components/Bar";
 import Flag from "@/components/Flag";
 import Tabs from "@/components/home/Tabs";
 import Leaders from "@/components/Leaders";
+import Switch from "@/components/Switch";
 import ValueMap, { MapKey } from "@/components/ValueMap";
 import SiteFooter from "@/components/SiteFooter";
 import { getUnrestAll, getUnrestCountsGlobal } from "@/lib/outlook";
-import { allSlugs } from "@/lib/data";
+import { allSlugs, listCountries } from "@/lib/data";
 import unrestCounts from "@/webdata/unrest_counts.json";
 import { pct } from "@/lib/format";
 
@@ -15,13 +17,14 @@ export const metadata = {
 };
 
 const sum = (a) => a.reduce((s, v) => s + v, 0);
-const TARGETS = [["wave", "Protest wave", "protests and riots"], ["escalation", "Violence escalation", "organised violence"]];
+const sentence = (s) => (s ? s[0].toUpperCase() + s.slice(1) : s);
+const TARGETS = [["wave", "Protest wave"], ["escalation", "Violence escalation"]];
 
 export default function UnrestPage() {
   const u = getUnrestAll();
   if (!u) return <main id="top" className="page"><div className="wrap"><header className="page-head"><h1>Unrest outlook</h1><p className="lede">The forecast file has not been generated yet.</p></header></div></main>;
   const countries = Object.entries(u.countries);
-  const pages = new Set(allSlugs());
+  const pages = new Set(allSlugs()), iso = new Map(listCountries().map((c) => [c.slug, c.iso]));
   const Name = ({ slug, name, iso, hash }) => (pages.has(slug)
     ? <Link href={`/paese/${slug}#${hash}`} className="vo-link" data-scramble><Flag iso={iso} height={12} /> <span className="sx">{name}</span></Link>
     : <span><Flag iso={iso} height={12} /> {name}</span>);
@@ -33,7 +36,7 @@ export default function UnrestPage() {
       <>
         <div className="map-head"><p>{label}, chance in the next three months.</p></div>
         <div className="map-frame" data-ui="map">
-          <ValueMap tone={key === "wave" ? "coup" : "rise"} steps={[0.03, 0.08, 0.15, 0.25]} values={rows.map((r) => ({ iso: r.iso, name: r.name, value: r.p, text: pct(r.p, 0) }))} label={`${label} by country; ${rows[0]?.name} is highest at ${pct(rows[0]?.p, 0)}`} />
+          <ValueMap tone={key === "wave" ? "coup" : "rise"} hash="#unrest" steps={[0.03, 0.08, 0.15, 0.25]} values={rows.map((r) => ({ iso: r.iso, slug: r.slug, name: r.name, value: r.p, text: `${pct(r.p, 0)} chance of ${label.toLowerCase()}` }))} label={`${label} by country; ${rows[0]?.name} is highest at ${pct(rows[0]?.p, 0)}`} />
           <Leaders title="Highest chance" hash="#unrest" rows={rows.filter((r) => pages.has(r.slug)).slice(0, 8).map((r) => ({ slug: r.slug, name: r.name, figure: pct(r.p, 0) }))} />
           <MapKey tone={key === "wave" ? "coup" : "rise"} labels={["under 3%", "3%+", "8%+", "15%+", "25%+"]} />
         </div>
@@ -61,37 +64,46 @@ export default function UnrestPage() {
           <p className="note map-note">A surge means the next three months average at least 1.5 times the last twelve, and at least 25 events a month. Data through {u.data_end}.</p>
           <p className="note map-note">Unrest is not a coup forecast: most protest waves end without any military move. Where both readings are high, look at that country first.</p>
         </section>
-        {TARGETS.map(([key, label, what]) => (
-          <section className="block" key={key}>
-            <h2>{label}: where it is most likely</h2>
-            <p className="note">{meta[key]?.definition}. A typical country-month: {pct(meta[key]?.base_rate)}.</p>
-            <div className="table-scroll" tabIndex={0} role="region" aria-label={`Countries by ${label.toLowerCase()} chance`}>
-              <table>
-                <thead><tr><th scope="col">Country</th><th scope="col">Chance, next 3 months</th><th scope="col">80% range</th><th scope="col">Last 3 months, per month</th><th scope="col">Last 12 months, per month</th></tr></thead>
-                <tbody>{rank(key).map(([slug, c]) => (
-                  <tr key={slug}><th scope="row"><Name slug={slug} name={c.name} iso={c.iso} hash="unrest" /></th>
-                    <td className="tnum nw cell-bar" style={{ "--v": Math.min(1, c[key].p / (rank(key)[0]?.[1][key].p || 1)) }}><b>{pct(c[key].p)}</b></td><td className="tnum nw">{pct(c[key].lo)} to {pct(c[key].hi)}</td>
-                    <td className="tnum nw">{Math.round(c[key].last3)}</td><td className="tnum nw">{Math.round(c[key].last12)}</td></tr>
-                ))}</tbody>
-              </table>
-            </div>
-          </section>
-        ))}
-        {counts.length > 0 && (
-          <section className="block">
-            <h2>Where protests and riots are forecast to rise most</h2>
-            <p className="note">Countries averaging at least 10 protests and riots per four-week period. Change compares the next six periods with the last six.</p>
-            <div className="table-scroll" tabIndex={0} role="region" aria-label="Countries by forecast increase in protests and riots">
-              <table>
-                <thead><tr><th scope="col">Country</th><th scope="col">Last 6 periods, avg</th><th scope="col">Next six, avg</th><th scope="col">Change</th></tr></thead>
-                <tbody>{counts.map((r) => (
-                  <tr key={r.slug}><th scope="row"><Name slug={r.slug} name={r.name} hash="unrest-counts" /></th>
-                    <td className="tnum">{r.ma6.toFixed(0)}</td><td className="tnum">{r.six.toFixed(0)}</td><td className="tnum">+{(r.change * 100).toFixed(0)}%</td></tr>
-                ))}</tbody>
-              </table>
-            </div>
-          </section>
-        )}
+        <section className="block" aria-labelledby="rank-h">
+          <h2 id="rank-h">Where it is most likely</h2>
+          <Switch label="Which list" tabs={[
+            ...TARGETS.map(([key, label]) => {
+              const top = rank(key), most = top[0]?.[1][key].p || 1;
+              return { label, panel: (
+                <>
+                  <p className="note">{sentence(meta[key]?.definition)}. A typical country-month: {pct(meta[key]?.base_rate)}.</p>
+                  <div className="table-scroll" tabIndex={0} role="region" aria-label={`Countries by ${label.toLowerCase()} chance`}>
+                    <table className="rank">
+                      <thead><tr><th scope="col">Country</th><th scope="col">Chance, next 3 months</th><th scope="col">80% range</th><th scope="col">Last 3 months, a month</th><th scope="col">Last 12 months, a month</th></tr></thead>
+                      <tbody>{top.map(([slug, c]) => (
+                        <tr key={slug}><th scope="row"><Name slug={slug} name={c.name} iso={c.iso} hash="unrest" /></th>
+                          <td className="rank__main"><Bar share={c[key].p / most}>{pct(c[key].p)}</Bar></td>
+                          <td className="tnum nw rank__more" data-label="80% range">{pct(c[key].lo)} to {pct(c[key].hi)}</td>
+                          <td className="tnum rank__more" data-label="Last 3 months">{Math.round(c[key].last3).toLocaleString("en-GB")}</td>
+                          <td className="tnum rank__more" data-label="Last 12">{Math.round(c[key].last12).toLocaleString("en-GB")}</td></tr>
+                      ))}</tbody>
+                    </table>
+                  </div>
+                </>
+              ) };
+            }),
+            ...(counts.length ? [{ label: "Protests rising", panel: (
+              <>
+                <p className="note">Countries averaging at least 10 protests and riots per four-week period. Change compares the next six periods with the last six.</p>
+                <div className="table-scroll" tabIndex={0} role="region" aria-label="Countries by forecast increase in protests and riots">
+                  <table className="rank">
+                    <thead><tr><th scope="col">Country</th><th scope="col">Next six periods, average</th><th scope="col">Last six, average</th><th scope="col">Change</th></tr></thead>
+                    <tbody>{counts.map((r) => (
+                      <tr key={r.slug}><th scope="row"><Name slug={r.slug} name={r.name} iso={iso.get(r.slug)} hash="unrest-counts" /></th>
+                        <td className="rank__main"><Bar share={r.six / Math.max(...counts.map((x) => x.six))}>{Math.round(r.six).toLocaleString("en-GB")}</Bar></td>
+                        <td className="tnum rank__more" data-label="Last six">{Math.round(r.ma6).toLocaleString("en-GB")}</td><td className="tnum rank__change up">+{(r.change * 100).toFixed(0)}%</td></tr>
+                    ))}</tbody>
+                  </table>
+                </div>
+              </>
+            ) }] : []),
+          ]} />
+        </section>
         <details className="block prose fold">
           <summary><h2>How accurate has it been?</h2></summary>
           <p>Each year since {u.first_test_year} is forecast by models trained only on months whose outcome was already known, with the same strict timing as the coup forecast. Two models see the same 46 variables and their log-odds are averaged: a regularised logistic regression and a gradient-boosted model. The probability is then calibrated on past forecasts only. The variables look back only: recent levels against the year, how often the country has surged before, armed violence and fatalities, repression and arrests, the seven nearest countries and the region, regime and income, the time of year.</p>

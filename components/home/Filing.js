@@ -1,16 +1,28 @@
 // The three drawings of the registry's steps, from the registry export: the filed issue, its window and the score
-// it is waiting for. Nothing here is computed beyond what the export holds.
-export function FiledCard({ issue, filed }) {
+// it is waiting for. Nothing here is computed beyond what the export holds. Each ends on the same path, with its
+// own step lit.
+function Path({ at, filed, closes }) {
+  return (
+    <ol className="filing__path">
+      {[["Filed", filed], ["Window", "six months"], ["Scored", `after ${closes}`]].map(([name, when], i) => (
+        <li key={name} className={i < at ? "done" : i === at ? "now" : undefined}><i /><b>{name}</b><span>{when}</span></li>
+      ))}
+    </ol>
+  );
+}
+
+export function FiledCard({ issue, filed, closes }) {
   return (
     <div className="filing" data-ui="filing" role="img" aria-label={`Issue ${issue.issue}, filed on ${filed}, checksum ${issue.sha256.slice(0, 12)}`}>
       <p className="filing__bar"><span>registry/forecasts/{issue.issue}.json</span><span className="filing__tag">Filed</span></p>
       <dl className="filing__kv">
         <div><dt>Issue</dt><dd>{issue.issue}</dd></div>
         <div><dt>Filed</dt><dd>{filed}</dd></div>
-        <div><dt>Countries and territories</dt><dd>{issue.n}</dd></div>
+        <div><dt>Entries, sea areas included</dt><dd>{issue.n}</dd></div>
         <div><dt>Attempts the model expects</dt><dd>{issue.expected.toFixed(2)}</dd></div>
       </dl>
       <p className="filing__hash"><span>SHA-256</span>{issue.sha256}</p>
+      <Path at={0} filed={filed} closes={closes} />
     </div>
   );
 }
@@ -28,11 +40,12 @@ export function WindowCard({ issue, filed, months, closes }) {
         <div><dt>Attempts counted so far</dt><dd>{issue.events.length}</dd></div>
         <div><dt>Months observed</dt><dd>{issue.months_observed} of {months.length}</dd></div>
       </dl>
+      <Path at={1} filed={filed} closes={closes} />
     </div>
   );
 }
 
-export function ScoreCard({ h, closes }) {
+export function ScoreCard({ h, filed, closes }) {
   const rows = [["Chance it ranked an attempt above a quiet window (AUC)", h.auc.toFixed(2)], ["Better than quoting the base rate (Brier skill)", `+${(h.skill * 100).toFixed(1)}%`],
     ["Attempts in the model's top tenth", `${h.top10_hits} of ${h.events}`], ["Attempts expected, against attempts seen", `${h.expected.toFixed(0)} / ${h.events}`]];
   return (
@@ -41,7 +54,7 @@ export function ScoreCard({ h, closes }) {
       <dl className="filing__score">
         {rows.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}
       </dl>
-      <p className="filing__next">First live score after {closes}.</p>
+      <Path at={2} filed={filed} closes={closes} />
     </div>
   );
 }

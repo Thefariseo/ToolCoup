@@ -1,5 +1,6 @@
 import MarketsTable from "@/components/MarketsTable";
 import SiteFooter from "@/components/SiteFooter";
+import { marketTop } from "@/lib/highlights";
 
 export const metadata = {
   title: "Markets vs model",
@@ -17,10 +18,10 @@ export default function MarketsPage() {
             <p className="lede">Open coup markets, one per country: whichever of Polymarket and Kalshi has more volume, beside our chance restated for the market&rsquo;s closing date.</p>
           </div>
         </header>
-        <MarketsTable />
+        <MarketsTable initial={marketTop(40)} />
         <p className="note map-note">We never blend the two. A crowd and a model make different mistakes, so a large gap is the most useful thing here.</p>
         <section className="block prose" aria-labelledby="reading-h">
-          <h2 id="reading-h">How to read the table</h2>
+          <h2 id="reading-h">How to read the gaps</h2>
           <p><strong>Same question, roughly.</strong> A market asks whether something called a coup happens by a date. Our target is at least one confirmed attempt, successful or failed, in the window. Markets also count rumours, plots and looser events, so they usually price higher than our model. A market below the model is rarer and worth a look.</p>
           <p><strong>Volume is the confidence.</strong> A market with a few thousand dollars traded tells you little. For each country we show the coup market with the most volume, preferring one with at least $5,000 traded. Both venues trade real money.</p>
           <p><strong>Coverage is thin.</strong> Only countries that traders follow have a market, so a missing market says nothing about risk. Both venues are blocked in some countries, so we show their prices as data and do not link to them.</p>

@@ -26,12 +26,13 @@ const cellKey = (lon, lat, step, dr = 0, dc = 0) => {
 
 const NO_INSET = { l: 0, r: 0, t: 0, b: 0 };
 
-/** `embed` is a stage inside a page (the home hero, the "when" section, a country page): no zoom buttons and no
- *  wheel capture, so the page scrolls past it. `inset` (px) is what floating panels cover: every view is drawn in
- *  the rest. `shift` moves the globe off centre (clip units), `fill` scales it, `labels` caps the globe's tags.
- *  `bare` (a class name) draws the canvas alone, as a section's background layer. An embedded stage that WebGL
- *  cannot draw renders nothing, so the still picture under it shows. */
-export default function Stage({ view, list, selected, detail, atlas, plane, live, onSelect, focus, onFocus, apiRef, embed = false, inset = NO_INSET, shift = null, fill = 1, labels = embed ? 6 : 10, bare = "", onReady }) {
+/** `embed` is a stage inside a page (the home hero, the "when" section, a country page): no wheel capture, so the
+ *  page scrolls past it. The console draws its own zoom tools and reaches the camera through `apiRef`. `inset` (px)
+ *  is what floating panels cover: every view is drawn in the rest. `shift` moves the globe off centre (clip units),
+ *  `fill` scales it, `labels` caps the globe's tags. `bare` (a class name) draws the canvas alone, as a section's
+ *  background layer. `pin` is the ref of an element, positioned like the canvas, that follows the selected country
+ *  on the globe. An embedded stage that WebGL cannot draw renders nothing, so the still picture under it shows. */
+export default function Stage({ view, list, selected, detail, atlas, plane, live, onSelect, focus, onFocus, apiRef, embed = false, inset = NO_INSET, shift = null, fill = 1, labels = embed ? 6 : 10, bare = "", pin = null, onReady }) {
   const canvasRef = useRef(null), engineRef = useRef(null), labelRefs = useRef(new Map()), overlayRef = useRef(null), rootRef = useRef(null);
   const [land, setLand] = useState(null), [failed, setFailed] = useState(false), [tip, setTip] = useState(null);
   const [atlasHover, setAtlasHover] = useState(null), [zoomShown, setZoomShown] = useState(1);
@@ -110,13 +111,13 @@ export default function Stage({ view, list, selected, detail, atlas, plane, live
     const ro = new ResizeObserver(read); ro.observe(el);
     return () => ro.disconnect();
   }, []);
-  const { l, r, t, b } = inset, sx = shift?.x || 0, sy = shift?.y || 0;
+  const { l, r, t, b: b_ } = inset, sx = shift?.x || 0, sy = shift?.y || 0;     // b_: the loops below use b for a beacon
   useEffect(() => {
     const engine = engineRef.current; if (!engine || !size.w || !size.h) return;
-    engine.setInset({ l: l / size.w, r: r / size.w, t: t / size.h, b: b / size.h });
+    engine.setInset({ l: l / size.w, r: r / size.w, t: t / size.h, b: b_ / size.h });
     engine.setShift(sx, sy); engine.setFill(fill);
-  }, [size, l, r, t, b, sx, sy, fill]);
-  const inW = Math.max(0, size.w - l - r), inH = Math.max(0, size.h - t - b);
+  }, [size, l, r, t, b_, sx, sy, fill]);
+  const inW = Math.max(0, size.w - l - r), inH = Math.max(0, size.h - t - b_);
   const ledger = useMemo(() => {
     if (!selected || detail?.slug !== selected.slug || !peerData?.ref || inW < 240 || inH < 240) return null;
     const m = ledgerModel({ groups: detail.groups, components: detail.diagnostics?.components, risk: selected.risk, lo: selected.risk_lo, hi: selected.risk_hi,
@@ -175,9 +176,9 @@ export default function Stage({ view, list, selected, detail, atlas, plane, live
   // ---- overlay placement, once per frame: globe labels follow the sphere, the rest follow the camera
   const beacons = useMemo(() => {
     if (!geo) return [];
-    const top = list.slice(0, labels), all = selected && !top.some((c) => c.slug === selected.slug) ? [...top, selected] : top;
+    const top = list.slice(0, labels), all = selected && !pin && !top.some((c) => c.slug === selected.slug) ? [...top, selected] : top;
     return all.map((c) => ({ c, g: land.meta.countries[geo.idxOf.get(c.slug)] })).filter((b) => b.g);
-  }, [geo, land, list, selected, labels]);
+  }, [geo, land, list, selected, labels, pin]);
   useEffect(() => {                         // the overlay's size and each label's width are read here, once, never per frame
     const root = overlayRef.current; if (!root) return;
     const read = () => { sizeRef.current = { W: root.clientWidth, H: root.clientHeight }; for (const [slug, el] of labelRefs.current) widths.current.set(slug, el.offsetWidth); };
@@ -187,16 +188,29 @@ export default function Stage({ view, list, selected, detail, atlas, plane, live
     return () => ro.disconnect();
   }, [beacons]);
   useEffect(() => {
-    const engine = engineRef.current, root = overlayRef.current; if (!engine || !root) return;
-    let last = 1, sig = "", dirty = true, nodes = null;
+    const engine = engineRef.current, root = overlayRef.current, canvasEl = canvasRef.current; if (!engine || (!root && !pin)) return;
+    let last = 1, sig = "", dirty = true, nodes = null, box = null;
     const mo = new MutationObserver(() => { dirty = true; nodes = null; });          // new ledger or beacon nodes need placing even if the camera is still
-    mo.observe(root, { childList: true, subtree: true });
+    if (root) mo.observe(root, { childList: true, subtree: true });
+    const ro = new ResizeObserver(() => { box = null; dirty = true; });
+    ro.observe(canvasEl);
+    const at = pin && geo && selected ? land.meta.countries[geo.idxOf.get(selected.slug)] : null;
+    const placePin = (s) => {
+      const el = pin?.current; if (!el) return;
+      box ||= { x: canvasEl.offsetLeft, y: canvasEl.offsetTop, w: canvasEl.clientWidth, h: canvasEl.clientHeight };
+      const p = at && s.view === "field" ? engine.project(at.c[0], at.c[1]) : null;
+      const seen = p && p.front && p.x > 0.01 && p.x < 0.99 && p.y > 0.02 && p.y < 0.98;
+      el.style.opacity = seen ? 1 : 0;
+      if (seen) { el.style.transform = `translate(${(box.x + p.x * box.w).toFixed(1)}px, ${(box.y + p.y * box.h).toFixed(1)}px)`; el.classList.toggle("flip", p.x > 0.8); }
+    };
     engine.state.onFrame = () => {
       const s = engine.state, c = s.cams[s.view], zl = engine.zoomLevel();
       if (Math.abs(zl - last) > 0.04) { last = zl; setZoomShown(zl); }
       const now = `${s.view}|${s.yaw.toFixed(4)}|${s.pitch.toFixed(4)}|${s.morph.toFixed(3)}|${c.z.toFixed(3)}|${c.x.toFixed(4)}|${c.y.toFixed(4)}|${s.fade.field.toFixed(2)}`;
       if (!dirty && now === sig) return;                                             // nothing moved: no style writes at all
       sig = now; dirty = false;
+      placePin(s);
+      if (!root) return;
       const { W, H } = sizeRef.current; if (!W || !H) return;
       if (s.view === "field") {
         const placed = [];
@@ -204,29 +218,33 @@ export default function Stage({ view, list, selected, detail, atlas, plane, live
           const el = labelRefs.current.get(b.c.slug); if (!el) continue;
           const p = engine.project(b.g.c[0], b.g.c[1]);
           const x = p.x * W, w = widths.current.get(b.c.slug) ?? 80; let y = p.y * H;
-          const flip = x + w > W - 8, left = flip ? x - w + 6 : x;          // a label that would leave the stage reads leftwards from its marker
-          if (p.front) {                                  // stack labels that would collide; the marker stays on the country
+          const flip = x + w > W - r - 8, left = flip ? x - w + 6 : x;      // a label that would leave the free stage reads leftwards from its marker
+          const seen = p.front && x > l - 4 && x < W - r + 4 && y > t - 4 && y < H - b_ + 4;   // never under a panel
+          if (seen) {                                  // stack labels that would collide; the marker stays on the country
             for (let k = 0; k < 8 && placed.some((q) => left < q.x + q.w + 6 && q.x < left + w + 6 && Math.abs(q.y - y) < 19); k++) y += 19;
             placed.push({ x: left, y, w });
           }
           el.classList.toggle("flip", flip);
           el.style.transform = `translate(${left.toFixed(1)}px, ${(p.y * H).toFixed(1)}px)`;
           el.style.setProperty("--dy", `${(y - p.y * H).toFixed(1)}px`);
-          el.style.opacity = p.front && p.x > -0.05 && p.x < 1.05 && p.y > -0.05 && p.y < 1.05 ? 1 : 0;
-          el.style.pointerEvents = p.front ? "auto" : "none";
+          el.style.opacity = seen ? 1 : 0;
+          el.style.pointerEvents = seen ? "auto" : "none";
         }
         return;
       }
       nodes ||= [...root.querySelectorAll("[data-cx]")];
+      let floor = -1e9;                                                              // region names stack downwards, never over each other
       for (const el of nodes) {
         const a = engine.toStage(+el.dataset.cx, +el.dataset.cy);
-        el.style.left = `${(a.x * W).toFixed(1)}px`; el.style.top = `${(a.y * H).toFixed(1)}px`;
+        let y = a.y * H;
+        if (el.classList.contains("cx-region")) { y = Math.max(y, floor + 13); floor = y; }
+        el.style.left = `${(a.x * W).toFixed(1)}px`; el.style.top = `${y.toFixed(1)}px`;
         if (el.dataset.cx2) el.style.width = `${Math.max(0, (engine.toStage(+el.dataset.cx2, 0).x - a.x) * W).toFixed(1)}px`;
         el.style.opacity = a.x > -0.02 && a.x < 1.02 && a.y > -0.02 && a.y < 1.02 ? "" : 0;
       }
     };
-    return () => { mo.disconnect(); if (engine.state) engine.state.onFrame = null; };
-  }, [beacons, view]);
+    return () => { mo.disconnect(); ro.disconnect(); if (engine.state) engine.state.onFrame = null; };
+  }, [beacons, view, pin, geo, land, selected, l, r, t, b_]);
 
   // ---- pointer: rotate / pan / pinch / inspect / select
   const pts = useRef(new Map()), ptr = useRef({ down: false, moved: 0, x: 0, y: 0 }), pinch = useRef(0);
@@ -291,24 +309,24 @@ export default function Stage({ view, list, selected, detail, atlas, plane, live
   const onLeave = () => { setTip(null); setAtlasHover(null); engineRef.current?.hover(-1); };
 
   const quarterLabel = (q) => `${atlas.start + Math.floor(q / 4)} Q${(q % 4) + 1}`;
-  const zoomBtn = (f) => engineRef.current?.zoomAt(0.5, 0.5, f);
   const canvas = (
     <canvas ref={canvasRef} className={`${view === "field" && !plane ? "grab" : "pan"}${bare ? ` ${bare}` : ""}`} onPointerMove={onMove} onPointerDown={onDown} onPointerUp={onUp}
       onPointerCancel={onUp} onPointerLeave={onLeave} aria-hidden="true" />
   );
+  const tipBox = tip && (
+    <div className="cx-tip" style={{ left: Math.max(8, Math.min(tip.x + 14, (canvasRef.current?.clientWidth || 400) - 190)) + (bare ? canvasRef.current?.offsetLeft || 0 : 0), top: tip.y + 14 + (bare ? canvasRef.current?.offsetTop || 0 : 0) }}>
+      {tip.c ? (<><b>{tip.c.name}</b><span>{pct(tip.c.risk, 2)} · rank {tip.c.pos}</span><em>{tip.c.region}</em></>)
+        : (<><b>{tip.row.name}</b><span>{quarterLabel(tip.q)} · {tip.row.v[tip.q] < 0 ? "no forecast" : pct(tip.row.v[tip.q] / 10000, 2)}</span><em>click to open</em></>)}
+    </div>
+  );
   if (failed && embed) return null;
-  if (bare) return canvas;
+  if (bare) return <>{canvas}{tipBox}</>;
 
   return (
-    <div ref={rootRef} className={`cx-stage v-${view}${failed ? " failed" : ""}${embed ? " embed" : ""}`} style={{ "--in-l": `${l}px`, "--in-r": `${r}px`, "--in-t": `${t}px`, "--in-b": `${b}px` }}>
+    <div ref={rootRef} className={`cx-stage v-${view}${failed ? " failed" : ""}${embed ? " embed" : ""}`} style={{ "--in-l": `${l}px`, "--in-r": `${r}px`, "--in-t": `${t}px`, "--in-b": `${b_}px` }}>
       {canvas}
       {failed && !embed && <p className="cx-fail">WebGL2 is unavailable in this browser. The watchlist, readout and timeline remain fully usable.</p>}
 
-      {!embed && <div className="cx-zoom" role="group" aria-label="Zoom">
-        <button onClick={() => zoomBtn(1.5)} aria-label="Zoom in">+</button>
-        <button onClick={() => zoomBtn(1 / 1.5)} aria-label="Zoom out">−</button>
-        <button onClick={() => engineRef.current?.resetCam()} className="fit" aria-label="Reset zoom" title="Reset zoom (key 0)">{zoomShown.toFixed(1)}×</button>
-      </div>}
 
       <div ref={overlayRef} className={`cx-overlay${zoomShown > 2.2 ? " zin" : ""}`}>
         {view === "field" && beacons.map(({ c }) => (
@@ -357,12 +375,7 @@ export default function Stage({ view, list, selected, detail, atlas, plane, live
         </div>
       )}
 
-      {tip && (
-        <div className="cx-tip" style={{ left: Math.min(tip.x + 14, (canvasRef.current?.clientWidth || 400) - 190), top: tip.y + 14 }}>
-          {tip.c ? (<><b>{tip.c.name}</b><span>{pct(tip.c.risk, 2)} · rank {tip.c.pos}</span><em>{tip.c.region}</em></>)
-            : (<><b>{tip.row.name}</b><span>{quarterLabel(tip.q)} · {tip.row.v[tip.q] < 0 ? "no forecast" : pct(tip.row.v[tip.q] / 10000, 2)}</span><em>click to open</em></>)}
-        </div>
-      )}
+      {tipBox}
     </div>
   );
 }

@@ -7,32 +7,14 @@ const pp = (v) => v == null ? "Unavailable" : `${v > 0 ? "+" : ""}${(v * 100).to
 const value = (v) => v == null ? "Unavailable" : v.toLocaleString("en", { maximumFractionDigits: 2 });
 const MODEL_NAMES = { logit: "Logistic regression", gbm: "Gradient boosting", rf: "Random forest", lgbm: "LightGBM", storia_contagio: "Coup-history model" };
 
-/** `part` picks one block: "assessment", "signals", "context" (institutions and region) or "quality". */
+/** `part` picks one block: "signals", "context" (institutions and region) or "quality". */
 export default function CountryAnalysis({ country: c, meta, part }) {
   const a = c.analysis, d = c.diagnostics;
   if (!a) return null;
   const observed = d?.coverage.reduce((s, g) => s + g.observed, 0);
   const total = d?.coverage.reduce((s, g) => s + g.total, 0);
-  const up = (c.groups || []).filter((g) => g.contrib > 0).sort((x, y) => y.contrib - x.contrib).slice(0, 2);
-  const down = (c.groups || []).filter((g) => g.contrib < 0).sort((x, y) => x.contrib - y.contrib).slice(0, 2);
   return <div className="country-analysis">
     {!c.historical && <>
-      {part === "assessment" && <section id="assessment" className="block country-assessment">
-<h2>Reading the current estimate</h2>
-        <p className="country-reading">The model estimates a <strong>{pct(c.risk)}</strong> probability of at least one coup attempt in {c.name} between <strong>{month(meta.forecast_from)}</strong> and <strong>{month(meta.forecast_to)}</strong>. Successful and failed attempts both count.</p>
-        <div className="country-stats">
-          <div><span>Change over 3 months</span><strong>{pp(a.delta)}</strong><small>{meta.change_basis === "same_model" ? "Both dates evaluated with the current model" : "Difference between historical model estimates"}</small></div>
-          <div><span>Regional position</span><strong>{a.region.rank == null ? "—" : `${a.region.rank} / ${a.region.count}`}</strong><small>{c.region}; equal estimates share a position</small></div>
-          <div><span>Own historical percentile</span><strong>{a.history.percentile == null ? "—" : `${Math.round(a.history.percentile * 100)} / 100`}</strong><small>Share of past estimates at or below the current value</small></div>
-          <div><span>Estimation range / 80%</span><strong>{c.risk_lo == null ? "Unavailable" : `${pct(c.risk_lo)} – ${pct(c.risk_hi)}`}</strong><small>{meta.boot || 0} country-resampled refits</small></div>
-        </div>
-        <div className="country-balance">
-          <div><h3>Factors associated with higher risk</h3>{up.length ? <ul>{up.map((g) => <li key={g.key}>{labelEn(g.label)}</li>)}</ul> : <p>No positive group contribution exported.</p>}</div>
-          <div><h3>Factors associated with lower risk</h3>{down.length ? <ul>{down.map((g) => <li key={g.key}>{labelEn(g.label)}</li>)}</ul> : <p>No negative group contribution exported.</p>}</div>
-        </div>
-        <p className="note">These terms come from the logistic model and are measured from its training reference. They do not add up to the final ensemble figure. The range shows how much the estimate moves when the training set changes; it leaves out other sources of error.</p>
-      </section>}
-
       {part === "signals" && <section id="signals" className="block">
 <h2>Recent signals in context</h2>
         <p className="note">Last three months through {month(meta.data_end)}, compared with the preceding 24 months (at least six observed months required). These descriptive ratios do not modify the forecast.</p>

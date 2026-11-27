@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { preloadModule } from "react-dom";
 import AtlasStill from "@/components/home/AtlasStill";
+import BriefLink from "@/components/home/BriefLink";
 import BriefSheets from "@/components/home/BriefSheets";
-import { FieldLayer, HeroFacts, HeroPause, HeroPick } from "@/components/home/FieldHero";
+import { FieldLayer, HeroActions, HeroCard, HeroPause, HeroPick } from "@/components/home/FieldHero";
 import { FiledCard, ScoreCard, WindowCard } from "@/components/home/Filing";
 import { PickChips, PickProvider } from "@/components/home/Pick";
 import Leaders from "@/components/Leaders";
@@ -14,7 +15,7 @@ import KitRuntime from "@/components/site/KitRuntime";
 import ValueMap, { MapKey } from "@/components/ValueMap";
 import { FooterDirectory } from "@/components/SiteFooter";
 import { watchlist } from "@/lib/console";
-import { getCountry, getSummary, listCountries } from "@/lib/data";
+import { getCountry, getSummary, listCountries, traceModel } from "@/lib/data";
 import { MONTHS, num, pct } from "@/lib/format";
 import { marketTop, unrestAll, violenceAll } from "@/lib/highlights";
 import { getRegistry } from "@/lib/registry";
@@ -33,7 +34,8 @@ export default function Home() {
   preloadModule("/assets/moments/moments.js");
   const { meta } = getSummary(), list = watchlist(), registry = getRegistry(), issue = registry.issues[0], h = registry.hindcast;
   const first = list[0], detail = getCountry(first.slug), refP = tracePeers().ref;
-  const slim = list.map(({ slug, name, iso, region, risk, risk_lo, risk_hi, pos }) => ({ slug, name, iso, region, risk, risk_lo, risk_hi, pos }));
+  const featureGroup = Object.fromEntries(traceModel().features.map((f) => [f.label, f.group]));
+  const slim = list.map(({ slug, name, iso, region, risk, risk_lo, risk_hi, risk_3m_ago, pos }) => ({ slug, name, iso, region, risk, risk_lo, risk_hi, risk_3m_ago, pos }));
   const options = listCountries().map((c) => ({ slug: c.slug, name: c.name, region: c.region }));
   const span = `${shortMonth(meta.forecast_from)} to ${shortMonth(meta.forecast_to)}`;
   const violence = violenceAll(), unrest = unrestAll(), markets = marketTop(8);
@@ -49,10 +51,11 @@ export default function Home() {
               <HeroPause />
               <div className="hero__text">
                 <h1 id="hero-h">Coup-risk forecasts for every country</h1>
-                <p className="hero__lead">Each month we put a six-month chance of a coup attempt on {list.length} countries and territories, file it in public, then score it.</p>
-                <HeroPick options={options} />
+                <p className="hero__lead">A six-month chance of a coup attempt for {list.length} countries and territories, filed in public each month, then scored.</p>
+                <HeroPick options={options} span={shortMonth(meta.forecast_to)} />
+                <HeroActions />
               </div>
-              <HeroFacts span={shortMonth(meta.forecast_to)} base={meta.base_rate} />
+              <HeroCard span={shortMonth(meta.forecast_to)} base={meta.base_rate} />
             </div>
           </div>
         </section>
@@ -72,7 +75,7 @@ export default function Home() {
 
         <section className="section" id="why" aria-labelledby="why-h">
           <div className="wrap">
-            <WhyTrace refP={refP} />
+            <WhyTrace refP={refP} featureGroup={featureGroup} />
           </div>
         </section>
 
@@ -103,7 +106,7 @@ export default function Home() {
                 <h2 id="brief-h">A coup-risk brief for each country</h2>
                 <p>Four PDF pages, written for the reader you pick, in about two minutes.</p>
               </div>
-              <Link className="link" href={`/forecast?c=${first.slug}`} prefetch={false}>Get {first.name}&apos;s brief</Link>
+              <BriefLink />
             </div>
             <div className="grid grid--top brief-row">
               <BriefSheets slug={first.slug} />
@@ -125,7 +128,7 @@ export default function Home() {
                 <li className="mo-pc__step">
                   <h3>File the forecast before its window</h3>
                   <p>Each issue goes into a public repository with its checksum, and is never edited.</p>
-                  <figure className="mo-pc__visual"><FiledCard issue={issue} filed={longDay(issue.published)} /></figure>
+                  <figure className="mo-pc__visual"><FiledCard issue={issue} filed={longDay(issue.published)} closes={longMonth(issue.window[1])} /></figure>
                 </li>
                 <li className="mo-pc__step">
                   <h3>Let the six-month window run</h3>
@@ -135,7 +138,7 @@ export default function Home() {
                 <li className="mo-pc__step">
                   <h3>Score the forecast against coups</h3>
                   <p>When the window closes it is scored beside a base-rate guess, hits and misses alike.</p>
-                  <figure className="mo-pc__visual"><ScoreCard h={h.pooled} closes={longMonth(issue.window[1])} /></figure>
+                  <figure className="mo-pc__visual"><ScoreCard h={h.pooled} filed={longDay(issue.published)} closes={longMonth(issue.window[1])} /></figure>
                 </li>
               </ol>
               <p className="mo-pc__more"><Link className="link" href="/registry">Read the forecast registry</Link></p>
@@ -157,7 +160,7 @@ export default function Home() {
                 <>
                   <div className="map-head"><p>Organised violence events expected in the next four weeks. <Link href="/violence">Open the violence forecast</Link></p></div>
                   <div className="map-frame" data-ui="map">
-                    <ValueMap tone="rise" steps={[10, 50, 200, 1000]} values={violence.map((v) => ({ iso: v.iso, name: v.name, value: v.next, text: `${num(Math.round(v.next))} events` }))} label={`Violence forecast by country; ${violence[0].name} is highest with about ${num(Math.round(violence[0].next))} events`} />
+                    <ValueMap tone="rise" hash="#violence" steps={[10, 50, 200, 1000]} values={violence.map((v) => ({ iso: v.iso, slug: v.slug, name: v.name, value: v.next, text: `${num(Math.round(v.next))} events expected in four weeks` }))} label={`Violence forecast by country; ${violence[0].name} is highest with about ${num(Math.round(violence[0].next))} events`} />
                     <Leaders title="Most events" rows={violence.slice(0, 6).map((v) => ({ slug: v.slug, name: v.name, figure: num(Math.round(v.next)) }))} />
                     <MapKey tone="rise" labels={["under 10", "10+", "50+", "200+", "1,000+"]} />
                   </div>
@@ -167,7 +170,7 @@ export default function Home() {
                 <>
                   <div className="map-head"><p>Chance of a protest wave in the next three months. <Link href="/unrest">Open the unrest forecast</Link></p></div>
                   <div className="map-frame" data-ui="map">
-                    <ValueMap tone="coup" steps={[0.03, 0.08, 0.15, 0.25]} values={unrest.map((u) => ({ iso: u.iso, name: u.name, value: u.p, text: pct(u.p, 0) }))} label={`Chance of a protest wave by country; ${unrest[0].name} is highest at ${pct(unrest[0].p, 0)}`} />
+                    <ValueMap tone="coup" hash="#unrest" steps={[0.03, 0.08, 0.15, 0.25]} values={unrest.map((u) => ({ iso: u.iso, slug: u.slug, name: u.name, value: u.p, text: `${pct(u.p, 0)} chance of a protest wave` }))} label={`Chance of a protest wave by country; ${unrest[0].name} is highest at ${pct(unrest[0].p, 0)}`} />
                     <Leaders title="Highest chance" rows={unrest.slice(0, 6).map((u) => ({ slug: u.slug, name: u.name, figure: pct(u.p, 0) }))} />
                     <MapKey tone="coup" labels={["under 3%", "3%+", "8%+", "15%+", "25%+"]} />
                   </div>
@@ -177,7 +180,7 @@ export default function Home() {
                 <>
                   <div className="map-head"><p>Coup markets read on {longDay(markets.asOf.slice(0, 10))}, beside our chance for the same date. <Link href="/markets">Open markets and the model</Link></p></div>
                   <div className="map-frame" data-ui="map">
-                    <ValueMap tone="fall" steps={[0, 0.01, 0.03, 0.1]} values={markets.rows.map((m) => ({ iso: m.iso, name: m.name, value: m.p, text: `market ${pct(m.p, 1)}, model ${pct(m.model, 1)}` }))} label="Countries with an open coup market" />
+                    <ValueMap tone="fall" hash="#crowd" steps={[0, 0.01, 0.03, 0.1]} values={markets.rows.map((m) => ({ iso: m.iso, slug: m.slug, name: m.name, value: m.p, text: `market ${pct(m.p, 1)}, model ${pct(m.model, 1)}` }))} label="Countries with an open coup market" />
                     <Leaders title="Market price · model" rows={markets.rows.slice(0, 6).map((m) => ({ slug: m.slug, name: m.name, figure: pct(m.p, 1), note: pct(m.model, 1) }))} />
                     <MapKey tone="fall" labels={["no market", "under 1%", "1%+", "3%+", "10%+"]} />
                   </div>

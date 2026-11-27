@@ -7,7 +7,7 @@ import { pct } from "@/lib/format";
 
 const PAGES = [
   { href: "/forecast", name: "Forecast console", line: "Where, when and why, for every country" },
-  { href: "/world", name: "Map", line: "Every recorded coup since 1900" },
+  { href: "/world", name: "Coup history", line: "Every recorded coup since 1900, on a map" },
   { href: "/violence", name: "Violence forecast", line: "Six four-week periods ahead" },
   { href: "/unrest", name: "Unrest forecast", line: "Protest waves and escalation" },
   { href: "/markets", name: "Markets", line: "Market prices beside the model" },

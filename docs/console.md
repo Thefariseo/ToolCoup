@@ -1,28 +1,32 @@
 # Console
 
-Lives at `/forecast` (old `/?c=…&v=…` links redirect there). One moving field fills the screen; four panels float
+Lives at `/forecast` (old `/?c=…&v=…` links redirect there). One moving field fills the screen; panels float
 over it, and every view is drawn in the part they leave free.
 
 | Panel | Job |
 |---|---|
 | Watchlist (left) | Every forecast country with its flag, three-month change and 6-month chance. Sort by chance, rise or name; filter with `/`, move with `↑ ↓`. |
-| View bar (top) | Where, when, why (keys `1 2 3`), flat map (`G`), pause (`M`), timeline (`T`), guide (`?`). |
-| Timeline (bottom) | The selected country since 1975: published monthly risk, recorded coups, ACLED counts. |
-| Readout (right) | The number, how it compares with a typical country, its 80% range, change, coup record, the largest drivers and the brief. |
+| Views (top) | Where, when, why (keys `1 2 3`), with one line saying what the picture shows. |
+| Tools (icons beside the stage) | Zoom (`+ − 0`), flat map (`G`), pause (`M`), timeline (`T`), guide (`?`). Each names itself on hover or focus. |
+| Timeline (bottom) | The selected country since 1975: published monthly risk, recorded coups, ACLED counts. It opens where the window is at least 820px tall; the reader's choice is remembered. |
+| Readout (right) | The number, its 80% range against a typical country, rank, change, the largest drivers, coup record and the brief. |
 
-Under 1100px the panels stack below the stage. A first visit is offered the guide in a corner; it never opens by
-itself (except with `?tour=1`).
+Under 1100px the stage takes the first screen, the tools sit in a row over it, and below it two panes share the page:
+the selected country (timeline and readout) and the watchlist. Choosing from the list opens the country pane. A first
+visit is offered the guide in a corner; it never opens by itself (except with `?tour=1`).
 
 The panels' measured size is handed to the engine as margins (`engine.setInset`), so the globe, the atlas and the
 ledger are centred in the free rectangle at any width. `setShift` moves the globe off centre and `setFill` scales it.
 
 ## The same stage elsewhere
 
-`components/console/Stage.js` also draws inside pages (`embed`): no zoom buttons, no wheel capture. On the home page
-the hero uses `bare`, which returns the canvas alone as the section's background layer, over `/globe-still.svg`; the
-"when" section shows the atlas; a country page shows the globe turned to that country. When WebGL cannot draw, an
-embedded stage renders nothing and the still picture stays. The home page's choice of country is shared by the three
-sections (`components/home/Pick.js`).
+`components/console/Stage.js` also draws inside pages (`embed`): no wheel capture. On the home page the hero uses
+`bare`, which returns the canvas (and the name under the pointer) as the section's background layer, over
+`/globe-still.svg`; the "when" section shows the atlas; a country page shows the globe turned to that country. `pin`
+is an element the stage keeps on the selected country as the globe turns (hero and country page). When WebGL cannot
+draw, an embedded stage renders nothing and the still picture stays. The home page's choice of country is shared by
+the list, the globe, the "when" and "why" sections and the brief link (`components/home/Pick.js`). The "why" ledger
+of the home page and the country page is `components/WhyLedger.js`.
 
 ## Site chrome
 
@@ -77,8 +81,8 @@ The code is original.
 ## Zoom, camera and trace simulation
 
 All three views share a camera (`clip' = (clip − pan) × zoom`, 1× to 8×): wheel or pinch zooms about the
-cursor, drag pans (on the globe it rotates), `+ − 0` and the buttons at the top right of the stage zoom and
-reset. Text labels follow the camera but keep their size.
+cursor, drag pans (on the globe it rotates), `+ − 0` and the zoom tools beside the stage zoom and reset. Text
+labels follow the camera but keep their size, and are hidden where a panel would cover them.
 
 The **Model Trace** keeps a GPU particle simulation underneath the ledger as texture: 65,536 particles (16,384 on narrow
 screens) in float textures, advanced by curl noise inside one band per ledger row, streaming along the bar in the

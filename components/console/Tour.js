@@ -18,7 +18,7 @@ const STEPS = [
   ] },
   { target: ".cx-tabs", side: "bottom", view: "field", title: "Three ways to read one forecast", body: [
     "Where: a globe coloured by each country's chance. When: one ridge per country since 1975. Why: how each group of variables pushes this country's odds up or down.",
-    "Switch with the tabs or the keys 1, 2 and 3. Drag and scroll move the globe; G turns it into a flat map; T hides the timeline.",
+    "Switch with the tabs or the keys 1, 2 and 3. The icons beside the stage zoom, switch to a flat map (G), pause (M) and open the timeline (T).",
   ] },
   { target: ".cx-read", side: "left", title: "The readout", body: [
     "The chance with its 80% range, the rank, the biggest drivers and the coup record.",

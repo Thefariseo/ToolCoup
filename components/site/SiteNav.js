@@ -9,7 +9,7 @@ import Palette from "@/components/site/Palette";
 // The header, on the design kit's classes (assets/system.css): fixed, opaque, the logo in the middle. The product's
 // views sit on the left, the record on the right, then the search and the one button. Under 1024px the words move
 // into a full-screen sheet behind the menu button; the search stays in the bar.
-const LEFT = [["/world", "Map"], ["/violence", "Violence"], ["/unrest", "Unrest"], ["/markets", "Markets"]];
+const LEFT = [["/world", "History"], ["/violence", "Violence"], ["/unrest", "Unrest"], ["/markets", "Markets"]];
 const RIGHT = [["/registry", "Registry"], ["/metodo", "Method"]];
 // the map carries a detailed world outline (about 800 KB of script): it loads when someone asks for it, not ahead
 
